@@ -79,7 +79,7 @@ Environment Variables
 
 Create a .env file inside the server folder.
 
-📄 .env
+.env
 # Server
 PORT=5000
 

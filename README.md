@@ -1,2 +1,2 @@
 # Smart_Hire
-Smart Hire Website Project
+SmartHire - A full-stack job listing and application platform

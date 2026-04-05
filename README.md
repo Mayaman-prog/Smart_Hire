@@ -136,3 +136,74 @@ Implement advanced search filters
 Goal
 
 Make onboarding so easy that any developer can run the project in under 15 minutes without help.
+
+## Database Schema
+
+### Technologies Used
+- MySQL (via XAMPP)
+- Database Name: `smarthire`
+
+### Tables Created
+
+| Table | Description |
+|-------|-------------|
+| users | Stores user accounts (job seekers, employers, admins) |
+| companies | Stores company profiles |
+| jobs | Stores job postings |
+| applications | Stores job applications |
+
+### Table Structures
+
+#### users
+- id (Primary Key)
+- name, email (unique), password_hash
+- role (job_seeker/employer/admin)
+- company_id (Foreign Key to companies)
+- is_active, created_at, updated_at
+
+#### companies
+- id (Primary Key)
+- name, logo_url, description, website
+- location, email, phone
+- is_verified, created_at, updated_at
+
+#### jobs
+- id (Primary Key)
+- title, description, requirements
+- salary_min, salary_max, location
+- job_type, experience_level
+- company_id (Foreign Key), posted_by (Foreign Key)
+- is_active, is_featured, deadline
+
+#### applications
+- id (Primary Key)
+- job_id (Foreign Key), user_id (Foreign Key)
+- status (pending/reviewed/shortlisted/rejected/hired)
+- cover_letter, resume_url
+- applied_at, updated_at
+
+### Indexes Created
+- email, role, is_active (users table)
+- job_type, location, is_active, is_featured (jobs table)
+- status, applied_at (applications table)
+
+### Foreign Key Relationships
+- users.company_id → companies.id
+- jobs.company_id → companies.id
+- jobs.posted_by → users.id
+- applications.job_id → jobs.id
+- applications.user_id → users.id
+
+### Setup Instructions
+
+1. Install XAMPP and start MySQL
+2. Open phpMyAdmin: `http://localhost/phpmyadmin`
+3. Create database: `smarthire`
+4. Run the `schema.sql` file located in `server/database/`
+5. Verify tables are created successfully
+
+### Seed Data
+- 5 users (2 employers, 2 job seekers, 1 admin)
+- 3 companies
+- 5 jobs
+- 5 applications

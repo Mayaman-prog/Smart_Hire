@@ -1,85 +1,124 @@
 # Smart_Hire - Smart Job Portal System
+
+SmartHire is a modern full-stack job portal web application connecting job seekers, employers, and administrators. It is designed to be scalable, SEO-friendly, and production-ready.
+
+Table of Contents
 Project Overview
-
-SmartHire is a modern full-stack job portal web application that connects job seekers, employers, and administrators in a single platform.
-
-Roles:
-Job Seekers – Search and apply for jobs
-Employers – Post and manage job listings
-Admin – Monitor and manage the system
-
-The system is designed to be:
-
-Scalable
-SEO-friendly
-Production-ready
-
+Features
 Tech Stack
-    Client
+Prerequisites
+Project Structure
+Setup Instructions
+Navbar Implementation
+Database Schema
+Seed Data
+Contributing
+Future Improvements
+License
+
+## Project Overview
+SmartHire enables seamless interaction between job seekers, employers, and admins.
+
+| Role           | Capabilities                                                                |
+| -------------- | --------------------------------------------------------------------------- |
+| **Job Seeker** | Search & apply for jobs, view companies, manage profile, track applications |
+| **Employer**   | Post jobs, manage listings, view applications, manage company profile       |
+| **Admin**      | Monitor users, manage jobs, generate reports, oversee the system            |
+
+## Features
+Role-based navigation for Job Seeker, Employer, Admin, Guest
+Responsive design (Desktop & Mobile)
+Active route highlighting
+Login/Logout functionality
+User avatar dropdown menu
+Mobile hamburger menu
+SEO-friendly & scalable
+
+## Tech Stack
+### Client
     React (Vite)
     Tailwind CSS
     Axios
+    React Router DOM
 
-Server
-    Node.js
-    Express.js
+### Server
+    Node.js + Express.js
     JWT Authentication
-Database
-    MySQL
+    bcrypt for password hashing
+    CORS
 
-Prerequisites
+### Database
+    MySQL (via XAMPP)
+
+## Prerequisites
 
 Make sure you have the following installed:
+- Node.js (v18 or higher)
+- MySQL (v8 or higher)
+- Git
+- XAMPP (for MySQL)
 
-Node.js (v18 or higher)
-MySQL (v8 or higher)
-Git
-Project Structure
+## Project Structure
 SmartHire/
+├── client/                  # React (Vite) frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── common/      # Navbar.jsx
+│   │   ├── contexts/        # AuthContext.jsx
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   └── package.json
 │
-├── client/     # React (Vite) app
-├── server/     # Node.js + Express API
+├── server/                  # Node.js + Express backend
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── config/
+│   ├── database/
+│   │   └── schema.sql
+│   └── server.js
+│
 ├── README.md
 └── .gitignore
 
-Setup Instructions
+## Setup Instructions
 
 Follow these steps to run the project locally in under 15 minutes:
 
-1. Clone the Repository
+### Clone the Repository
     git clone https://github.com/Mayaman-prog/Smart_Hire.git
-    cd smarthire
-2. Client Setup
+    cd Smart_Hire
+
+### Client Setup
     cd client
     npm install
     npm run dev
 
-Client will run on:
+Client will run on: http://localhost:5173
 
-http://localhost:5173
-
-3. Server Setup
+### Server Setup
 
 Open a new terminal:
+    cd server
+    npm install
+    npm run dev
 
-cd server
-npm install
-npm run dev
+Server will run on: http://localhost:5000
 
-Server will run on:
+### Database Setup (MySQL)
+#### Open MySQL via XAMPP or terminal
 
-http://localhost:5000
-
-4. Database Setup (MySQL)
-    Open MySQL
-    Create a database:
+#### Create database
     CREATE DATABASE smarthire;
 
-Environment Variables
+#### Import schema from server/database/schema.sql
+
+### Environment Variables
 
 Create a .env file inside the server folder.
 
-.env
 # Server
 PORT=5000
 
@@ -94,116 +133,83 @@ JWT_SECRET=c/h6cJrSVDF3p0ZSTu56NdgphRT8L4Gb6EGPKdUy/fg=
 
 # Client URL
 CLIENT_URL=http://localhost:5173
-Running the Full Project
-Start server:
-cd server
-npm run dev
-Start client:
-cd client
-npm run dev
-Testing Instructions
 
-To verify everything works on a fresh machine:
+### Run the Project
+# Start server (Terminal 1)
+    cd server
+    npm run dev
 
-Clone the repo
-Install dependencies (client + server)
-Set up .env file
-Start server
-Start client
-Open browser at:
-http://localhost:5173
+# Start client (Terminal 2)
+    cd client
+    npm run dev
 
-You should see the SmartHire application running.
+## Open browser at: http://localhost:5173
 
-Contributing
+### Navbar Implementation
+
+# Features
+    Role-based navigation (Job Seeker, Employer, Admin, Guest)
+    Active route highlighting
+    User avatar dropdown menu
+    Mobile hamburger menu
+    Tailwind CSS styling
+
+# Role-Based Navigation
+| User Role  | Menu Items                                             |
+| ---------- | ------------------------------------------------------ |
+| Job Seeker | Home, Jobs, Companies, My Applications, Profile        |
+| Employer   | Home, Jobs, Companies, Post Job, My Jobs, Applications |
+| Admin      | Home, Jobs, Companies, Users, Manage Jobs, Reports     |
+| Guest      | Home, Jobs, Companies, Login, Register                 |
+
+###  Database Schema
+# Tables & Relationships
+| Table            | Description                    |
+| ---------------- | ------------------------------ |
+| **users**        | Job seekers, employers, admins |
+| **companies**    | Company profiles               |
+| **jobs**         | Job postings                   |
+| **applications** | Job applications               |
+
+### Table Structures
+# Indexes
+    users: email, role, is_active
+    jobs: job_type, location, is_active, is_featured
+    applications: status, applied_at
+
+# Foreign Keys
+    users.company_id → companies.id
+    jobs.company_id → companies.id
+    jobs.posted_by → users.id
+    applications.job_id → jobs.id
+    applications.user_id → users.id
+
+## Seed Data
+    5 users (2 employers, 2 job seekers, 1 admin)
+    3 companies
+    5 jobs
+    5 applications
+
+### Contributing
     Create a new branch:
     git switch -c branch-name
+
     Commit your changes:
     git commit -m "add new feature"
+
     Push to repository:
     git push origin branch-name
+
+### Future Improvements
+    Docker support
+    Cloud deployment (Vercel + Render)
+    Notification system
+    Advanced search filters
 
 License
 
 This project is for educational purposes.
 
-Future Improvements
-Add Docker support
-Deploy to cloud (Vercel + Render)
-Add notifications system
-Implement advanced search filters
-
 Goal
 
-Make onboarding so easy that any developer can run the project in under 15 minutes without help.
-
-## Database Schema
-
-### Technologies Used
-- MySQL (via XAMPP)
-- Database Name: `smarthire`
-
-### Tables Created
-
-| Table | Description |
-|-------|-------------|
-| users | Stores user accounts (job seekers, employers, admins) |
-| companies | Stores company profiles |
-| jobs | Stores job postings |
-| applications | Stores job applications |
-
-### Table Structures
-
-#### users
-- id (Primary Key)
-- name, email (unique), password_hash
-- role (job_seeker/employer/admin)
-- company_id (Foreign Key to companies)
-- is_active, created_at, updated_at
-
-#### companies
-- id (Primary Key)
-- name, logo_url, description, website
-- location, email, phone
-- is_verified, created_at, updated_at
-
-#### jobs
-- id (Primary Key)
-- title, description, requirements
-- salary_min, salary_max, location
-- job_type, experience_level
-- company_id (Foreign Key), posted_by (Foreign Key)
-- is_active, is_featured, deadline
-
-#### applications
-- id (Primary Key)
-- job_id (Foreign Key), user_id (Foreign Key)
-- status (pending/reviewed/shortlisted/rejected/hired)
-- cover_letter, resume_url
-- applied_at, updated_at
-
-### Indexes Created
-- email, role, is_active (users table)
-- job_type, location, is_active, is_featured (jobs table)
-- status, applied_at (applications table)
-
-### Foreign Key Relationships
-- users.company_id → companies.id
-- jobs.company_id → companies.id
-- jobs.posted_by → users.id
-- applications.job_id → jobs.id
-- applications.user_id → users.id
-
-### Setup Instructions
-
-1. Install XAMPP and start MySQL
-2. Open phpMyAdmin: `http://localhost/phpmyadmin`
-3. Create database: `smarthire`
-4. Run the `schema.sql` file located in `server/database/`
-5. Verify tables are created successfully
-
-### Seed Data
-- 5 users (2 employers, 2 job seekers, 1 admin)
-- 3 companies
-- 5 jobs
-- 5 applications
+Make onboarding so easy that any developer can run SmartHire locally in under 15 minutes.

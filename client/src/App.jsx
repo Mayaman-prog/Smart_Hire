@@ -1,5 +1,8 @@
+// client/src/App.jsx
 import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import axios from 'axios';
+import Navbar from './components/common/Navbar';
 
 function App() {
   const [message, setMessage] = useState('Loading...');
@@ -16,10 +19,23 @@ function App() {
   }, []);
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h1>SmartHire Portal</h1>
-      <p>Backend Status: {message}</p>
-    </div>
+    <>
+      <Navbar />
+      <Routes>
+        {/* Remove comments when checking if the frontend and backend are working together or not */}
+        {/* <Route path="/" element={
+          <div style={{ textAlign: 'center', marginTop: '80px' }}>
+            <h1>SmartHire Portal</h1>
+            <p>Backend Status: {message}</p>
+          </div>
+        } /> */}
+        <Route path="/jobs" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Jobs Page</div>} />
+        <Route path="/companies" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Companies Page</div>} />
+        <Route path="/dashboard" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Dashboard</div>} />
+        <Route path="/login" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Login Page</div>} />
+        <Route path="/register" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Register Page</div>} />
+      </Routes>
+    </>
   );
 }
 

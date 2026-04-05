@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from './components/common/Navbar';
+import Footer from './components/common/Footer';
 
 function App() {
   const [message, setMessage] = useState('Loading...');
@@ -21,6 +22,7 @@ function App() {
   return (
     <>
       <Navbar />
+      <main className="flex-grow">
       <Routes>
         {/* Remove comments when checking if the frontend and backend are working together or not */}
         {/* <Route path="/" element={
@@ -35,6 +37,8 @@ function App() {
         <Route path="/login" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Login Page</div>} />
         <Route path="/register" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Register Page</div>} />
       </Routes>
+      </main>
+      <Footer />
     </>
   );
 }

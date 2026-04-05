@@ -60,25 +60,28 @@ Make sure you have the following installed:
 
 ## Project Structure
 SmartHire/
-├── client/                  # React (Vite) frontend
-│   ├── src/
-│   │   ├── components/
-│   │   │   └── common/      # Navbar.jsx
-│   │   ├── contexts/        # AuthContext.jsx
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── index.html
-│   └── package.json
+├── client/ # React (Vite) frontend
+│ ├── src/
+│ │ ├── components/
+│ │ │ └── common/
+│ │ │ ├── Navbar.jsx
+│ │ │ └── Footer.jsx
+│ │ ├── contexts/
+│ │ │ └── AuthContext.jsx
+│ │ ├── App.jsx
+│ │ └── main.jsx
+│ ├── index.html
+│ └── package.json
 │
-├── server/                  # Node.js + Express backend
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── config/
-│   ├── database/
-│   │   └── schema.sql
-│   └── server.js
+├── server/ # Node.js + Express backend
+│ ├── controllers/
+│ ├── middleware/
+│ ├── models/
+│ ├── routes/
+│ ├── config/
+│ ├── database/
+│ │ └── schema.sql
+│ └── server.js
 │
 ├── README.md
 └── .gitignore
@@ -190,6 +193,34 @@ CLIENT_URL=http://localhost:5173
     5 jobs
     5 applications
 
+### Footer Implementation
+
+# Features
+- Responsive layout (4 columns desktop, 2 columns tablet, 1 column mobile)
+- Quick links sections (Platform, For Employers, Support)
+- Newsletter signup with email validation
+- Toast notification for "Feature coming soon"
+- Social media icons (LinkedIn, GitHub, Twitter, Facebook) - 24px each
+- Dynamic copyright year (auto-updates)
+- Sticky to bottom using flexbox (mt-auto)
+- Dark theme background (bg-gray-900) with white text
+- Hover effects on all links and icons
+
+# Footer Sections
+| Section        | Links                                                                 |
+|----------------|----------------------------------------------------------------------|
+| **Brand**      | SmartHire logo, tagline, emojis                                |
+| **Platform**   | Find Jobs, Browse Companies, Salaries, Career Advice                 |
+| **For Employers** | Post a Job, Hiring Solutions, Pricing, Resources                  |
+| **Support**    | Help Center, Privacy Policy, Terms of Service, Cookie Policy         |
+
+# Responsive Breakpoints
+| Screen Size              | Layout     |
+|--------------------------|------------|
+| **Desktop (>1024px)**    | 4 columns  |
+| **Tablet (768px-1024px)**| 2 columns  |
+| **Mobile (<768px)**      | 1 column   |
+
 ### Contributing
     Create a new branch:
     git switch -c branch-name
@@ -206,10 +237,10 @@ CLIENT_URL=http://localhost:5173
     Notification system
     Advanced search filters
 
-License
+### License
 
 This project is for educational purposes.
 
-Goal
+### Goal
 
 Make onboarding so easy that any developer can run SmartHire locally in under 15 minutes.

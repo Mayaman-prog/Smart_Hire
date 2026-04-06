@@ -3,18 +3,20 @@
 SmartHire is a modern full-stack job portal web application connecting job seekers, employers, and administrators. It is designed to be scalable, SEO-friendly, and production-ready.
 
 Table of Contents
-Project Overview
-Features
-Tech Stack
-Prerequisites
-Project Structure
-Setup Instructions
-Navbar Implementation
-Database Schema
-Seed Data
-Contributing
-Future Improvements
-License
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Project Structure](#project-structure)
+- [Setup Instructions](#setup-instructions)
+- [Components Implemented](#components-implemented)
+  - [Navbar Component](#navbar-component)
+  - [Footer Component](#footer-component)
+  - [JobCard Component](#jobcard-component)
+- [Database Schema](#database-schema)
+- [Contributing](#contributing)
+- [Future Improvements](#future-improvements)
+- [License](#license)
 
 ## Project Overview
 SmartHire enables seamless interaction between job seekers, employers, and admins.
@@ -26,29 +28,29 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 | **Admin**      | Monitor users, manage jobs, generate reports, oversee the system            |
 
 ## Features
-Role-based navigation for Job Seeker, Employer, Admin, Guest
-Responsive design (Desktop & Mobile)
-Active route highlighting
-Login/Logout functionality
-User avatar dropdown menu
-Mobile hamburger menu
-SEO-friendly & scalable
+- Role-based navigation for Job Seeker, Employer, Admin, Guest
+- Responsive design (Desktop & Mobile)
+- Active route highlighting
+- Login/Logout functionality
+- User avatar dropdown menu
+- Mobile hamburger menu
+- SEO-friendly & scalable
 
 ## Tech Stack
 ### Client
-    React (Vite)
-    Tailwind CSS
-    Axios
-    React Router DOM
+- React (Vite)
+- Tailwind CSS
+- Axios
+- React Router DOM
 
 ### Server
-    Node.js + Express.js
-    JWT Authentication
-    bcrypt for password hashing
-    CORS
+- Node.js + Express.js
+- JWT Authentication
+- bcrypt for password hashing
+- CORS
 
 ### Database
-    MySQL (via XAMPP)
+- MySQL (via XAMPP)
 
 ## Prerequisites
 
@@ -63,9 +65,15 @@ SmartHire/
 ├── client/ # React (Vite) frontend
 │ ├── src/
 │ │ ├── components/
-│ │ │ └── common/
-│ │ │ ├── Navbar.jsx
-│ │ │ └── Footer.jsx
+│ │ │ ├── common/
+│ │ │ │ ├── Navbar.jsx
+│ │ │ │ └── Footer.jsx
+│ │ │ └── jobs/
+│ │ │ ├── JobCard.jsx
+│ │ │ ├── JobListing.jsx
+│ │ │ ├── JobFilters.jsx
+│ │ │ ├── JobDetails.jsx
+│ │ │ └── SearchBar.jsx
 │ │ ├── contexts/
 │ │ │ └── AuthContext.jsx
 │ │ ├── App.jsx
@@ -81,7 +89,7 @@ SmartHire/
 │ ├── config/
 │ ├── database/
 │ │ └── schema.sql
-│ └── server.js
+│ └── app.js
 │
 ├── README.md
 └── .gitignore
@@ -90,18 +98,18 @@ SmartHire/
 
 Follow these steps to run the project locally in under 15 minutes:
 
-### Clone the Repository
+# Clone the Repository
     git clone https://github.com/Mayaman-prog/Smart_Hire.git
     cd Smart_Hire
 
-### Client Setup
+# Client Setup
     cd client
     npm install
     npm run dev
 
 Client will run on: http://localhost:5173
 
-### Server Setup
+# Server Setup
 
 Open a new terminal:
     cd server
@@ -110,15 +118,18 @@ Open a new terminal:
 
 Server will run on: http://localhost:5000
 
-### Database Setup (MySQL)
-#### Open MySQL via XAMPP or terminal
+# Database Setup (MySQL)
+### Open MySQL via XAMPP or terminal
+- mysql -u root -p
 
-#### Create database
-    CREATE DATABASE smarthire;
+### Create database
+- CREATE DATABASE smarthire;
 
-#### Import schema from server/database/schema.sql
+### Import schema from server/database/schema.sql
+- USE smarthire;
+- SOURCE server/database/schema.sql;
 
-### Environment Variables
+## Environment Variables
 
 Create a .env file inside the server folder.
 
@@ -220,6 +231,34 @@ CLIENT_URL=http://localhost:5173
 | **Desktop (>1024px)**    | 4 columns  |
 | **Tablet (768px-1024px)**| 2 columns  |
 | **Mobile (<768px)**      | 1 column   |
+
+## JobCard Component
+
+- Location: client/src/components/jobs/JobCard.jsx
+
+# Features:
+- Displays job title, company name, and company logo
+- Location with pin icon
+- Salary range formatting
+- Colored job type tags (Full-time, Part-time, - Remote, Contract, Internship, Freelance)
+- Featured badge for premium jobs (⭐ Featured)
+- Save to wishlist functionality (heart icon)
+- Click navigation to job details page (/jobs/${id})
+- Hover effects: scale transform (1.05), shadow increase, border color change
+- Border radius, padding, white background, box shadow
+- Company logo fallback (first letter in gradient circle)
+
+# Job Type Colors:
+| Job Type    | Color  |
+|-------------|--------|
+| Full-time   | Green  |
+| Part-time   | Blue   |
+| Contract    | Orange |
+| Remote      | Purple |
+| Internship  | Yellow |
+| Freelance   | Pink   |
+
+
 
 ### Contributing
     Create a new branch:

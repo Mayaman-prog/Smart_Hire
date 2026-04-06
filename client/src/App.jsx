@@ -1,9 +1,9 @@
-// client/src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
+import JobListing from './components/jobs/JobListing';
 
 function App() {
   const [message, setMessage] = useState('Loading...');
@@ -31,11 +31,14 @@ function App() {
             <p>Backend Status: {message}</p>
           </div>
         } /> */}
-        <Route path="/jobs" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Jobs Page</div>} />
+
+        {/* Commented this route because we are using the JobListing component */}
+        {/* <Route path="/jobs" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Jobs Page</div>} /> */}
         <Route path="/companies" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Companies Page</div>} />
         <Route path="/dashboard" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Dashboard</div>} />
         <Route path="/login" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Login Page</div>} />
         <Route path="/register" element={<div style={{ textAlign: 'center', marginTop: '80px' }}>Register Page</div>} />
+        <Route path="/jobs" element={<JobListing />} />
       </Routes>
       </main>
       <Footer />

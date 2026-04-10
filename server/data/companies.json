@@ -1,0 +1,59 @@
+{
+  "companies": [
+    {
+      "id": 1,
+      "name": "TechCorp Solutions",
+      "initials": "TC",
+      "location": "San Francisco, CA",
+      "description": "Leading software development company specializing in web and mobile applications",
+      "website": "https://techcorp.com",
+      "email": "hr@techcorp.com",
+      "is_verified": true,
+      "jobs_count": 12
+    },
+    {
+      "id": 2,
+      "name": "DesignStudio",
+      "initials": "DS",
+      "location": "Remote",
+      "description": "Creative digital design agency",
+      "website": "https://designstudio.com",
+      "email": "careers@designstudio.com",
+      "is_verified": true,
+      "jobs_count": 5
+    },
+    {
+      "id": 3,
+      "name": "DataWorks Inc",
+      "initials": "DW",
+      "location": "New York, NY",
+      "description": "Big data analytics and AI solutions provider",
+      "website": "https://dataworks.com",
+      "email": "jobs@dataworks.com",
+      "is_verified": true,
+      "jobs_count": 8
+    },
+    {
+      "id": 4,
+      "name": "CreativeAgency",
+      "initials": "CA",
+      "location": "Los Angeles, CA",
+      "description": "Full-service creative agency",
+      "website": "https://creativeagency.com",
+      "email": "hello@creativeagency.com",
+      "is_verified": false,
+      "jobs_count": 3
+    },
+    {
+      "id": 5,
+      "name": "CloudTech",
+      "initials": "CT",
+      "location": "Remote",
+      "description": "Cloud infrastructure and DevOps solutions",
+      "website": "https://cloudtech.com",
+      "email": "careers@cloudtech.com",
+      "is_verified": true,
+      "jobs_count": 7
+    }
+  ]
+}

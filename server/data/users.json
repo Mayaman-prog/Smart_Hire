@@ -1,0 +1,37 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Seeker",
+      "email": "john@example.com",
+      "password": "$2a$10$rQKJqQxKJqQxKJqQxKJqQu",
+      "role": "job_seeker",
+      "is_active": true
+    },
+    {
+      "id": 2,
+      "name": "Jane Applicant",
+      "email": "jane@example.com",
+      "password": "$2a$10$rQKJqQxKJqQxKJqQxKJqQu",
+      "role": "job_seeker",
+      "is_active": true
+    },
+    {
+      "id": 3,
+      "name": "TechCorp HR",
+      "email": "hr@techcorp.com",
+      "password": "$2a$10$rQKJqQxKJqQxKJqQxKJqQu",
+      "role": "employer",
+      "company_id": 1,
+      "is_active": true
+    },
+    {
+      "id": 4,
+      "name": "Admin User",
+      "email": "admin@smarthire.com",
+      "password": "$2a$10$rQKJqQxKJqQxKJqQxKJqQu",
+      "role": "admin",
+      "is_active": true
+    }
+  ]
+}

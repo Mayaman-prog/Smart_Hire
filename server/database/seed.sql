@@ -54,3 +54,60 @@ INSERT INTO applications (job_id, user_id, status, cover_letter) VALUES
 (3, 1, 'shortlisted', 'Data analysis skills would be a great fit.'),
 (1, 2, 'reviewed', '4 years of full stack experience, excited about this role.'),
 (4, 2, 'pending', 'Passionate about machine learning.');
+
+-- INSERT JOB CATEGORIES
+INSERT INTO job_categories (name, slug, description) VALUES
+('Software Development', 'software-development', 'Software development and engineering roles'),
+('Data Science', 'data-science', 'Data analysis and machine learning roles'),
+('Design', 'design', 'UI/UX and graphic design roles'),
+('Marketing', 'marketing', 'Digital marketing and branding roles'),
+('Sales', 'sales', 'Sales and business development roles'),
+('Customer Service', 'customer-service', 'Customer support and service roles'),
+('Human Resources', 'human-resources', 'HR and recruitment roles'),
+('Finance', 'finance', 'Accounting and finance roles');
+
+-- INSERT JOB TYPES
+INSERT INTO job_types (name, slug) VALUES
+('Full-time', 'full-time'),
+('Part-time', 'part-time'),
+('Contract', 'contract'),
+('Internship', 'internship'),
+('Remote', 'remote'),
+('Freelance', 'freelance');
+
+-- INSERT LOCATIONS
+INSERT INTO locations (city, state, country) VALUES
+('San Francisco', 'CA', 'USA'),
+('New York', 'NY', 'USA'),
+('Los Angeles', 'CA', 'USA'),
+('Chicago', 'IL', 'USA'),
+('London', 'London', 'UK'),
+('Remote', NULL, 'Remote');
+
+-- INSERT SKILLS
+INSERT INTO skills (name, category) VALUES
+('JavaScript', 'Programming'),
+('Python', 'Programming'),
+('React', 'Frontend'),
+('Node.js', 'Backend'),
+('SQL', 'Database'),
+('UI Design', 'Design'),
+('Project Management', 'Management'),
+('Data Analysis', 'Data');
+
+-- INSERT SAVED JOBS (John Seeker saved some jobs)
+INSERT INTO saved_jobs (user_id, job_id) VALUES
+(1, 3),
+(1, 4),
+(2, 1);
+
+-- INSERT NOTIFICATIONS
+INSERT INTO notifications (user_id, title, message, type) VALUES
+(1, 'Application Received', 'Your application for Senior Full Stack Developer has been received.', 'application'),
+(1, 'Application Reviewed', 'Your application for Frontend Developer is being reviewed.', 'application'),
+(2, 'New Job Match', 'New Machine Learning Engineer position matches your profile.', 'job');
+
+-- INSERT SHORTLISTED CANDIDATES
+INSERT INTO shortlisted_candidates (job_id, user_id, employer_id, notes) VALUES
+(1, 2, 3, 'Great experience, moving to interview stage'),
+(2, 1, 3, 'Strong portfolio, schedule technical interview');

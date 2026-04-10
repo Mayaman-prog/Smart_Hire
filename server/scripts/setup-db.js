@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const setupDatabase = async () => {
-    console.log('\nSetting up Smart Hire Database...\n');
+    console.log('\n Setting up Smart Hire Database...\n');
 
     const config = {
         host: process.env.DB_HOST || 'localhost',
@@ -27,17 +27,11 @@ const setupDatabase = async () => {
         connection = await mysql.createConnection(config);
         console.log('Connected to MySQL server\n');
 
-        // Drop database if exists (clean slate)
+        // Drop and recreate database
         await connection.query('DROP DATABASE IF EXISTS smart_hire');
-        console.log('Dropped existing database');
-
-        // Create database
         await connection.query('CREATE DATABASE smart_hire');
-        console.log('Created database');
-
-        // Use database
         await connection.query('USE smart_hire');
-        console.log('Using database\n');
+        console.log('Database ready\n');
 
         // Read and execute schema.sql
         const schemaPath = path.join(__dirname, '../database/schema.sql');
@@ -55,21 +49,30 @@ const setupDatabase = async () => {
         await connection.query(seed);
         console.log('Seed data inserted successfully\n');
 
-        // Verify data
+        // Verify all tables
+        const [tables] = await connection.query('SHOW TABLES');
+        console.log('=================================');
+        console.log('Database setup completed!');
+        console.log('=================================');
+        console.log(`Total Tables: ${tables.length}`);
+        
         const [companies] = await connection.query('SELECT COUNT(*) as count FROM companies');
         const [users] = await connection.query('SELECT COUNT(*) as count FROM users');
         const [jobs] = await connection.query('SELECT COUNT(*) as count FROM jobs');
         const [applications] = await connection.query('SELECT COUNT(*) as count FROM applications');
-
-        console.log('Database setup completed!');
+        const [savedJobs] = await connection.query('SELECT COUNT(*) as count FROM saved_jobs');
+        const [notifications] = await connection.query('SELECT COUNT(*) as count FROM notifications');
+        
         console.log(`Companies: ${companies[0].count}`);
         console.log(`Users: ${users[0].count}`);
         console.log(`Jobs: ${jobs[0].count}`);
         console.log(`Applications: ${applications[0].count}`);
+        console.log(`Saved Jobs: ${savedJobs[0].count}`);
+        console.log(`Notifications: ${notifications[0].count}`);
+        console.log('=================================\n');
 
     } catch (error) {
         console.error('Database setup failed:', error.message);
-        console.error('Details:', error);
         process.exit(1);
     } finally {
         if (connection) await connection.end();

@@ -1,4 +1,5 @@
--- Smart Hire Database Schema
+-- Smart Hire Database Schema - Complete Version
+
 -- 1. COMPANIES TABLE
 CREATE TABLE IF NOT EXISTS companies (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -31,7 +32,50 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_is_active (is_active)
 );
 
--- 3. JOBS TABLE
+-- 3. JOB CATEGORIES TABLE
+CREATE TABLE IF NOT EXISTS job_categories (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    slug VARCHAR(100) UNIQUE,
+    description TEXT,
+    icon VARCHAR(50),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. JOB TYPES TABLE
+CREATE TABLE IF NOT EXISTS job_types (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    slug VARCHAR(50),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. LOCATIONS TABLE
+CREATE TABLE IF NOT EXISTS locations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    country VARCHAR(100),
+    zip_code VARCHAR(20),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_city (city),
+    INDEX idx_country (country)
+);
+
+-- 6. SKILLS TABLE
+CREATE TABLE IF NOT EXISTS skills (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    category VARCHAR(100),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_name (name)
+);
+
+-- 7. JOBS TABLE
 CREATE TABLE IF NOT EXISTS jobs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(255) NOT NULL,
@@ -42,6 +86,9 @@ CREATE TABLE IF NOT EXISTS jobs (
     location VARCHAR(255) NULL,
     job_type ENUM('full-time', 'part-time', 'contract', 'internship', 'remote') DEFAULT 'full-time',
     experience_level ENUM('entry', 'mid', 'senior', 'lead') DEFAULT 'entry',
+    category_id INT NULL,
+    job_type_id INT NULL,
+    location_id INT NULL,
     company_id INT NOT NULL,
     posted_by INT NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
@@ -51,14 +98,16 @@ CREATE TABLE IF NOT EXISTS jobs (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
     FOREIGN KEY (posted_by) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES job_categories(id) ON DELETE SET NULL,
+    FOREIGN KEY (job_type_id) REFERENCES job_types(id) ON DELETE SET NULL,
+    FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL,
     INDEX idx_job_type (job_type),
     INDEX idx_location (location),
     INDEX idx_is_active (is_active),
     INDEX idx_is_featured (is_featured)
 );
 
-
--- 4. APPLICATIONS TABLE
+-- 8. APPLICATIONS TABLE
 CREATE TABLE IF NOT EXISTS applications (
     id INT PRIMARY KEY AUTO_INCREMENT,
     job_id INT NOT NULL,
@@ -75,49 +124,6 @@ CREATE TABLE IF NOT EXISTS applications (
     INDEX idx_applied_at (applied_at)
 );
 
--- 5. JOB CATEGORIES TABLE
-CREATE TABLE IF NOT EXISTS job_categories (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) UNIQUE NOT NULL,
-    slug VARCHAR(100) UNIQUE,
-    description TEXT,
-    icon VARCHAR(50),
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 6. JOB TYPES TABLE
-CREATE TABLE IF NOT EXISTS job_types (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) UNIQUE NOT NULL,
-    slug VARCHAR(50),
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 7. LOCATIONS TABLE
-CREATE TABLE IF NOT EXISTS locations (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    city VARCHAR(100),
-    state VARCHAR(100),
-    country VARCHAR(100),
-    zip_code VARCHAR(20),
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_city (city),
-    INDEX idx_country (country)
-);
-
--- 8. SKILLS TABLE
-CREATE TABLE IF NOT EXISTS skills (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) UNIQUE NOT NULL,
-    category VARCHAR(100),
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_name (name)
-);
-
 -- 9. RESUMES TABLE
 CREATE TABLE IF NOT EXISTS resumes (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -131,7 +137,7 @@ CREATE TABLE IF NOT EXISTS resumes (
     INDEX idx_user_id (user_id)
 );
 
--- 10. SAVED JOBS TABLE (Many-to-Many)
+-- 10. SAVED JOBS TABLE
 CREATE TABLE IF NOT EXISTS saved_jobs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -175,7 +181,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     INDEX idx_is_read (is_read)
 );
 
--- 13. JOB SEEKER SKILLS (Many-to-Many)
+-- 13. JOB SEEKER SKILLS TABLE
 CREATE TABLE IF NOT EXISTS job_seeker_skills (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -187,7 +193,7 @@ CREATE TABLE IF NOT EXISTS job_seeker_skills (
     UNIQUE KEY unique_seeker_skill (user_id, skill_id)
 );
 
--- 14. JOB REQUIRED SKILLS (Many-to-Many)
+-- 14. JOB REQUIRED SKILLS TABLE
 CREATE TABLE IF NOT EXISTS job_required_skills (
     id INT PRIMARY KEY AUTO_INCREMENT,
     job_id INT NOT NULL,
@@ -197,3 +203,33 @@ CREATE TABLE IF NOT EXISTS job_required_skills (
     FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
     UNIQUE KEY unique_job_skill (job_id, skill_id)
 );
+
+-- 15. ACTIVITY LOGS TABLE
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    action VARCHAR(100),
+    entity_type VARCHAR(50),
+    entity_id INT,
+    details TEXT,
+    ip_address VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at)
+);
+
+-- 16. CONTACT MESSAGES TABLE
+CREATE TABLE IF NOT EXISTS contact_messages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    subject VARCHAR(255),
+    message TEXT,
+    status ENUM('unread', 'read', 'replied') DEFAULT 'unread',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_status (status)
+);
+
+SELECT 'Database schema created successfully' AS Status;
+SELECT COUNT(*) AS total_tables FROM information_schema.tables WHERE table_schema = 'smart_hire';

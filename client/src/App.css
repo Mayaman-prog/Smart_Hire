@@ -2,11 +2,14 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
 
+/* Remove centering - let pages control their own layout */
+.main-content {
+  flex: 1;
+}
+
+/* Keep heading styles if needed */
 .app h1 {
   color: #2563eb;
   margin-bottom: 16px;

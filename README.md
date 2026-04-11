@@ -12,9 +12,13 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
 - [Components Implemented](#components-implemented)
   - [Navbar Component](#navbar-component)
   - [Footer Component](#footer-component)
+  - [HomePage Component](#homepage-component)
   - [JobCard Component](#jobcard-component)
   - [Button Component](#button-component)
   - [Input Component](#input-component)
+  - [Tag Component](#tag-component)
+  - [TagGroup Component](#taggroup-component)
+- [Routing System](#routing-system)
 - [Validation Utilities](#validation-utilities)
 - [Database Schema](#database-schema)
 - [Contributing](#contributing)
@@ -40,66 +44,152 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - User avatar dropdown menu
 - Mobile hamburger menu
 - Job listing with cards
+- Company directory with cards
 - Reusable form components with validation
+- Protected routes with role-based access
+- 404 page for unknown routes
+- Scroll restoration on route change
 - SEO-friendly & scalable
 
 ### Component Features
 
 #### Navbar
-- Role-based menu items
-- Active route highlighting
-- User avatar dropdown
-- Mobile responsive hamburger menu
-- Tailwind CSS styling
+- Role-based menu items (Guest, Job Seeker, Employer, Admin)
+- Active route highlighting with visual feedback
+- User avatar dropdown with logout
+- Mobile responsive hamburger menu with slide-out drawer
+- CSS modules styling
 
 #### Footer
-- Responsive grid layout (4/2/1 columns)
-- Quick links sections
+- Responsive grid layout (4 columns desktop, 2 tablet, 1 mobile)
+- Quick links sections (Platform, For Employers, Support)
 - Newsletter signup with toast notification
-- Social media icons (24px)
+- Social media icons (LinkedIn, GitHub, Twitter, Facebook)
 - Dynamic copyright year
-- Sticky to bottom
+- Sticky to bottom using flexbox
 
-#### JobCard
-- Job title, company, location, salary display
-- Featured badge for premium jobs
-- Save to wishlist (heart icon)
+#### HomePage Component
+**Location:** `client/src/pages/HomePage/HomePage.jsx`
+
+**Features:**
+- Hero section with gradient background and wave effect
+- Call-to-action buttons (Search Jobs, Post a Job) with authentication check
+- Search bar with keyword and location inputs using Google Material Icons
+- Featured jobs section fetching from JSON data
+- Loading skeleton animation while fetching data
+- Empty state when no featured jobs available
+- Error state with retry button
+- "How It Works" section with 3 steps and icons
+- Fully responsive design (mobile, tablet, desktop)
+- CSS variables for consistent theming
+- Google Material Icons throughout
+
+**Responsive Breakpoints:**
+
+| Screen Size          | Layout                       |
+|----------------------|------------------------------|
+| Desktop (>1200px)    | 3 column grid for jobs       |
+| Tablet (768px-992px) | 2 column grid                |
+| Mobile (<768px)      | 1 column, stacked search bar |
+
+**Authentication Integration:**
+- Unauthenticated users clicking "Search Jobs" or "Post a Job" are redirected to login
+- Search queries are saved to sessionStorage and restored after login
+
+#### JobCard Component
+**Location:** `client/src/components/jobs/JobCard/JobCard.jsx`
+
+**Features:**
+- Displays job title, company name, and company logo (initials fallback)
+- Location with pin icon
+- Salary range formatting
 - Colored job type tags
-- Hover effects (scale 1.05, shadow increase)
-- Click navigation to job details
-- Company logo with fallback
+- Featured badge for premium jobs
+- Save to wishlist functionality (heart icon)
+- Click navigation to job details page (`/jobs/${id}`)
+- Hover effects: scale transform (1.02), shadow increase, border color change
+
+**Job Type Colors:**
+
+| Job Type    | Color  |
+|-------------|--------|
+| Full-time   | Green  |
+| Part-time   | Yellow |
+| Contract    | Purple |
+| Remote      | Blue   |
+| Internship  | Orange |
+
+#### CompanyCard
+**Location:** `client/src/components/companies/CompanyCard/CompanyCard.jsx`
+
+**Features:**
+- Company logo with initials fallback
+- Company name, location, open jobs count
+- Verified badge for verified companies
+- Hover effects: scale transform (1.02), shadow increase, border color change
+- Click navigation to company details page (`/companies/${id}`)
 
 #### Button Component
-- 5 variants (primary, secondary, danger, outline, ghost)
-- 3 sizes (sm, md, lg)
-- States: default, hover, active, disabled, loading (with spinner)
+**Location:** `client/src/components/common/Button/Button.jsx`
+
+**Features:**
+- 5 variants: primary, secondary, danger, outline, ghost
+- 3 sizes: sm, md, lg
+- States: default, hover, active, disabled, loading (with spinner animation)
 - Full width option
 - Smooth transitions and focus rings
 
 #### Input Component
+**Location:** `client/src/components/common/Input/Input.jsx`
+
+**Features:**
 - Supported types: text, email, password, number, textarea, select
 - Label with required asterisk
 - Placeholder support
-- Border radius and consistent padding
 - States: default, focus (blue border), error (red border + message), disabled, filled
-- Password input with eye icon show/hide toggle
+- Password input with custom eye icon show/hide toggle
+- Browser's native password eye icon hidden
 - Textarea with min-height 100px
+
+### Tag Component
+**Location:** `client/src/components/common/Tag/Tag.jsx`
+
+**Features:**
+- 6 color variants for different job types
+- Removable option with X button
+- Customizable text
+- Rounded pill style
+- Responsive design
+
+### TagGroup Component
+**Location:** `client/src/components/common/TagGroup/TagGroup.jsx`
+
+**Features:**
+- Displays limited tags by default (configurable maxDisplay)
+- "+X more" button to expand
+- "Show less" button to collapse
+- Responsive wrapping
 
 ## Tech Stack
 ### Client
-- React (Vite)
-- Tailwind CSS
-- Axios
-- React Router DOM
+- React 18.2.0
+- Vite 5.0.8
+- React Router DOM 6.20.0
+- Axios 1.6.2
+- React Hook Form 7.48.2
+- React Hot Toast 2.4.1
+- Google Fonts Icons (Material Symbols)
 
 ### Server
-- Node.js + Express.js
+- Node.js 18.x
+- Express.js 4.18.2
 - JWT Authentication
-- bcrypt for password hashing
+- bcryptjs for password hashing
 - CORS
+- MySQL2
 
 ### Database
-- MySQL (via XAMPP)
+- MySQL 8.0 (via XAMPP)
 
 ## Prerequisites
 
@@ -115,33 +205,79 @@ SmartHire/
 │ ├── src/
 │ │ ├── components/
 │ │ │ ├── common/
-│ │ │ │ ├── Navbar.jsx
-│ │ │ │ ├── Footer.jsx
-│ │ │ │ ├── Button.jsx
-│ │ │ │ ├── Input.jsx
-│ │ │ │ └── FormExample.jsx
-│ │ │ └── jobs/
-│ │ │ ├── JobCard.jsx
-│ │ │ └── JobListing.jsx
+│ │ │ │ ├── Navbar/
+│ │ │ │ │ ├── Navbar.jsx
+│ │ │ │ │ └── Navbar.css
+│ │ │ │ ├── Footer/
+│ │ │ │ │ ├── Footer.jsx
+│ │ │ │ │ └── Footer.css
+│ │ │ │ ├── Button/
+│ │ │ │ │ ├── Button.jsx
+│ │ │ │ │ └── Button.css
+│ │ │ │ ├── Input/
+│ │ │ │ │ ├── Input.jsx
+│ │ │ │ │ └── Input.css
+│ │ │ │ ├── Tag/
+│ │ │ │ │ ├── Tag.jsx
+│ │ │ │ │ └── Tag.css
+│ │ │ │ ├── TagGroup/
+│ │ │ │ │ ├── TagGroup.jsx
+│ │ │ │ │ └── TagGroup.css
+│ │ │ │ └── ScrollToTop.jsx
+│ │ │ ├── jobs/
+│ │ │ │ └── JobCard/
+│ │ │ │ ├── JobCard.jsx
+│ │ │ │ └── JobCard.css
+│ │ │ ├── companies/
+│ │ │ │ └── CompanyCard/
+│ │ │ │ ├── CompanyCard.jsx
+│ │ │ │ └── CompanyCard.css
+│ │ │ └── auth/
+│ │ │ └── ProtectedRoute.jsx
+│ │ ├── pages/
+│ │ │ ├── HomePage/
+│ │ │ │ ├── HomePage.jsx
+│ │ │ │ └── HomePage.css
+│ │ │ ├── JobsPage/
+│ │ │ ├── JobDetailsPage/
+│ │ │ ├── CompaniesPage/
+│ │ │ ├── CompanyDetailsPage/
+│ │ │ ├── LoginPage/
+│ │ │ ├── RegisterPage/
+│ │ │ └── NotFoundPage/
 │ │ ├── contexts/
 │ │ │ └── AuthContext.jsx
+│ │ ├── data/
+│ │ │ ├── jobs.json
+│ │ │ └── companies.json
 │ │ ├── utils/
 │ │ │ └── validators.js
+│ │ ├── styles/
+│ │ │ ├── globals.css
+│ │ │ └── variables.css
 │ │ ├── App.jsx
 │ │ └── main.jsx
 │ ├── index.html
 │ └── package.json
 │
 ├── server/ # Node.js + Express backend
-│ ├── controllers/
-│ ├── middleware/
-│ ├── models/
-│ ├── routes/
-│ ├── config/
+│ ├── src/
+│ │ ├── config/
+│ │ │ └── database.js
+│ │ ├── controllers/
+│ │ ├── middleware/
+│ │ ├── routes/
+│ │ └── utils/
 │ ├── database/
-│ │ └── schema.sql
-│ └── app.js
+│ │ ├── schema.sql
+│ │ └── seed.sql
+│ ├── scripts/
+│ │ └── setup-db.js
+│ ├── .env
+│ ├── package.json
+│ └── server.js
 │
+├── examplecodefiles/ # Reference code examples
 ├── README.md
 └── .gitignore
 
@@ -158,7 +294,7 @@ Follow these steps to run the project locally in under 15 minutes:
 - npm install
 - npm run dev
 
-### Client will run on: http://localhost:5173
+#### Client will run on: http://localhost:5173
 
 ## Server Setup
 
@@ -167,37 +303,44 @@ Follow these steps to run the project locally in under 15 minutes:
 - npm install
 - npm run dev
 
-### Server will run on: http://localhost:5000
+#### Server will run on: http://localhost:5000
 
 ## Database Setup (MySQL)
-### Open MySQL via XAMPP or terminal
-- mysql -u root -p
+### Start MySQL
+- Open XAMPP Control Panel
+- Click Start button next to MySQL
 
 ### Create database
-- CREATE DATABASE smarthire;
+#### Open MySQL command line:
+- mysql -u root -p
+**Then run:**
+- CREATE DATABASE smart_hire;
+- USE smart_hire;
+- EXIT;
 
-### Import schema from server/database/schema.sql
-- USE smarthire;
-- SOURCE server/database/schema.sql;
+### Run Database Setup Script
+- cd server
+- npm run setup-db
 
 ## Environment Variables
 
-- Create a .env file inside the server folder.
+### Frontend .env (create in client/ folder)
+**VITE_API_URL=** http://localhost:5000/api
 
-### Server
+### Backend .env (create in server/ folder)
 PORT=5000
+NODE_ENV=development
 
-### Database
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=
-DB_NAME=smarthire
+DB_NAME=smart_hire
+DB_PORT=3306
 
-### JWT
-JWT_SECRET=c/h6cJrSVDF3p0ZSTu56NdgphRT8L4Gb6EGPKdUy/fg=
+JWT_SECRET=super_secret_jwt_key_change_this_in_production
+JWT_EXPIRE=7d
 
-### Client URL
-CLIENT_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:5173
 
 ## Run the Project
 ### Start server (Terminal 1)
@@ -213,82 +356,106 @@ CLIENT_URL=http://localhost:5173
 ## Components Implemented
 
 ### Navbar Implementation
+**Location:** client/src/components/common/Navbar.jsx
 
-#### Location: client/src/components/common/Navbar.jsx
-
-# Features
+**Features**
 - Role-based navigation (Job Seeker, Employer, Admin, Guest)
 - Active route highlighting with visual feedback
 - User avatar dropdown menu with logout
-- Mobile hamburger menu with smooth toggle
-- Tailwind CSS styling with responsive breakpoints
+- Mobile hamburger menu with slide-out drawer
+- CSS modules styling with responsive breakpoints
 
 # Role-Based Navigation
-| User Role  | Menu Items                                             |
-| ---------- | ------------------------------------------------------ |
-| Job Seeker | Home, Jobs, Companies, My Applications, Profile        |
-| Employer   | Home, Jobs, Companies, Post Job, My Jobs, Applications |
-| Admin      | Home, Jobs, Companies, Users, Manage Jobs, Reports     |
-| Guest      | Home, Jobs, Companies, Login, Register                 |
+| User Role      | Menu Items                                 |
+| ---------------| -------------------------------------------|
+| **Job Seeker** | Home, Jobs, Companies, Dashboard           |
+| **Employer**   | Home, Jobs, Companies, Dashboard, Post Job |
+| **Admin**      | Home, Jobs, Companies, Admin Panel         |
+| **Guest**      | Home, Jobs, Companies, Login, Register     |
 
 ## Footer Implementation
+**Location:** client/src/components/common/Footer/Footer.jsx
 
-### Features
+**Features**
 - Responsive layout (4 columns desktop, 2 columns tablet, 1 column mobile)
 - Quick links sections (Platform, For Employers, Support)
 - Newsletter signup with email validation
 - Toast notification for "Feature coming soon"
-- Social media icons (LinkedIn, GitHub, Twitter, Facebook) - 24px each
+- Social media icons (LinkedIn, GitHub, Twitter, Facebook)
 - Dynamic copyright year (auto-updates)
-- Sticky to bottom using flexbox (mt-auto)
-- Dark theme background (bg-gray-900) with white text
-- Hover effects on all links and icons
+- Sticky to bottom using flexbox
+- Dark theme background with white text
 
 ### Footer Sections
 | Section           | Links                                                         |
 |-------------------|---------------------------------------------------------------|
-| **Brand**         | SmartHire logo, tagline, emojis                               |
+| **Brand**         | SmartHire logo, tagline                                       |
 | **Platform**      | Find Jobs, Browse Companies, Salaries, Career Advice          |
 | **For Employers** | Post a Job, Hiring Solutions, Pricing, Resources              |
 | **Support**       | Help Center, Privacy Policy, Terms of Service, Cookie Policy  |
 
-# Responsive Breakpoints
+### Responsive Breakpoints
 | Screen Size              | Layout     |
 |--------------------------|------------|
 | **Desktop (>1024px)**    | 4 columns  |
 | **Tablet (768px-1024px)**| 2 columns  |
 | **Mobile (<768px)**      | 1 column   |
 
+## HomePage Component
+**Location:** client/src/pages/HomePage/HomePage.jsx
+
+**Features:**
+- Hero section with gradient background and wave effect
+- Call-to-action buttons (Search Jobs, Post a Job) with authentication check
+- Search bar with keyword and location inputs
+- Featured jobs section fetching from JSON data
+- Loading skeleton animation while fetching data
+- Empty state when no featured jobs available
+- Error state with retry button
+- "How It Works" section with 3 steps
+- Fully responsive design
+- CSS variables for consistent theming
+- Google Material Icons throughout
+
+### Authentication Integration:
+- Unauthenticated users are redirected to login when clicking action buttons
+- Search queries are saved to sessionStorage and restored after login
+
+### Responsive Breakpoints:
+| Screen Size              | Job Cards Layout | Search Bar Layout |
+| ------------------------ | ---------------- | ----------------- |
+| **Desktop (>992px)**     | 3 columns        | Horizontal        |
+| **Tablet (768px–992px)** | 2 columns        | Horizontal        |
+| **Mobile (<768px)**      | 1 column         | Vertical stacked  |
+
+
 ## JobCard Component
+**Location:** client/src/components/jobs/JobCard/JobCard.jsx
 
-- Location: client/src/components/jobs/JobCard.jsx
-
-### Features:
-- Displays job title, company name, and company logo
+**Features:**
+- Displays job title, company name, and company logo (initials fallback)
 - Location with pin icon
 - Salary range formatting
-- Colored job type tags (Full-time, Part-time, - Remote, Contract, Internship, Freelance)
-- Featured badge for premium jobs (⭐ Featured)
+- Colored job type tags
+- Featured badge for premium jobs
 - Save to wishlist functionality (heart icon)
 - Click navigation to job details page (/jobs/${id})
-- Hover effects: scale transform (1.05), shadow increase, border color change
-- Border radius, padding, white background, box shadow
-- Company logo fallback (first letter in gradient circle)
+- Hover effects: scale transform (1.02), shadow increase, border color change
 
-### Job Type Colors:
-| Job Type    | Color  |
-|-------------|--------|
-| Full-time   | Green  |
-| Part-time   | Blue   |
-| Contract    | Orange |
-| Remote      | Purple |
-| Internship  | Yellow |
-| Freelance   | Pink   |
+## CompanyCard Component
+**Location:** client/src/components/companies/CompanyCard/CompanyCard.jsx
+
+**Features:**
+- Company logo with initials fallback
+- Company name, location, open jobs count
+- Verified badge for verified companies
+- Hover effects: scale transform (1.02), shadow increase, border color change
+- Click navigation to company details page (/companies/${id})
 
 ## Button Component
-### Location: client/src/components/common/Button.jsx
+**Location**: client/src/components/common/Button/Button.jsx
 
-### Features:
+**Features:**
 - 5 variants: primary, secondary, danger, outline, ghost
 - 3 sizes: sm, md, lg
 - States: default, hover, active, disabled, loading (with spinner animation)
@@ -297,118 +464,134 @@ CLIENT_URL=http://localhost:5173
 
 ## Input Component
 
-### Location: client/src/components/common/Input.jsx
+**Location:** client/src/components/common/Input.jsx
 
-### Features:
+**Features:**
 - Supported types: text, email, password, number, textarea, select
 - Label with required asterisk
 - Placeholder support
-- Border radius and consistent padding
 - States: default, focus (blue border), error (red border + message), disabled, filled
-- Password input with eye icon show/hide toggle
+- Password input with custom eye icon show/hide toggle
+- Browser's native password eye icon hidden
 - Textarea with min-height 100px
 
-## Validation Utilities
-### Location: client/src/utils/validators.js
+## Tag Component
+**Location:** client/src/components/common/Tag/Tag.jsx
 
-### Available Validators:
-| Function                                   | Description                             | Example                             |
-|--------------------------------------------|-----------------------------------------|-------------------------------------|
-| `validateEmail(email)`                     | Validates email format                  | `validateEmail("test@example.com")` |
-| `validatePassword(password)`               | Minimum 6 characters, at least 1 number | `validatePassword("pass123")`       |
-| `validateRequired(value, fieldName)`       | Checks if a field is empty              | `validateRequired(name, "Name")`    |
-| `validateMatch(password, confirmPassword)` | Checks if passwords match               | `validateMatch(pwd, confirmPwd)`    |
+**Features:**
+- 6 color variants for different job types
+- Removable option with X button
+- Customizable text
+- Rounded pill style
+- Responsive design
+
+## TagGroup Component
+**Location:** client/src/components/common/TagGroup/TagGroup.jsx
+
+**Features:**
+- Displays limited tags by default (configurable maxDisplay)
+- "+X more" button to expand
+- "Show less" button to collapse
+- Responsive wrapping
+
+## Routing System
+**Location:** client/src/App.jsx
+
+### Routes Configured:
+| Route                   | Component          | Access          |
+| ----------------------- | ------------------ | --------------- |
+| **/**                   | HomePage           | Public          |
+| **/jobs**               | JobsPage           | Public          |
+| **/jobs/:id**           | JobDetailsPage     | Public          |
+| **/companies**          | CompaniesPage      | Public          |
+| **/companies/:id**      | CompanyDetailsPage | Public          |
+| **/login**              | LoginPage          | Public          |
+| **/register**           | RegisterPage       | Public          |
+| **/dashboard/seeker**   | JobSeekerDashboard | Job Seeker only |
+| **/dashboard/employer** | EmployerDashboard  | Employer only   |
+| **/dashboard/admin**    | AdminDashboard     | Admin only      |
+|  *                      | NotFoundPage       | Public          |
+
+**Features:**
+- Protected routes with role-based access control
+- Scroll restoration on route change
+- 404 page for unknown routes
+- Browser back/forward button support
+
+
+## Validation Utilities
+**Location:** client/src/utils/validators.js
+
+| Function                                     | Description                             | Example                                                          |
+| -------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------- |
+| **validateEmail(email)**                     | Validates email format                  | **validateEmail("[test@example.com](mailto:test@example.com)")** |
+| **validatePassword(password)**               | Minimum 6 characters, at least 1 number | **validatePassword("pass123")**                                  |
+| **validateRequired(value, fieldName)**       | Checks if a field is empty              | **validateRequired(name, "Name")**                               |
+| **validateMatch(password, confirmPassword)** | Checks if passwords match               | **validateMatch(pwd, confirmPwd)**                               |
+| **validateName(name)**                       | Checks if name has min 2 characters     | **validateName("John")**                                         |
+| **validatePhone(phone)**                     | Validates 10-digit phone number         | **validatePhone("1234567890")**                                  |
 
 ###  Database Schema
-# Tables & Relationships
-| Table            | Description                    |
-| ---------------- | ------------------------------ |
-| **users**        | Job seekers, employers, admins |
-| **companies**    | Company profiles               |
-| **jobs**         | Job postings                   |
-| **applications** | Job applications               |
-
-### Table Structures
-#### users
-- id (Primary Key)
-- name, email (unique), password_hash
-- role (job_seeker/employer/admin)
-- company_id (Foreign Key to companies)
-- is_active, created_at, updated_at
-
-#### companies
-- id (Primary Key)
-- name, logo_url, description, website
-- location, email, phone
-- is_verified, created_at, updated_at
-
-#### jobs
-- id (Primary Key)
-- title, description, requirements
-- salary_min, salary_max, location
-- job_type, experience_level
-- company_id (Foreign Key), posted_by (Foreign Key)
-- is_active, is_featured, deadline
-
-#### applications
-- id (Primary Key)
-- job_id (Foreign Key), user_id (Foreign Key)
-- status (pending/reviewed/shortlisted/rejected/hired)
-- cover_letter, resume_url
-- applied_at, updated_at
-
-## Indexes
-- users: email, role, is_active
-- jobs: job_type, location, is_active, is_featured
-- applications: status, applied_at
-
-## Foreign Keys
-- users.company_id → companies.id
-- jobs.company_id → companies.id
-- jobs.posted_by → users.id
-- applications.job_id → jobs.id
-- applications.user_id → users.id
-
-## Seed Data
-- 5 users (2 employers, 2 job seekers, 1 admin)
-- 3 companies
-- 5 jobs
-- 5 applications
+#### Tables Created
+| Table                      | Description                                   | Records |
+| -------------------------- | --------------------------------------------- | ------- |
+| **companies**              | Company profiles                              | 3       |
+| **users**                  | User accounts (job seekers, employers, admin) | 5       |
+| **jobs**                   | Job postings                                  | 5       |
+| **applications**           | Job applications                              | 5       |
+| **saved_jobs**             | Jobs saved by users                           | 3       |
+| **notifications**          | User notifications                            | 3       |
+| **job_categories**         | Job categories                                | 8       |
+| **job_types**              | Job types                                     | 6       |
+| **locations**              | Location master                               | 6       |
+| **skills**                 | Skills master                                 | 8       |
+| **job_seeker_skills**      | User skills mapping                           | 6       |
+| **job_required_skills**    | Job requirements mapping                      | 7       |
+| **resumes**                | Stored resumes                                | 2       |
+| **shortlisted_candidates** | Shortlisted candidates                        | 2       |
+| **activity_logs**          | System activity tracking                      | 4       |
+| **contact_messages**       | Contact form submissions                      | 2       |
 
 ## Troubleshooting
 
-### Common Issue
-| Issue                         | Solution                                                  |
-|-------------------------------|-----------------------------------------------------------|
-| Navbar items squished         | Restart Vite: `rm -rf node_modules/.vite && npm run dev`  |
-| Tailwind CSS not applying     | Check `tailwind.config.js` content paths                  |
-| JobCard not showing           | Verify route in `App.jsx` points to `JobListing`          |
-| Footer not sticky             | Ensure layout uses `min-h-screen flex flex-col`           |
-| Form validation not working   | Check `validators.js` path and exports                    |
-| react-hook-form error         | Run `npm install react-hook-form`                         |
+| Issue                       | Solution                                                                    |
+| --------------------------- | --------------------------------------------------------------------------- |
+| Navbar items squished       | Restart Vite: **`rm -rf node_modules/.vite && npm run dev`**                |
+| CSS not applying            | Check import paths in component files                                       |
+| JobCard not showing         | Verify data in **`client/src/data/jobs.json`**                              |
+| Footer not sticky           | Ensure layout uses **`min-height: 100vh`** and **`flex-direction: column`** |
+| Form validation not working | Check **`validators.js`** path in imports                                   |
+| react-hook-form error       | Run **`npm install react-hook-form`**                                       |
+| Database connection error   | Start MySQL in XAMPP, check **`.env`** settings                             |
+| Protected route redirecting | Check AuthContext and localStorage for token                                |
+| 404 page not showing        | Ensure **`*`** route is last in Routes                                      |
 
 ## Contributing
-    Create a new branch:
-    git switch -c branch-name
+**Create a new branch:**
+- git checkout -b branch-name
 
-    Commit your changes:
-    git commit -m "add new feature"
+**Commit your changes:**
+- git add .
+- git commit -m "add new feature"
 
-    Push to repository:
-    git push origin branch-name
+**Push to repository:**
+- git push origin branch-name
 
 ## Future Improvements
 - Add Docker support
 - Cloud deployment (Vercel + Render)
-- Notification system
-- Advanced search filters
+- Real-time notification system
+- Advanced search filters with debouncing
 - Email verification
 - Password reset functionality
 - Chat between employers and job seekers
-- CompanyCard component
-- Job application tracking
 - Resume upload functionality
+- Job application tracking with timeline
 - Dark mode support
+- AI-powered job recommendations
+- Smart matching score between candidate and job
+- Interview scheduling system
+- Mobile native apps (React Native)
 
 ## License
 
@@ -416,4 +599,26 @@ This project is for educational purposes.
 
 ## Goal
 
-Make onboarding so easy that any developer can run SmartHire locally in under 15 minutes.
+SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
+
+**Completed So Far:**
+
+- React + Vite + Tailwind CSS frontend environment
+- Responsive Navbar with role-based navigation and mobile drawer
+- Responsive Footer with newsletter and social links
+- Complete Homepage with hero section, search bar, featured jobs, and "How It Works"
+- Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
+- Complete routing system with protected routes and 404 page
+- MySQL database schema with 16+ tables and seed data
+- Authentication context with JWT structure
+- CSS variables for consistent theming
+- Google Material Icons integration
+
+**In Progress (Sprint 1 remaining tasks):**
+- Jobs Listing Page integration with JobCard
+- Job Details Page with similar jobs
+- Companies Page with CompanyCard
+- Login and Register page functionality
+- Backend API development
+
+**Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.

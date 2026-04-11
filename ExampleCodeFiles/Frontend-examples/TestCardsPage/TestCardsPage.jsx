@@ -1,6 +1,6 @@
 import React from 'react';
-import JobCard from '../../components/jobs/JobCard/JobCard';
-import CompanyCard from '../../components/companies/CompanyCard/CompanyCard';
+import JobCard from '../../../client/src/components/jobs/JobCard/JobCard';
+import CompanyCard from '../../../client/src/components/companies/CompanyCard/CompanyCard';
 import './TestCardsPage.css';
 
 const sampleJobs = [

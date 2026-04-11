@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import Button from '../../components/common/Button/Button';
-import Input from '../../components/common/Input/Input';
-import { validateEmail, validatePassword, validateRequired, validateMatch } from '../../utils/validators';
+import Button from '../../../client/src/components/common/Button/Button';
+import Input from '../../../client/src/components/common/Input/Input';
+import { validateEmail, validatePassword, validateRequired, validateMatch } from '../../../client/src/utils/validators';
 import './ComponentTestPage.css';
 
 const ComponentTestPage = () => {

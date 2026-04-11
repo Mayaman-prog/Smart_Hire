@@ -5,6 +5,7 @@ import Navbar from './components/common/Navbar/Navbar';
 import Footer from './components/common/Footer/Footer';
 import TestCardsPage from './pages/TestCardsPage/TestCardsPage';
 import TagTestPage from './pages/TagTestPage/TagTestPage';
+import ComponentTestPage from './pages/ComponentTestPage/ComponentTestPage';
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                     } />
                     <Route path="/test-cards" element={<TestCardsPage />} />
                     <Route path="/test-tags" element={<TagTestPage />} />
+                    <Route path="/test-components" element={<ComponentTestPage />} />
                 </Routes>
             </main>
             <Footer />

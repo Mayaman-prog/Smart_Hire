@@ -1,0 +1,98 @@
+.test-cards-page {
+    min-height: 100vh;
+    background-color: #f9fafb;
+    padding: 40px 0;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 24px;
+    margin-top: 0;
+}
+
+.jobs-grid {
+    display: grid;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+@media (min-width: 1200px) {
+    .jobs-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+    .jobs-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .jobs-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+.companies-grid {
+    display: grid;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+@media (min-width: 1200px) {
+    .companies-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    .companies-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .companies-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .companies-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .test-cards-page {
+        padding: 20px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 20px;
+    }
+    
+    .container {
+        padding: 0 16px;
+    }
+}

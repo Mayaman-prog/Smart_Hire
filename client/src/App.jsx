@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/common/Navbar/Navbar';
 import TestCardsPage from './pages/TestCardsPage/TestCardsPage';
+import TagTestPage from './pages/TagTestPage/TagTestPage';
 
 function App() {
     return (
@@ -17,6 +18,7 @@ function App() {
                         </div>
                     } />
                     <Route path="/test-cards" element={<TestCardsPage />} />
+                    <Route path="/test-tags" element={<TagTestPage />} />
                 </Routes>
             </main>
         </div>

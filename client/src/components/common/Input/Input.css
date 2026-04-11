@@ -1,0 +1,134 @@
+/* Input group container */
+.input-group {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* Label styling */
+.input-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+/* Required field asterisk */
+.input-required {
+    color: #dc2626;
+    margin-left: 4px;
+}
+
+/* Base input field */
+.input-field {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+/* Extra padding for password fields */
+.input-field[type="password"] {
+    padding-right: 40px;
+}
+
+/* HIDE BROWSER'S NATIVE PASSWORD EYE ICON */
+.input-field[type="password"]::-ms-reveal,
+.input-field[type="password"]::-ms-clear,
+.input-field[type="password"]::-webkit-contacts-auto-fill-button,
+.input-field[type="password"]::-webkit-credentials-auto-fill-button {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Focus state */
+.input-field:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Disabled state */
+.input-field:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Filled state */
+.input-filled {
+    border-color: #10b981;
+}
+
+/* Error state */
+.input-error {
+    border-color: #dc2626;
+}
+.input-error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* Error message */
+.input-error-message {
+    font-size: 12px;
+    color: #dc2626;
+    margin-top: 4px;
+}
+
+/* Textarea */
+textarea.input-field {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Select dropdown */
+.input-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+}
+
+/* Password wrapper for eye icon */
+.input-wrapper {
+    position: relative;
+}
+.input-wrapper .input-field {
+    padding-right: 40px;
+}
+
+/* Custom eye icon button */
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.password-toggle .material-symbols-outlined {
+    font-size: 20px;
+    color: #9ca3af;
+}
+.password-toggle:hover .material-symbols-outlined {
+    color: #6b7280;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+    .input-label { font-size: 13px; }
+    .input-field { padding: 8px 10px; font-size: 13px; }
+    textarea.input-field { min-height: 80px; }
+}

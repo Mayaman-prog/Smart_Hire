@@ -1,0 +1,97 @@
+.component-test-page {
+    min-height: 100vh;
+    background-color: #f9fafb;
+    padding: 40px 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #111827;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.demo-section {
+    background-color: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.button-demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+}
+
+.input-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.demo-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .component-test-page {
+        padding: 20px 0;
+    }
+    
+    .page-title {
+        font-size: 24px;
+        margin-bottom: 24px;
+    }
+    
+    .demo-section {
+        padding: 16px;
+    }
+    
+    .section-title {
+        font-size: 18px;
+    }
+    
+    .button-demo {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 20px;
+    }
+    
+    .section-title {
+        font-size: 16px;
+    }
+    
+    .button-demo {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .button-demo .btn {
+        justify-content: center;
+    }
+}

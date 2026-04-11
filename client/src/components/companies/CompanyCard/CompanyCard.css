@@ -1,0 +1,79 @@
+.company-card-link {
+    text-decoration: none;
+    display: block;
+}
+
+.company-card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+    height: 100%;
+}
+
+.company-card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);
+    border-color: #3b82f6;
+}
+
+.company-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.company-card-header .company-logo {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.verified-badge {
+    background-color: #dbeafe;
+    border-radius: 9999px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.verified-badge .material-symbols-outlined {
+    font-size: 16px;
+    color: #2563eb;
+}
+
+.company-card-content {
+    flex: 1;
+}
+
+.company-card-content .company-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.company-location, .company-jobs-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+
+.company-location .material-symbols-outlined,
+.company-jobs-count .material-symbols-outlined {
+    font-size: 16px;
+}

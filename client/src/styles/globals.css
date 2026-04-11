@@ -19,6 +19,13 @@ body {
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+#root {
+    width: 100%;
+    overflow-x: hidden;
 }
 
 /* Typography */
@@ -50,7 +57,10 @@ button {
 .container {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 var(--spacing-lg);
+    position: relative;
+    z-index: 1;
+    width: 100%;
 }
 
 .text-center {
@@ -65,9 +75,14 @@ button {
     background-color: var(--white);
 }
 
-/* Responsive */
+/* Full width sections */
+.full-width {
+    width: 100%;
+}
+
+/* Responsive container */
 @media (max-width: 768px) {
     .container {
-        padding: 0 16px;
+        padding: 0 var(--spacing-md);
     }
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Tag from '../../components/common/Tag/Tag';
-import TagGroup from '../../components/common/TagGroup/TagGroup';
+import Tag from '../../../client/src/components/common/Tag/Tag';
+import TagGroup from '../../../client/src/components/common/TagGroup/TagGroup';
 import './TagTestPage.css';
 
 const TagTestPage = () => {

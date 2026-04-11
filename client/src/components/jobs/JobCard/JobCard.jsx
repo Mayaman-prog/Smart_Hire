@@ -1,35 +1,36 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './JobCard.css';   // <-- This imports the CSS
+import './JobCard.css';
+
+// Export this function so it can be used in JobsPage
+export const getJobTypeColor = (jobType) => {
+    switch(jobType) {
+        case 'full-time': return 'job-type-full-time';
+        case 'part-time': return 'job-type-part-time';
+        case 'remote': return 'job-type-remote';
+        case 'contract': return 'job-type-contract';
+        case 'internship': return 'job-type-internship';
+        default: return 'job-type-default';
+    }
+};
+
+export const getJobTypeLabel = (jobType) => {
+    switch(jobType) {
+        case 'full-time': return 'Full Time';
+        case 'part-time': return 'Part Time';
+        case 'remote': return 'Remote';
+        case 'contract': return 'Contract';
+        case 'internship': return 'Internship';
+        default: return jobType;
+    }
+};
 
 const JobCard = ({ job }) => {
-    const getJobTypeClass = (jobType) => {
-        switch(jobType) {
-            case 'full-time': return 'job-type-full-time';
-            case 'part-time': return 'job-type-part-time';
-            case 'remote': return 'job-type-remote';
-            case 'contract': return 'job-type-contract';
-            case 'internship': return 'job-type-internship';
-            default: return 'job-type-default';
-        }
-    };
-
     const formatSalary = (min, max) => {
         if (!min && !max) return 'Negotiable';
         if (min && !max) return `$${min.toLocaleString()}`;
         if (!min && max) return `$${max.toLocaleString()}`;
         return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
-    };
-
-    const getJobTypeLabel = (jobType) => {
-        switch(jobType) {
-            case 'full-time': return 'Full Time';
-            case 'part-time': return 'Part Time';
-            case 'remote': return 'Remote';
-            case 'contract': return 'Contract';
-            case 'internship': return 'Internship';
-            default: return jobType;
-        }
     };
 
     return (
@@ -60,7 +61,7 @@ const JobCard = ({ job }) => {
                     </div>
 
                     <div className="job-tags">
-                        <span className={`job-type-tag ${getJobTypeClass(job.job_type)}`}>
+                        <span className={`job-type-tag ${getJobTypeColor(job.job_type)}`}>
                             {getJobTypeLabel(job.job_type)}
                         </span>
                         {job.is_featured && (

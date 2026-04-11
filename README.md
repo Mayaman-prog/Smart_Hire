@@ -13,7 +13,9 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [Navbar Component](#navbar-component)
   - [Footer Component](#footer-component)
   - [HomePage Component](#homepage-component)
+  - [JobsPage Component](#jobspage-component)
   - [JobCard Component](#jobcard-component)
+  - [CompanyCard Component](#companycard-component)
   - [Button Component](#button-component)
   - [Input Component](#input-component)
   - [Tag Component](#tag-component)
@@ -45,10 +47,16 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Mobile hamburger menu
 - Job listing with cards
 - Company directory with cards
+- Advanced job search with filters (job type, location, salary range)
+- Sorting options (Most recent, Salary high to low, Salary low to high)
+- Pagination for job listings
+- Loading skeleton animations
 - Reusable form components with validation
 - Protected routes with role-based access
 - 404 page for unknown routes
 - Scroll restoration on route change
+- CSS variables for consistent theming
+- Google Material Icons integration
 - SEO-friendly & scalable
 
 ### Component Features
@@ -96,6 +104,38 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Unauthenticated users clicking "Search Jobs" or "Post a Job" are redirected to login
 - Search queries are saved to sessionStorage and restored after login
 
+#### JobsPage Component
+**Location:** client/src/pages/JobsPage/JobsPage.jsx
+
+**Features:**
+- Complete job listing page with search and filters
+- Search bar with keyword and location inputs (debounced search - 300ms)
+- Filter sidebar with job type checkboxes (colored like job cards)
+- Location input filter
+- Salary range filter with min/max inputs and visual bar
+- Active filters display with individual remove buttons
+- "Clear all filters" button
+- Sorting options (Most recent, Salary high to low, Salary low to high)
+- Responsive job cards grid (3 columns desktop, 2 tablet, 1 mobile)
+- Pagination with Previous/Next buttons and page numbers
+- Results count display
+- Loading skeleton (6 cards with shimmer animation)
+- Empty state with friendly message and clear filters button
+- Mobile filter drawer (slide-in panel)
+- URL query params sync (filters persist after page refresh)
+- CSS variables for consistent theming
+
+**Filter Sidebar:**
+- Job Type: Full-time, Part-time, Remote, Contract, Internship (colored buttons)
+- Location: Text input with placeholder
+- Salary Range: Min/Max number inputs with visual progress bar
+
+**Mobile Features:**
+- Filter button above job cards
+- Slide-in filter drawer
+- Full-width job cards
+- Stacked search bar
+
 #### JobCard Component
 **Location:** `client/src/components/jobs/JobCard/JobCard.jsx`
 
@@ -119,7 +159,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 | Remote      | Blue   |
 | Internship  | Orange |
 
-#### CompanyCard
+#### CompanyCard Component
 **Location:** `client/src/components/companies/CompanyCard/CompanyCard.jsx`
 
 **Features:**
@@ -201,83 +241,85 @@ Make sure you have the following installed:
 
 ## Project Structure
 SmartHire/
-├── client/ # React (Vite) frontend
-│ ├── src/
-│ │ ├── components/
-│ │ │ ├── common/
-│ │ │ │ ├── Navbar/
-│ │ │ │ │ ├── Navbar.jsx
-│ │ │ │ │ └── Navbar.css
-│ │ │ │ ├── Footer/
-│ │ │ │ │ ├── Footer.jsx
-│ │ │ │ │ └── Footer.css
-│ │ │ │ ├── Button/
-│ │ │ │ │ ├── Button.jsx
-│ │ │ │ │ └── Button.css
-│ │ │ │ ├── Input/
-│ │ │ │ │ ├── Input.jsx
-│ │ │ │ │ └── Input.css
-│ │ │ │ ├── Tag/
-│ │ │ │ │ ├── Tag.jsx
-│ │ │ │ │ └── Tag.css
-│ │ │ │ ├── TagGroup/
-│ │ │ │ │ ├── TagGroup.jsx
-│ │ │ │ │ └── TagGroup.css
-│ │ │ │ └── ScrollToTop.jsx
-│ │ │ ├── jobs/
-│ │ │ │ └── JobCard/
-│ │ │ │ ├── JobCard.jsx
-│ │ │ │ └── JobCard.css
-│ │ │ ├── companies/
-│ │ │ │ └── CompanyCard/
-│ │ │ │ ├── CompanyCard.jsx
-│ │ │ │ └── CompanyCard.css
-│ │ │ └── auth/
-│ │ │ └── ProtectedRoute.jsx
-│ │ ├── pages/
-│ │ │ ├── HomePage/
-│ │ │ │ ├── HomePage.jsx
-│ │ │ │ └── HomePage.css
-│ │ │ ├── JobsPage/
-│ │ │ ├── JobDetailsPage/
-│ │ │ ├── CompaniesPage/
-│ │ │ ├── CompanyDetailsPage/
-│ │ │ ├── LoginPage/
-│ │ │ ├── RegisterPage/
-│ │ │ └── NotFoundPage/
-│ │ ├── contexts/
-│ │ │ └── AuthContext.jsx
-│ │ ├── data/
-│ │ │ ├── jobs.json
-│ │ │ └── companies.json
-│ │ ├── utils/
-│ │ │ └── validators.js
-│ │ ├── styles/
-│ │ │ ├── globals.css
-│ │ │ └── variables.css
-│ │ ├── App.jsx
-│ │ └── main.jsx
-│ ├── index.html
-│ └── package.json
+├── client/                           # React (Vite) frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── common/
+│   │   │   │   ├── Navbar/
+│   │   │   │   │   ├── Navbar.jsx
+│   │   │   │   │   └── Navbar.css
+│   │   │   │   ├── Footer/
+│   │   │   │   │   ├── Footer.jsx
+│   │   │   │   │   └── Footer.css
+│   │   │   │   ├── Button/
+│   │   │   │   │   ├── Button.jsx
+│   │   │   │   │   └── Button.css
+│   │   │   │   ├── Input/
+│   │   │   │   │   ├── Input.jsx
+│   │   │   │   │   └── Input.css
+│   │   │   │   ├── Tag/
+│   │   │   │   │   ├── Tag.jsx
+│   │   │   │   │   └── Tag.css
+│   │   │   │   ├── TagGroup/
+│   │   │   │   │   ├── TagGroup.jsx
+│   │   │   │   │   └── TagGroup.css
+│   │   │   │   └── ScrollToTop.jsx
+│   │   │   ├── jobs/
+│   │   │   │   └── JobCard/
+│   │   │   │       ├── JobCard.jsx
+│   │   │   │       └── JobCard.css
+│   │   │   ├── companies/
+│   │   │   │   └── CompanyCard/
+│   │   │   │       ├── CompanyCard.jsx
+│   │   │   │       └── CompanyCard.css
+│   │   │   └── auth/
+│   │   │       └── ProtectedRoute.jsx
+│   │   ├── pages/
+│   │   │   ├── HomePage/
+│   │   │   │   ├── HomePage.jsx
+│   │   │   │   └── HomePage.css
+│   │   │   ├── JobsPage/
+│   │   │   │   ├── JobsPage.jsx
+│   │   │   │   └── JobsPage.css
+│   │   │   ├── JobDetailsPage/
+│   │   │   ├── CompaniesPage/
+│   │   │   ├── CompanyDetailsPage/
+│   │   │   ├── LoginPage/
+│   │   │   ├── RegisterPage/
+│   │   │   └── NotFoundPage/
+│   │   ├── contexts/
+│   │   │   └── AuthContext.jsx
+│   │   ├── data/
+│   │   │   ├── jobs.json
+│   │   │   └── companies.json
+│   │   ├── utils/
+│   │   │   └── validators.js
+│   │   ├── styles/
+│   │   │   ├── globals.css
+│   │   │   └── variables.css
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   └── package.json
 │
-├── server/ # Node.js + Express backend
-│ ├── src/
-│ │ ├── config/
-│ │ │ └── database.js
-│ │ ├── controllers/
-│ │ ├── middleware/
-│ │ ├── routes/
-│ │ └── utils/
-│ ├── database/
-│ │ ├── schema.sql
-│ │ └── seed.sql
-│ ├── scripts/
-│ │ └── setup-db.js
-│ ├── .env
-│ ├── package.json
-│ └── server.js
+├── server/                          # Node.js + Express backend
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── database.js
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   └── utils/
+│   ├── database/
+│   │   ├── schema.sql
+│   │   └── seed.sql
+│   ├── scripts/
+│   │   └── setup-db.js
+│   ├── .env
+│   ├── package.json
+│   └── server.js
 │
-├── examplecodefiles/ # Reference code examples
+├── examplecodefiles/                # Reference code examples
 ├── README.md
 └── .gitignore
 
@@ -428,6 +470,24 @@ FRONTEND_URL=http://localhost:5173
 | **Tablet (768px–992px)** | 2 columns        | Horizontal        |
 | **Mobile (<768px)**      | 1 column         | Vertical stacked  |
 
+## JobsPage Component
+**Location:** `client/src/pages/JobsPage/JobsPage.jsx`
+
+**Features:**
+- Complete job listing page with search and filters
+- Search bar with keyword and location inputs (debounced search - 300ms)
+- Filter sidebar with job type checkboxes (colored like job cards)
+- Location input filter
+- Salary range filter with min/max inputs and visual bar
+- Active filters display with individual remove buttons
+- Sorting options (Most recent, Salary high to low, Salary low to high)
+- Responsive job cards grid (3 columns desktop, 2 tablet, 1 mobile)
+- Pagination with Previous/Next buttons and page numbers
+- Loading skeleton (6 cards with shimmer animation)
+
+- Empty state with friendly message
+- Mobile filter drawer (slide-in panel)
+- URL query params sync (filters persist after page refresh)
 
 ## JobCard Component
 **Location:** client/src/components/jobs/JobCard/JobCard.jsx
@@ -554,17 +614,21 @@ FRONTEND_URL=http://localhost:5173
 
 ## Troubleshooting
 
-| Issue                       | Solution                                                                    |
-| --------------------------- | --------------------------------------------------------------------------- |
-| Navbar items squished       | Restart Vite: **`rm -rf node_modules/.vite && npm run dev`**                |
-| CSS not applying            | Check import paths in component files                                       |
-| JobCard not showing         | Verify data in **`client/src/data/jobs.json`**                              |
-| Footer not sticky           | Ensure layout uses **`min-height: 100vh`** and **`flex-direction: column`** |
-| Form validation not working | Check **`validators.js`** path in imports                                   |
-| react-hook-form error       | Run **`npm install react-hook-form`**                                       |
-| Database connection error   | Start MySQL in XAMPP, check **`.env`** settings                             |
-| Protected route redirecting | Check AuthContext and localStorage for token                                |
-| 404 page not showing        | Ensure **`*`** route is last in Routes                                      |
+| Issue                              | Solution                                                            |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| Navbar items squished              | Restart Vite: `rm -rf node_modules/.vite && npm run dev`            |
+| CSS not applying                   | Check import paths in component files                               |
+| JobCard not showing                | Verify data in `client/src/data/jobs.json`                          |
+| Footer not sticky                  | Ensure layout uses `min-height: 100vh` and `flex-direction: column` |
+| Form validation not working        | Check `validators.js` path in imports                               |
+| HomePage featured jobs not showing | Check `jobs.json` has `is_featured: true` jobs                      |
+| Search redirect not working        | Check AuthContext and localStorage                                  |
+| Icons not showing                  | Ensure Google Fonts link in `index.html`                            |
+| Filters not working                | Check URL query params and state management                         |
+| Mobile filter drawer not showing   | Verify CSS media queries are working                                |
+| Database connection error          | Start MySQL in XAMPP, check `.env` settings                         |
+| Protected route redirecting        | Check AuthContext and localStorage for token                        |
+| 404 page not showing               | Ensure `*` route is last in Routes                                  |
 
 ## Contributing
 **Create a new branch:**

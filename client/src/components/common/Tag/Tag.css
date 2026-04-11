@@ -1,0 +1,79 @@
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* Color Variants */
+.tag-full-time {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.tag-part-time {
+    background-color: #fef9c3;
+    color: #854d0e;
+}
+
+.tag-remote {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.tag-contract {
+    background-color: #f3e8ff;
+    color: #6b21a5;
+}
+
+.tag-internship {
+    background-color: #ffedd5;
+    color: #9a3412;
+}
+
+.tag-featured {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.tag-default {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+/* Remove Button */
+.tag-remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 2px;
+}
+
+.tag-remove-btn .material-symbols-outlined {
+    font-size: 14px;
+    color: inherit;
+}
+
+.tag-remove-btn:hover {
+    opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .tag {
+        padding: 3px 10px;
+        font-size: 11px;
+    }
+    
+    .tag-remove-btn .material-symbols-outlined {
+        font-size: 12px;
+    }
+}

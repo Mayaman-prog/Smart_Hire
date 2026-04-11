@@ -1,0 +1,35 @@
+.tag-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.tag-more-btn, .tag-less-btn {
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.tag-more-btn:hover, .tag-less-btn:hover {
+    background-color: #e5e7eb;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .tag-group {
+        gap: 6px;
+    }
+    
+    .tag-more-btn, .tag-less-btn {
+        padding: 3px 10px;
+        font-size: 11px;
+    }
+}

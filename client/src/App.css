@@ -1,16 +1,9 @@
 .app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Remove centering - let pages control their own layout */
 .main-content {
-  flex: 1;
-}
-
-/* Keep heading styles if needed */
-.app h1 {
-  color: #2563eb;
-  margin-bottom: 16px;
+    flex: 1;
 }

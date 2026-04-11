@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/common/Navbar/Navbar';
+import Footer from './components/common/Footer/Footer';
 import TestCardsPage from './pages/TestCardsPage/TestCardsPage';
 import TagTestPage from './pages/TagTestPage/TagTestPage';
 
@@ -21,6 +22,7 @@ function App() {
                     <Route path="/test-tags" element={<TagTestPage />} />
                 </Routes>
             </main>
+            <Footer />
         </div>
     );
 }

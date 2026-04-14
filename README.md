@@ -15,6 +15,7 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [HomePage Component](#homepage-component)
   - [JobsPage Component](#jobspage-component)
   - [JobDetailsPage Component](#jobdetailspage-component)
+  - [CompaniesPage Component](#companiespage-component)
   - [JobCard Component](#jobcard-component)
   - [CompanyCard Component](#companycard-component)
   - [Button Component](#button-component)
@@ -214,6 +215,45 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Error message with retry option
 - Toast notifications for user actions
 
+#### CompaniesPage Component
+
+**Location:** `client/src/pages/CompaniesPage/CompaniesPage.jsx`
+
+**Features:**
+- Company directory page displaying all registered companies
+- Search bar to filter companies by name (real-time filtering)
+- Clear search button to reset search
+- Displays job count for each company (number of open positions)
+- Responsive grid layout (4 columns desktop, 3 columns large tablet, 2 columns tablet, 1 column mobile)
+- Company cards with logo, name, location, job count, and verified badge
+- Click on any company card to navigate to company details page (`/companies/${id}`)
+- Loading skeleton animation (8 cards) while fetching data
+- Empty state when no companies match search
+- Error state with retry button if API fails
+- Fully responsive design for all screen sizes
+- CSS variables for consistent theming
+- Google Material Icons throughout
+
+**Search Functionality:**
+- Real-time filtering as user types
+- Case-insensitive search
+- Shows number of companies found
+- Clear button to reset search
+
+**Responsive Breakpoints:**
+
+| Screen Size                 | Columns   |
+|-----------------------------|-----------|
+| Desktop (>1200px)           | 4 columns |
+| Large Tablet (992px-1200px) | 3 columns |
+| Tablet (768px-992px)        | 2 columns |
+| Mobile (<768px)             | 1 column  |
+
+**API Integration (Mock - Ready for Backend):**
+- GET `/api/companies` - Fetch all companies
+- GET `/api/companies/:id` - Fetch single company details
+- GET `/api/jobs?companyId={id}` - Fetch jobs for specific company
+
 #### JobCard Component
 **Location:** `client/src/components/jobs/JobCard/JobCard.jsx`
 
@@ -319,87 +359,89 @@ Make sure you have the following installed:
 
 ## Project Structure
 SmartHire/
-├── client/ # React (Vite) frontend
-│ ├── src/
-│ │ ├── components/
-│ │ │ ├── common/
-│ │ │ │ ├── Navbar/
-│ │ │ │ │ ├── Navbar.jsx
-│ │ │ │ │ └── Navbar.css
-│ │ │ │ ├── Footer/
-│ │ │ │ │ ├── Footer.jsx
-│ │ │ │ │ └── Footer.css
-│ │ │ │ ├── Button/
-│ │ │ │ │ ├── Button.jsx
-│ │ │ │ │ └── Button.css
-│ │ │ │ ├── Input/
-│ │ │ │ │ ├── Input.jsx
-│ │ │ │ │ └── Input.css
-│ │ │ │ ├── Tag/
-│ │ │ │ │ ├── Tag.jsx
-│ │ │ │ │ └── Tag.css
-│ │ │ │ ├── TagGroup/
-│ │ │ │ │ ├── TagGroup.jsx
-│ │ │ │ │ └── TagGroup.css
-│ │ │ │ └── ScrollToTop.jsx
-│ │ │ ├── jobs/
-│ │ │ │ └── JobCard/
-│ │ │ │ ├── JobCard.jsx
-│ │ │ │ └── JobCard.css
-│ │ │ ├── companies/
-│ │ │ │ └── CompanyCard/
-│ │ │ │ ├── CompanyCard.jsx
-│ │ │ │ └── CompanyCard.css
-│ │ │ └── auth/
-│ │ │ └── ProtectedRoute.jsx
-│ │ ├── pages/
-│ │ │ ├── HomePage/
-│ │ │ │ ├── HomePage.jsx
-│ │ │ │ └── HomePage.css
-│ │ │ ├── JobsPage/
-│ │ │ │ ├── JobsPage.jsx
-│ │ │ │ └── JobsPage.css
-│ │ │ ├── JobDetailsPage/
-│ │ │ │ ├── JobDetailsPage.jsx
-│ │ │ │ └── JobDetailsPage.css
-│ │ │ ├── CompaniesPage/
-│ │ │ ├── CompanyDetailsPage/
-│ │ │ ├── LoginPage/
-│ │ │ ├── RegisterPage/
-│ │ │ └── NotFoundPage/
-│ │ ├── contexts/
-│ │ │ └── AuthContext.jsx
-│ │ ├── data/
-│ │ │ ├── jobs.json
-│ │ │ └── companies.json
-│ │ ├── utils/
-│ │ │ └── validators.js
-│ │ ├── styles/
-│ │ │ ├── globals.css
-│ │ │ └── variables.css
-│ │ ├── App.jsx
-│ │ └── main.jsx
-│ ├── index.html
-│ └── package.json
+├── client/                           # React (Vite) frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── common/
+│   │   │   │   ├── Navbar/
+│   │   │   │   │   ├── Navbar.jsx
+│   │   │   │   │   └── Navbar.css
+│   │   │   │   ├── Footer/
+│   │   │   │   │   ├── Footer.jsx
+│   │   │   │   │   └── Footer.css
+│   │   │   │   ├── Button/
+│   │   │   │   │   ├── Button.jsx
+│   │   │   │   │   └── Button.css
+│   │   │   │   ├── Input/
+│   │   │   │   │   ├── Input.jsx
+│   │   │   │   │   └── Input.css
+│   │   │   │   ├── Tag/
+│   │   │   │   │   ├── Tag.jsx
+│   │   │   │   │   └── Tag.css
+│   │   │   │   ├── TagGroup/
+│   │   │   │   │   ├── TagGroup.jsx
+│   │   │   │   │   └── TagGroup.css
+│   │   │   │   └── ScrollToTop.jsx
+│   │   │   ├── jobs/
+│   │   │   │   └── JobCard/
+│   │   │   │       ├── JobCard.jsx
+│   │   │   │       └── JobCard.css
+│   │   │   ├── companies/
+│   │   │   │   └── CompanyCard/
+│   │   │   │       ├── CompanyCard.jsx
+│   │   │   │       └── CompanyCard.css
+│   │   │   └── auth/
+│   │   │       └── ProtectedRoute.jsx
+│   │   ├── pages/
+│   │   │   ├── HomePage/
+│   │   │   │   ├── HomePage.jsx
+│   │   │   │   └── HomePage.css
+│   │   │   ├── JobsPage/
+│   │   │   │   ├── JobsPage.jsx
+│   │   │   │   └── JobsPage.css
+│   │   │   ├── JobDetailsPage/
+│   │   │   │   ├── JobDetailsPage.jsx
+│   │   │   │   └── JobDetailsPage.css
+│   │   │   ├── CompaniesPage/
+│   │   │   │   ├── CompaniesPage.jsx
+│   │   │   │   └── CompaniesPage.css
+│   │   │   ├── CompanyDetailsPage/
+│   │   │   ├── LoginPage/
+│   │   │   ├── RegisterPage/
+│   │   │   └── NotFoundPage/
+│   │   ├── contexts/
+│   │   │   └── AuthContext.jsx
+│   │   ├── data/
+│   │   │   ├── jobs.json
+│   │   │   └── companies.json
+│   │   ├── utils/
+│   │   │   └── validators.js
+│   │   ├── styles/
+│   │   │   ├── globals.css
+│   │   │   └── variables.css
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   └── package.json
 │
-├── server/ # Node.js + Express backend
-│ ├── src/
-│ │ ├── config/
-│ │ │ └── database.js
-│ │ ├── controllers/
-│ │ ├── middleware/
-│ │ ├── routes/
-│ │ └── utils/
-│ ├── database/
-│ │ ├── schema.sql
-│ │ └── seed.sql
-│ ├── scripts/
-│ │ └── setup-db.js
-│ ├── .env
-│ ├── package.json
-│ └── server.js
+├── server/                          # Node.js + Express backend
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── database.js
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   └── utils/
+│   ├── database/
+│   │   ├── schema.sql
+│   │   └── seed.sql
+│   ├── scripts/
+│   │   └── setup-db.js
+│   ├── .env
+│   ├── package.json
+│   └── server.js
 │
-├── examplecodefiles/ # Reference code examples
+├── examplecodefiles/                # Reference code examples
 ├── README.md
 └── .gitignore
 
@@ -569,6 +611,53 @@ FRONTEND_URL=`http://localhost:5173`
 - Mobile filter drawer (slide-in panel)
 - URL query params sync (filters persist after page refresh)
 
+#### JobDetailsPage Component
+
+**Location:** `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`
+
+**Features:**
+- Dynamic job details fetching using URL parameters (useParams)
+- Job header with title, company name (clickable), company logo, and relative posted date
+- Metadata row displaying location, job type badge, salary range, and experience level
+- Detailed job description and requirements sections
+- Key responsibilities list with checkmark icons
+- Perks & Benefits grid with icons
+- Job Overview card with date posted, job type, salary, and deadline
+- About the Company card with description and view profile link
+- SmartHire Match Insights - AI-powered match percentage for authenticated job seekers
+- Apply Now button with authentication check (redirects to login if not logged in)
+- Apply Now button disabled if already applied, shows loading state during submission
+- Success toast notification on successful application
+- Hide apply button if employer is viewing their own job
+- Save Job button with heart icon toggle (localStorage persistence)
+- Share button that copies current job URL to clipboard with toast notification
+- Print button to print job details
+- Similar Jobs section displaying 3 related jobs based on job type
+- Loading skeleton animation while fetching data
+- Error state with 404 page for invalid job IDs
+- Fully responsive design (mobile, tablet, desktop)
+- CSS variables for consistent theming
+- Google Material Icons throughout
+
+#### CompaniesPage Component
+
+**Location:** `client/src/pages/CompaniesPage/CompaniesPage.jsx`
+
+**Features:**
+- Company directory page displaying all registered companies
+- Search bar to filter companies by name (real-time filtering)
+- Clear search button to reset search
+- Displays job count for each company (number of open positions)
+- Responsive grid layout (4 columns desktop, 3 columns large tablet, 2 columns tablet, 1 column mobile)
+- Company cards with logo, name, location, job count, and verified badge
+- Click on any company card to navigate to company details page (`/companies/${id}`)
+- Loading skeleton animation (8 cards) while fetching data
+- Empty state when no companies match search
+- Error state with retry button if API fails
+- Fully responsive design for all screen sizes
+- CSS variables for consistent theming
+- Google Material Icons throughout
+
 ## JobCard Component
 **Location:** `client/src/components/jobs/JobCard/JobCard.jsx`
 
@@ -708,6 +797,8 @@ FRONTEND_URL=`http://localhost:5173`
 | Mobile filter drawer not showing   | Verify CSS media queries are working                                |
 | Apply button not working           | Check authentication status and user role                           |
 | Similar jobs not showing           | Check job type matching in JSON data                                |
+| Company search not working         | Verify companies.json has data                                      |
+| Company cards not showing          | Check CompanyCard component import                                  |
 | Database connection error          | Start MySQL in XAMPP, check `.env` settings                         |
 | Protected route redirecting        | Check AuthContext and `localStorage` for token                      |
 | 404 page not showing               | Ensure `*` route is last in Routes                                  |
@@ -755,7 +846,8 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Responsive Footer with newsletter and social links
 - Complete Homepage with hero section, search bar, featured jobs, and "How It Works"
 - Complete Jobs Page with filters, search, pagination, and sorting
-- Complete Jobs Page with filters, search, pagination, and sorting
+- Complete Jobs Details Page with filters, search, pagination, and sorting
+- Companies Page with search, responsive grid, and company cards
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -764,7 +856,6 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Google Material Icons integration
 
 **In Progress (Sprint 1 remaining tasks):**
-- Companies Page with CompanyCard
 - Company Details Page
 - Login and Register page functionality
 - Backend API development

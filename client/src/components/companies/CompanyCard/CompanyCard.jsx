@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './CompanyCard.css';   // <-- This imports the CSS
+import './CompanyCard.css';
 
 const CompanyCard = ({ company }) => {
     return (

@@ -1,8 +1,302 @@
+/* Companies Page Styles using CSS Variables from styles folder */
+
 .companies-page {
-    padding: 40px 0;
+    padding: var(--spacing-xl) 0 var(--spacing-3xl);
+    background-color: var(--light-gray);
+    min-height: calc(100vh - 200px);
 }
 
-.companies-page h1 {
-    font-size: 32px;
-    margin-bottom: 16px;
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+}
+
+/* Page Header */
+.page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+}
+
+.page-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--dark-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.page-subtitle {
+    font-size: var(--font-lg);
+    color: var(--gray-color);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+/* Search Section */
+.search-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.search-bar {
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.search-icon {
+    position: absolute;
+    left: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: var(--gray-light);
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 48px 14px 48px;
+    border: 1px solid var(--border-color);
+    border-radius: 50px;
+    font-size: var(--font-md);
+    outline: none;
+    transition: all 0.2s;
+    background: var(--white);
+}
+
+.search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-light);
+}
+
+.clear-search-btn:hover {
+    color: var(--danger-color);
+}
+
+.search-results-info {
+    text-align: center;
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-sm);
+    color: var(--gray-color);
+}
+
+/* Companies Grid */
+.companies-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+}
+
+/* Loading Skeleton */
+.loading-skeleton {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+}
+
+.skeleton-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.skeleton-logo {
+    width: 60px;
+    height: 60px;
+    background: var(--border-color);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-md);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-title {
+    width: 70%;
+    height: 18px;
+    background: var(--border-color);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-sm);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-text {
+    width: 90%;
+    height: 12px;
+    background: var(--border-color);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-xs);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    background: var(--white);
+    border-radius: var(--radius-xl);
+}
+
+.empty-icon .material-symbols-outlined {
+    font-size: 64px;
+    color: var(--gray-light);
+    margin-bottom: var(--spacing-md);
+}
+
+.empty-state h3 {
+    font-size: var(--font-xl);
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.empty-state p {
+    color: var(--gray-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.empty-clear-btn {
+    padding: 10px 24px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.empty-clear-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Error State */
+.error-state {
+    text-align: center;
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    background: var(--white);
+    border-radius: var(--radius-xl);
+}
+
+.error-icon {
+    font-size: 64px;
+    margin-bottom: var(--spacing-md);
+}
+
+.error-state h2 {
+    font-size: var(--font-2xl);
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+}
+
+.error-state p {
+    color: var(--gray-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.retry-btn {
+    padding: 10px 24px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.retry-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .companies-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .loading-skeleton {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .companies-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .loading-skeleton {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .page-title {
+        font-size: 32px;
+    }
+}
+
+@media (max-width: 768px) {
+    .companies-page {
+        padding: var(--spacing-lg) 0 var(--spacing-xl);
+    }
+    
+    .container {
+        padding: 0 var(--spacing-md);
+    }
+    
+    .page-title {
+        font-size: 28px;
+    }
+    
+    .page-subtitle {
+        font-size: var(--font-md);
+    }
+    
+    .companies-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .loading-skeleton {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-bar {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .page-subtitle {
+        font-size: var(--font-sm);
+    }
+    
+    .search-input {
+        padding: 12px 40px 12px 40px;
+        font-size: var(--font-sm);
+    }
 }

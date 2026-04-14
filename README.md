@@ -16,12 +16,16 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [JobsPage Component](#jobspage-component)
   - [JobDetailsPage Component](#jobdetailspage-component)
   - [CompaniesPage Component](#companiespage-component)
+  - [CompanyDetailsPage Component](#companyetailspage-component)
   - [JobCard Component](#jobcard-component)
   - [CompanyCard Component](#companycard-component)
   - [Button Component](#button-component)
   - [Input Component](#input-component)
   - [Tag Component](#tag-component)
   - [TagGroup Component](#taggroup-component)
+  - [ProtectedRoute Component](#protectedroute-component)
+  - [ScrollToTop Component](#scrolltotop-component)
+  - [NotFoundPage Component](#notfoundpage-component)
 - [Routing System](#routing-system)
 - [Validation Utilities](#validation-utilities)
 - [Database Schema](#database-schema)
@@ -64,22 +68,23 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 ### Component Features
 
 #### Navbar
-- Role-based menu items (Guest, Job Seeker, Employer, Admin)
+- Role-based navigation (Job Seeker, Employer, Admin, Guest)
 - Active route highlighting with visual feedback
-- User avatar dropdown with logout
-- Mobile responsive hamburger menu with slide-out drawer
-- CSS modules styling
+- User avatar dropdown menu with logout
+- Mobile hamburger menu with slide-out drawer
+- CSS modules styling with responsive breakpoints
 
 #### Footer
-- Responsive grid layout (4 columns desktop, 2 tablet, 1 mobile)
+- Responsive layout (4 columns desktop, 2 columns tablet, 1 column mobile)
 - Quick links sections (Platform, For Employers, Support)
-- Newsletter signup with toast notification
+- Newsletter signup with email validation
+- Toast notification for "Feature coming soon"
 - Social media icons (LinkedIn, GitHub, Twitter, Facebook)
-- Dynamic copyright year
+- Dynamic copyright year (auto-updates)
 - Sticky to bottom using flexbox
+- Dark theme background with white text
 
-#### HomePage Component
-**Location:** `client/src/pages/HomePage/HomePage.jsx`
+#### HomePage
 
 **Features:**
 - Hero section with gradient background and wave effect
@@ -94,20 +99,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - CSS variables for consistent theming
 - Google Material Icons throughout
 
-**Responsive Breakpoints:**
-
-| Screen Size          | Layout                       |
-|----------------------|------------------------------|
-| Desktop (>1200px)    | 3 column grid for jobs       |
-| Tablet (768px-992px) | 2 column grid                |
-| Mobile (<768px)      | 1 column, stacked search bar |
-
-**Authentication Integration:**
-- Unauthenticated users clicking "Search Jobs" or "Post a Job" are redirected to login
-- Search queries are saved to sessionStorage and restored after login
-
-#### JobsPage Component
-**Location:** `client/src/pages/JobsPage/JobsPage.jsx`
+#### JobsPage
 
 **Features:**
 - Complete job listing page with search and filters
@@ -127,19 +119,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - URL query params sync (filters persist after page refresh)
 - CSS variables for consistent theming
 
-**Filter Sidebar:**
-- Job Type: Full-time, Part-time, Remote, Contract, Internship (colored buttons)
-- Location: Text input with placeholder
-- Salary Range: Min/Max number inputs with visual progress bar
-
-**Mobile Features:**
-- Filter button above job cards
-- Slide-in filter drawer
-- Full-width job cards
-- Stacked search bar
-
-#### JobDetailsPage Component
-**Location:** `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`
+#### JobDetailsPage
 
 **Features:**
 - Dynamic job details fetching using URL parameters (useParams)
@@ -165,59 +145,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - CSS variables for consistent theming
 - Google Material Icons throughout
 
-**Smart Features:**
-- SmartHire Match Insights: Shows match percentage and personalized feedback for job seekers
-- Job recommendations based on similar job types
-- Local storage persistence for saved jobs and applied jobs tracking
-
-**Authentication Integration:**
-- Unauthenticated users clicking "Apply Now" are redirected to login page
-- Apply button disabled for employers viewing their own jobs
-- Save job functionality works for all users (localStorage fallback)
-
-**API Integration (Mock - Ready for Backend):**
-- GET `/api/jobs/:id` - Fetch single job details
-- POST `/api/applications` - Submit job application
-- GET `/api/jobs?similar=true&jobId={id}` - Fetch similar jobs
-
-**Responsive Breakpoints:**
-
-| Screen Size | Layout |
-|-------------|--------|
-| Desktop (>1024px) | Two columns (main content + sidebar) |
-| Tablet (768px-1024px) | Two columns, adjusted spacing |
-| Mobile (<768px) | Single column, stacked layout |
-
-**Page Sections:**
-
-| Section | Description |
-|---------|-------------|
-| Match Insights | SmartHire AI match percentage (visible only to job seekers) |
-| Job Header | Title, company, logo, posted date, action buttons |
-| Apply Section | Prominent Apply Now button with states |
-| Metadata Grid | Location, job type, salary, experience level |
-| Main Content | The Role, Key Responsibilities, Requirements, Benefits |
-| Sidebar | Job Overview, About Company, Share/Print actions |
-| Similar Jobs | 3 related job cards |
-
-**Action Buttons:**
-
-| Button | Function | State |
-|--------|----------|-------|
-| Save Job | Toggle save/unsave job | Heart outline (unsaved) / filled heart (saved) |
-| Share | Copy URL to clipboard | Shows toast "Link copied!" |
-| Print | Print job details | Browser print dialog |
-| Apply Now | Submit application | Default / Loading / Disabled (applied) |
-
-**Error Handling:**
-- 404 page when job ID is invalid
-- Loading skeleton while fetching data
-- Error message with retry option
-- Toast notifications for user actions
-
-#### CompaniesPage Component
-
-**Location:** `client/src/pages/CompaniesPage/CompaniesPage.jsx`
+#### CompaniesPage
 
 **Features:**
 - Company directory page displaying all registered companies
@@ -234,28 +162,21 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - CSS variables for consistent theming
 - Google Material Icons throughout
 
-**Search Functionality:**
-- Real-time filtering as user types
-- Case-insensitive search
-- Shows number of companies found
-- Clear button to reset search
+#### CompaniesDetailsPage
 
-**Responsive Breakpoints:**
+**Features:**
+- Dynamic company details using useParams
+- Company banner with gradient fallback
+- Company logo, name, verified badge, location
+- SmartHire Match Insights (skill alignment)
+- Tabs: Open Positions and About
+- Open Positions tab shows jobs using JobCard
+- About tab with description and contact info
+- Contact info: website, email, phone, address
+- Map placeholder
+- Loading skeleton and 404 error state
 
-| Screen Size                 | Columns   |
-|-----------------------------|-----------|
-| Desktop (>1200px)           | 4 columns |
-| Large Tablet (992px-1200px) | 3 columns |
-| Tablet (768px-992px)        | 2 columns |
-| Mobile (<768px)             | 1 column  |
-
-**API Integration (Mock - Ready for Backend):**
-- GET `/api/companies` - Fetch all companies
-- GET `/api/companies/:id` - Fetch single company details
-- GET `/api/jobs?companyId={id}` - Fetch jobs for specific company
-
-#### JobCard Component
-**Location:** `client/src/components/jobs/JobCard/JobCard.jsx`
+#### JobCard
 
 **Features:**
 - Displays job title, company name, and company logo (initials fallback)
@@ -267,18 +188,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Click navigation to job details page (`/jobs/${id}`)
 - Hover effects: scale transform (1.02), shadow increase, border color change
 
-**Job Type Colors:**
-
-| Job Type    | Color  |
-|-------------|--------|
-| Full-time   | Green  |
-| Part-time   | Yellow |
-| Contract    | Purple |
-| Remote      | Blue   |
-| Internship  | Orange |
-
-#### CompanyCard Component
-**Location:** `client/src/components/companies/CompanyCard/CompanyCard.jsx`
+#### CompanyCard
 
 **Features:**
 - Company logo with initials fallback
@@ -287,8 +197,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Hover effects: scale transform (1.02), shadow increase, border color change
 - Click navigation to company details page (`/companies/${id}`)
 
-#### Button Component
-**Location:** `client/src/components/common/Button/Button.jsx`
+#### Button
 
 **Features:**
 - 5 variants: primary, secondary, danger, outline, ghost
@@ -297,8 +206,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Full width option
 - Smooth transitions and focus rings
 
-#### Input Component
-**Location:** `client/src/components/common/Input/Input.jsx`
+#### Input
 
 **Features:**
 - Supported types: text, email, password, number, textarea, select
@@ -309,8 +217,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Browser's native password eye icon hidden
 - Textarea with min-height 100px
 
-### Tag Component
-**Location:** `client/src/components/common/Tag/Tag.jsx`
+### Tag
 
 **Features:**
 - 6 color variants for different job types
@@ -319,8 +226,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Rounded pill style
 - Responsive design
 
-### TagGroup Component
-**Location:** `client/src/components/common/TagGroup/TagGroup.jsx`
+### TagGroup
 
 **Features:**
 - Displays limited tags by default (configurable maxDisplay)
@@ -406,6 +312,8 @@ SmartHire/
 │   │   │   │   ├── CompaniesPage.jsx
 │   │   │   │   └── CompaniesPage.css
 │   │   │   ├── CompanyDetailsPage/
+│   │   │   │   ├── CompanyDetailsPage.jsx
+│   │   │   │   └── CompanyDetailsPage.css
 │   │   │   ├── LoginPage/
 │   │   │   ├── RegisterPage/
 │   │   │   └── NotFoundPage/
@@ -522,13 +430,6 @@ FRONTEND_URL=`http://localhost:5173`
 ### Navbar Implementation
 **Location:** `client/src/components/common/Navbar.jsx`
 
-**Features**
-- Role-based navigation (Job Seeker, Employer, Admin, Guest)
-- Active route highlighting with visual feedback
-- User avatar dropdown menu with logout
-- Mobile hamburger menu with slide-out drawer
-- CSS modules styling with responsive breakpoints
-
 # Role-Based Navigation
 | User Role      | Menu Items                                 |
 | ---------------| -------------------------------------------|
@@ -539,16 +440,6 @@ FRONTEND_URL=`http://localhost:5173`
 
 ## Footer Implementation
 **Location:** `client/src/components/common/Footer/Footer.jsx`
-
-**Features**
-- Responsive layout (4 columns desktop, 2 columns tablet, 1 column mobile)
-- Quick links sections (Platform, For Employers, Support)
-- Newsletter signup with email validation
-- Toast notification for "Feature coming soon"
-- Social media icons (LinkedIn, GitHub, Twitter, Facebook)
-- Dynamic copyright year (auto-updates)
-- Sticky to bottom using flexbox
-- Dark theme background with white text
 
 ### Footer Sections
 | Section           | Links                                                         |
@@ -568,18 +459,10 @@ FRONTEND_URL=`http://localhost:5173`
 ## HomePage Component
 **Location:** `client/src/pages/HomePage/HomePage.jsx`
 
-**Features:**
-- Hero section with gradient background and wave effect
-- Call-to-action buttons (Search Jobs, Post a Job) with authentication check
-- Search bar with keyword and location inputs
-- Featured jobs section fetching from JSON data
-- Loading skeleton animation while fetching data
-- Empty state when no featured jobs available
-- Error state with retry button
-- "How It Works" section with 3 steps
-- Fully responsive design
-- CSS variables for consistent theming
-- Google Material Icons throughout
+**File Structure:**
+client/src/pages/HomePage/
+├── HomePage.jsx
+└── HomePage.css
 
 ### Authentication Integration:
 - Unauthenticated users are redirected to login when clicking action buttons
@@ -595,133 +478,327 @@ FRONTEND_URL=`http://localhost:5173`
 ## JobsPage Component
 **Location:** `client/src/pages/JobsPage/JobsPage.jsx`
 
-**Features:**
-- Complete job listing page with search and filters
-- Search bar with keyword and location inputs (debounced search - 300ms)
-- Filter sidebar with job type checkboxes (colored like job cards)
-- Location input filter
-- Salary range filter with min/max inputs and visual bar
-- Active filters display with individual remove buttons
-- Sorting options (Most recent, Salary high to low, Salary low to high)
-- Responsive job cards grid (3 columns desktop, 2 tablet, 1 mobile)
-- Pagination with Previous/Next buttons and page numbers
-- Loading skeleton (6 cards with shimmer animation)
+**File Structure:**
+client/src/pages/JobsPage/
+├── JobsPage.jsx
+└── JobsPage.css
 
-- Empty state with friendly message
-- Mobile filter drawer (slide-in panel)
-- URL query params sync (filters persist after page refresh)
+**Filter Sidebar:**
+- Job Type: Full-time, Part-time, Remote, Contract, Internship (colored buttons)
+- Location: Text input with placeholder
+- Salary Range: Min/Max number inputs with visual progress bar
+
+**Mobile Features:**
+- Filter button above job cards
+- Slide-in filter drawer
+- Full-width job cards
+- Stacked search bar
 
 #### JobDetailsPage Component
-
 **Location:** `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`
 
-**Features:**
-- Dynamic job details fetching using URL parameters (useParams)
-- Job header with title, company name (clickable), company logo, and relative posted date
-- Metadata row displaying location, job type badge, salary range, and experience level
-- Detailed job description and requirements sections
-- Key responsibilities list with checkmark icons
-- Perks & Benefits grid with icons
-- Job Overview card with date posted, job type, salary, and deadline
-- About the Company card with description and view profile link
-- SmartHire Match Insights - AI-powered match percentage for authenticated job seekers
-- Apply Now button with authentication check (redirects to login if not logged in)
-- Apply Now button disabled if already applied, shows loading state during submission
-- Success toast notification on successful application
-- Hide apply button if employer is viewing their own job
-- Save Job button with heart icon toggle (localStorage persistence)
-- Share button that copies current job URL to clipboard with toast notification
-- Print button to print job details
-- Similar Jobs section displaying 3 related jobs based on job type
-- Loading skeleton animation while fetching data
-- Error state with 404 page for invalid job IDs
-- Fully responsive design (mobile, tablet, desktop)
-- CSS variables for consistent theming
-- Google Material Icons throughout
+**File Structure:**
+client/src/pages/JobDetailsPage/
+├── JobDetailsPage.jsx
+└── JobDetailsPage.css
+
+**Smart Features:**
+- SmartHire Match Insights: Shows match percentage and personalized feedback for job seekers
+- Job recommendations based on similar job types
+- Local storage persistence for saved jobs and applied jobs tracking
+
+**Authentication Integration:**
+- Unauthenticated users clicking "Apply Now" are redirected to login page
+- Apply button disabled for employers viewing their own jobs
+- Save job functionality works for all users (localStorage fallback)
+
+**API Integration (Mock - Ready for Backend):**
+- GET `/api/jobs/:id` - Fetch single job details
+- POST `/api/applications` - Submit job application
+- GET `/api/jobs?similar=true&jobId={id}` - Fetch similar jobs
+
+**Responsive Breakpoints:**
+| Screen Size               | Layout                               |
+| --------------------------|--------------------------------------|
+| **Desktop (>1024px)**     | Two columns (main content + sidebar) |
+| **Tablet (768px–1024px)** | Two columns, adjusted spacing        |
+| **Mobile (<768px) **      | Single column, stacked layout        |
+
+
+**Page Sections:**
+| Section        | Description                                                 |
+| -------------- | ----------------------------------------------------------- |
+| Match Insights | SmartHire AI match percentage (visible only to job seekers) |
+| Job Header     | Title, company, logo, posted date, action buttons           |
+| Apply Section  | Prominent Apply Now button with states                      |
+| Metadata Grid  | Location, job type, salary, experience level                |
+| Main Content   | The Role, Key Responsibilities, Requirements, Benefits      |
+| Sidebar        | Job Overview, About Company, Share/Print actions            |
+| Similar Jobs   | 3 related job cards                                         |
+
+**Action Buttons:**
+| Button    | Function               | State                                          |
+| --------- | ---------------------- | ---------------------------------------------- |
+| Save Job  | Toggle save/unsave job | Heart outline (unsaved) / filled heart (saved) |
+| Share     | Copy URL to clipboard  | Shows toast "Link copied!"                     |
+| Print     | Print job details      | Browser print dialog                           |
+| Apply Now | Submit application     | Default / Loading / Disabled (applied)         |
+
+**Error Handling:**
+- 404 page when job ID is invalid
+- Loading skeleton while fetching data
+- Error message with retry option
+- Toast notifications for user actions
 
 #### CompaniesPage Component
-
 **Location:** `client/src/pages/CompaniesPage/CompaniesPage.jsx`
 
-**Features:**
-- Company directory page displaying all registered companies
-- Search bar to filter companies by name (real-time filtering)
-- Clear search button to reset search
-- Displays job count for each company (number of open positions)
-- Responsive grid layout (4 columns desktop, 3 columns large tablet, 2 columns tablet, 1 column mobile)
-- Company cards with logo, name, location, job count, and verified badge
-- Click on any company card to navigate to company details page (`/companies/${id}`)
-- Loading skeleton animation (8 cards) while fetching data
-- Empty state when no companies match search
-- Error state with retry button if API fails
-- Fully responsive design for all screen sizes
-- CSS variables for consistent theming
-- Google Material Icons throughout
+**File Structure:**
+client/src/pages/CompaniesPage/
+├── CompaniesPage.jsx
+└── CompaniesPage.css
+
+**Search Functionality:**
+- Real-time filtering as user types
+- Case-insensitive search
+- Shows number of companies found
+- Clear button to reset search
+
+**Responsive Breakpoints:**
+| Screen Size                     | Columns   |
+| --------------------------------| ----------|
+| **Desktop (>1200px)**           | 4 columns |
+| **Large Tablet (992px–1200px)** | 3 columns |
+| **Tablet (768px–992px)**        | 2 columns |
+| **Mobile (<768px)**             | 1 column  |
+
+**API Integration (Mock - Ready for Backend):**
+- GET `/api/companies` - Fetch all companies
+- GET `/api/companies/:id` - Fetch single company details
+- GET `/api/jobs?companyId={id}` - Fetch jobs for specific company
+
+## CompaniesDetailsPage Component
+**Location:** `client/src/pages/CompanyDetailsPage/CompanyDetailsPage.jsx`
+
+**File Structure:**
+client/src/pages/CompanyDetailsPage/
+├── CompanyDetailsPage.jsx
+└── CompanyDetailsPage.css
+
+**Smart Features:**
+- SmartHire Match Insights: Shows skill alignment percentage based on user profile
+
+**API Integration (Mock - Ready for Backend):**
+- GET `/api/companies/:id` - Fetch single company details
+- GET `/api/jobs?companyId={id}&isActive=true` - Fetch jobs for specific company
+
+**Responsive Breakpoints:**
+| Screen Size               | Layout                                          |
+| --------------------------| ------------------------------------------------|
+| **Desktop (>1024px)**     | Full width with tabs                            |
+| **Tablet (768px–1024px)** | Adjusted spacing, 2 columns for contact grid    |
+| **Mobile (<768px)**       | Stacked layout, smaller logo, 1 column for jobs |
+
+**Page Sections:**
+| Section        | Description                                             |
+| -------------- | ------------------------------------------------------- |
+| Match Insights | SmartHire AI skill alignment (visible to job seekers)   |
+| Banner         | Company banner image with gradient placeholder          |
+| Header         | Company logo, name, verified badge, location, job count |
+| Tabs           | Open Positions and About tabs                           |
+| Open Positions | Job cards grid showing all active jobs                  |
+| About          | Company description, contact information, map           |
 
 ## JobCard Component
 **Location:** `client/src/components/jobs/JobCard/JobCard.jsx`
 
-**Features:**
-- Displays job title, company name, and company logo (initials fallback)
-- Location with pin icon
-- Salary range formatting
-- Colored job type tags
-- Featured badge for premium jobs
-- Save to wishlist functionality (heart icon)
-- Click navigation to job details page (/jobs/${id})
-- Hover effects: scale transform (1.02), shadow increase, border color change
+**File Structure:**
+client/src/components/jobs/JobCard/
+├── JobCard.jsx
+└── JobCard.css
+
+**Job Type Colors:**
+| Job Type   | Color  | CSS Class             |
+| ---------- | ------ | --------------------- |
+| Full-time  | Green  | `job-type-full-time`  |
+| Part-time  | Yellow | `job-type-part-time`  |
+| Remote     | Blue   | `job-type-remote`     |
+| Contract   | Purple | `job-type-contract`   |
+| Internship | Orange | `job-type-internship` |
+
 
 ## CompanyCard Component
 **Location:** `client/src/components/companies/CompanyCard/CompanyCard.jsx`
 
-**Features:**
-- Company logo with initials fallback
-- Company name, location, open jobs count
-- Verified badge for verified companies
-- Hover effects: scale transform (1.02), shadow increase, border color change
-- Click navigation to company details page (/companies/${id})
+**File Structure:**
+client/src/components/companies/CompanyCard/
+├── CompanyCard.jsx
+└── CompanyCard.css
+
+**Props:**
+| Prop      | Type   | Default  | Description                                                                           |
+| --------- | ------ | -------- | ------------------------------------------------------------------------------------- |
+| `company` | object | required | Company object with `id`, `name`, `initials`, `location`, `jobs_count`, `is_verified` |
+
 
 ## Button Component
 **Location**: `client/src/components/common/Button/Button.jsx`
 
-**Features:**
-- 5 variants: primary, secondary, danger, outline, ghost
-- 3 sizes: sm, md, lg
-- States: default, hover, active, disabled, loading (with spinner animation)
-- Full width option
-- Smooth transitions and focus rings
+**File Structure:**
+client/src/components/common/Button/
+├── Button.jsx
+└── Button.css
+
+**Variants:**
+- `primary` - Blue background, white text
+- `secondary` - Gray background, white text
+- `danger` - Red background, white text
+- `outline` - Transparent background, blue border, blue text
+- `ghost` - Transparent background, gray text
+
+**Sizes:**
+- `sm` - Small (padding: 6px 12px, font-size: 12px)
+- `md` - Medium (padding: 8px 16px, font-size: 14px)
+- `lg` - Large (padding: 12px 24px, font-size: 16px)
+
+**States:**
+- `default` - Normal state
+- `hover` - Darker background on hover
+- `active` - Scale transform on click
+- `disabled` - Opacity 0.5, cursor not-allowed
+- `loading` - Shows spinner animation, text "Loading..."
+
+**Props:**
+| Prop        | Type     | Default   | Description                               |
+| ----------- | -------- | --------- | ----------------------------------------- |
+| `variant`   | string   | `primary` | Button style variant                      |
+| `size`      | string   | `md`      | Button size                               |
+| `isLoading` | boolean  | `false`   | Shows loading spinner                     |
+| `disabled`  | boolean  | `false`   | Disables button                           |
+| `onClick`   | function | —         | Click handler                             |
+| `type`      | string   | `button`  | Button type (`button`, `submit`, `reset`) |
+| `fullWidth` | boolean  | `false`   | Makes button take full width              |
+| `children`  | node     | —         | Button content (text, icon, etc.)         |
 
 ## Input Component
 
 **Location:** `client/src/components/common/Input.jsx`
 
-**Features:**
-- Supported types: text, email, password, number, textarea, select
-- Label with required asterisk
-- Placeholder support
-- States: default, focus (blue border), error (red border + message), disabled, filled
-- Password input with custom eye icon show/hide toggle
-- Browser's native password eye icon hidden
-- Textarea with min-height 100px
+**File Structure:**
+client/src/components/common/Input/
+├── Input.jsx
+└── Input.css
+
+**Supported Types:**
+- `text` - Text input
+- `email` - Email input with validation
+- `password` - Password input with eye icon toggle
+- `number` - Number input
+- `textarea` - Multi-line text input
+- `select` - Dropdown select
+
+**States:**
+- `default` - Normal state (gray border)
+- `focus` - Blue border with shadow
+- `error` - Red border with error message
+- `disabled` - Gray background, opacity 0.7
+- `filled` - Green border when value exists
+
+**Props:**
+| Prop                 | Type     | Default | Description                              |
+| -------------------- | -------- | ------- | ---------------------------------------- |
+| `label`              | string   | —       | Input label text                         |
+| `type`               | string   | `text`  | Input type                               |
+| `name`               | string   | —       | Input name attribute                     |
+| `value`              | any      | —       | Input value                              |
+| `onChange`           | function | —       | Change handler                           |
+| `error`              | string   | —       | Error message                            |
+| `placeholder`        | string   | —       | Placeholder text                         |
+| `required`           | boolean  | `false` | Shows required asterisk                  |
+| `disabled`           | boolean  | `false` | Disables input                           |
+| `rows`               | number   | `4`     | Number of rows (for textarea)            |
+| `options`            | array    | `[]`    | Options for select dropdown              |
+| `showPasswordToggle` | boolean  | `true`  | Shows/hides eye icon for password fields |
 
 ## Tag Component
 **Location:** `client/src/components/common/Tag/Tag.jsx`
 
-**Features:**
-- 6 color variants for different job types
-- Removable option with X button
-- Customizable text
-- Rounded pill style
-- Responsive design
+**File Structure:**
+client/src/components/common/Tag/
+├── Tag.jsx
+└── Tag.css
+
+**Color Variants:**
+
+| Type       | Color  | CSS Class        |
+| ---------- | ------ | ---------------- |
+| full-time  | Green  | `tag-full-time`  |
+| part-time  | Yellow | `tag-part-time`  |
+| remote     | Blue   | `tag-remote`     |
+| contract   | Purple | `tag-contract`   |
+| internship | Orange | `tag-internship` |
+| featured   | Gold   | `tag-featured`   |
+
+
+**Props:**
+| Prop        | Type     | Default | Description                  |
+| ----------- | -------- | ------- | ---------------------------- |
+| `type`      | string   | —       | Tag type (determines color)  |
+| `children`  | node     | —       | Tag content                  |
+| `removable` | boolean  | `false` | Shows remove (✕) button      
+| `onRemove`  | function | —       | Handler for removing the tag |
+
 
 ## TagGroup Component
 **Location:** `client/src/components/common/TagGroup/TagGroup.jsx`
 
-**Features:**
-- Displays limited tags by default (configurable maxDisplay)
-- "+X more" button to expand
-- "Show less" button to collapse
-- Responsive wrapping
+**File Structure:**
+client/src/components/common/TagGroup/
+├── TagGroup.jsx
+└── TagGroup.css
+
+**Props:**
+| Prop         | Type    | Default  | Description                        |
+| ------------ | ------- | -------- | ---------------------------------- |
+| `tags`       | array   | required | Array of tag objects               |
+| `maxDisplay` | number  | `3`      | Max tags to show before collapsing |
+| `showExpand` | boolean | `true`   | Shows expand/collapse button       |
+
+
+### ProtectedRoute Component
+
+**Location:** `client/src/components/auth/ProtectedRoute.jsx`
+
+**File Structure:**
+client/src/components/auth/
+└── ProtectedRoute.jsx
+
+**Props:**
+| Prop           | Type  | Default  | Description                                |
+| -------------- | ----- | -------- | ------------------------------------------ |
+| `children`     | node  | required | Components to render if authorized         |
+| `allowedRoles` | array | `[]`     | Array of roles allowed to access the route |
+
+### ScrollToTop Component
+
+**Location:** `client/src/components/common/ScrollToTop.jsx`
+
+**File Structure:**
+client/src/components/common/
+└── ScrollToTop.jsx
+
+**Purpose:** Automatically scrolls to top of page on route change.
+
+### NotFoundPage Component
+
+**Location:** `client/src/pages/NotFoundPage/NotFoundPage.jsx`
+
+**File Structure:**
+client/src/pages/NotFoundPage/
+├── NotFoundPage.jsx
+└── NotFoundPage.css
+
+**Purpose:** 404 page displayed when user navigates to non-existent route.
 
 ## Routing System
 **Location:** `client/src/App.jsx`
@@ -783,24 +860,25 @@ FRONTEND_URL=`http://localhost:5173`
 
 ## Troubleshooting
 
-| **Issue**                          | **Solution**                                                        |
+| Issue                              | Solution                                                            |
 | ---------------------------------- | ------------------------------------------------------------------- |
 | Navbar items squished              | Restart Vite: `rm -rf node_modules/.vite && npm run dev`            |
 | CSS not applying                   | Check import paths in component files                               |
 | JobCard not showing                | Verify data in `client/src/data/jobs.json`                          |
 | Footer not sticky                  | Ensure layout uses `min-height: 100vh` and `flex-direction: column` |
 | Form validation not working        | Check `validators.js` path in imports                               |
-| HomePage featured jobs not showing | Check `jobs.json` has `is_featured: true` jobs                      |
-| Search redirect not working        | Check AuthContext and `localStorage`                                |
-| Icons not showing                  | Ensure Google Fonts link in `index.html`                            |
+| HomePage featured jobs not showing | Ensure `jobs.json` has `is_featured: true` jobs                     |
+| Search redirect not working        | Check AuthContext and localStorage                                  |
+| Icons not showing                  | Ensure Google Fonts link is added in `index.html`                   |
 | Filters not working                | Check URL query params and state management                         |
 | Mobile filter drawer not showing   | Verify CSS media queries are working                                |
 | Apply button not working           | Check authentication status and user role                           |
-| Similar jobs not showing           | Check job type matching in JSON data                                |
-| Company search not working         | Verify companies.json has data                                      |
-| Company cards not showing          | Check CompanyCard component import                                  |
-| Database connection error          | Start MySQL in XAMPP, check `.env` settings                         |
-| Protected route redirecting        | Check AuthContext and `localStorage` for token                      |
+| Similar jobs not showing           | Verify job type matching in JSON data                               |
+| Company search not working         | Ensure `companies.json` contains valid data                         |
+| Company cards not showing          | Check `CompanyCard` component import                                |
+| Company details not showing        | Verify company ID in URL and `companies.json`                       |
+| Database connection error          | Start MySQL in XAMPP and check `.env` configuration                 |
+| Protected route redirecting        | Check AuthContext and localStorage for token                        |
 | 404 page not showing               | Ensure `*` route is last in Routes                                  |
 
 
@@ -846,8 +924,9 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Responsive Footer with newsletter and social links
 - Complete Homepage with hero section, search bar, featured jobs, and "How It Works"
 - Complete Jobs Page with filters, search, pagination, and sorting
-- Complete Jobs Details Page with filters, search, pagination, and sorting
-- Companies Page with search, responsive grid, and company cards
+- Complete Job Details Page with apply, save, share, and similar jobs
+- Complete Companies Page with search, responsive grid, and company cards
+- Complete Company Details Page with tabs, open positions, and about section
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -856,7 +935,6 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Google Material Icons integration
 
 **In Progress (Sprint 1 remaining tasks):**
-- Company Details Page
 - Login and Register page functionality
 - Backend API development
 

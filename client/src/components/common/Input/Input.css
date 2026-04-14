@@ -31,6 +31,16 @@
     background-color: white;
 }
 
+/* Input with left icon */
+.input-field.has-left-icon {
+    padding-left: 40px;
+}
+
+/* Input with right icon */
+.input-field.has-right-icon {
+    padding-right: 40px;
+}
+
 /* Extra padding for password fields */
 .input-field[type="password"] {
     padding-right: 40px;
@@ -79,6 +89,9 @@
     font-size: 12px;
     color: #dc2626;
     margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* Textarea */
@@ -99,9 +112,28 @@ textarea.input-field {
 /* Password wrapper for eye icon */
 .input-wrapper {
     position: relative;
+    width: 100%;
 }
-.input-wrapper .input-field {
-    padding-right: 40px;
+
+/* Left and Right Icons */
+.input-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.input-icon.left {
+    left: 12px;
+}
+
+.input-icon.right {
+    right: 12px;
+    pointer-events: auto;
 }
 
 /* Custom eye icon button */
@@ -117,18 +149,104 @@ textarea.input-field {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1;
 }
+
 .password-toggle .material-symbols-outlined {
     font-size: 20px;
     color: #9ca3af;
+    transition: color 0.2s;
 }
+
 .password-toggle:hover .material-symbols-outlined {
-    color: #6b7280;
+    color: #374151;
 }
 
 /* Mobile responsive */
 @media (max-width: 480px) {
-    .input-label { font-size: 13px; }
-    .input-field { padding: 8px 10px; font-size: 13px; }
-    textarea.input-field { min-height: 80px; }
+    .input-label { 
+        font-size: 13px; 
+    }
+    .input-field { 
+        padding: 8px 10px; 
+        font-size: 13px; 
+    }
+    .input-field.has-left-icon {
+        padding-left: 36px;
+    }
+    .input-field.has-right-icon {
+        padding-right: 36px;
+    }
+    textarea.input-field { 
+        min-height: 80px; 
+    }
+    .input-icon.left {
+        left: 10px;
+    }
+    .input-icon.right {
+        right: 10px;
+    }
+    .password-toggle {
+        right: 10px;
+    }
+}
+
+/* Animation for error messages */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.input-group:has(.input-error) {
+    animation: shake 0.3s ease-in-out;
+}
+
+/* Success state styling */
+.input-field.input-success {
+    border-color: #10b981;
+}
+
+.input-success-message {
+    font-size: 12px;
+    color: #10b981;
+    margin-top: 4px;
+}
+
+/* Loading state for inputs */
+.input-field.input-loading {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M12 6v6l4 2'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 36px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .input-field {
+        background-color: #1f2937;
+        border-color: #374151;
+        color: #f3f4f6;
+    }
+    
+    .input-label {
+        color: #e5e7eb;
+    }
+    
+    .input-field:disabled {
+        background-color: #111827;
+    }
+    
+    .input-icon {
+        color: #6b7280;
+    }
+    
+    .password-toggle .material-symbols-outlined {
+        color: #6b7280;
+    }
+    
+    .password-toggle:hover .material-symbols-outlined {
+        color: #9ca3af;
+    }
 }

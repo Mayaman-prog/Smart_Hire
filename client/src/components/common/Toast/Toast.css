@@ -1,0 +1,20 @@
+.custom-toast {
+  border-radius: var(--radius-md);
+  font-family: "Inter", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.custom-toast-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-left: 4px solid #34d399;
+}
+
+.custom-toast-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-left: 4px solid #f87171;
+}

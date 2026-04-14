@@ -23,6 +23,7 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [Input Component](#input-component)
   - [Tag Component](#tag-component)
   - [TagGroup Component](#taggroup-component)
+  - [LoginPage Component](#loginpage-component)
   - [ProtectedRoute Component](#protectedroute-component)
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
@@ -64,10 +65,19 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - CSS variables for consistent theming
 - Google Material Icons integration
 - SEO-friendly & scalable
+- Email validation with real-time error messages
+- Password show/hide toggle
+- Remember me functionality (30 days session)
+- Role-based redirects after login
+- JWT token storage in localStorage/sessionStorage
+- Success and error toast notifications
+- Social login buttons (Google & LinkedIn - UI ready)
 
 ### Component Features
 
 #### Navbar
+
+**Features:**
 - Role-based navigation (Job Seeker, Employer, Admin, Guest)
 - Active route highlighting with visual feedback
 - User avatar dropdown menu with logout
@@ -75,6 +85,8 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - CSS modules styling with responsive breakpoints
 
 #### Footer
+
+**Features:**
 - Responsive layout (4 columns desktop, 2 columns tablet, 1 column mobile)
 - Quick links sections (Platform, For Employers, Support)
 - Newsletter signup with email validation
@@ -234,15 +246,71 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - "Show less" button to collapse
 - Responsive wrapping
 
+#### LoginPage Component
+
+**Location:** `client/src/pages/LoginPage/LoginPage.jsx`
+
+**File Structure:**
+client/src/pages/LoginPage/
+├── LoginPage.jsx
+└── LoginPage.css
+
+**Features:**
+- Email field with validation (required, valid email format)
+- Password field with show/hide toggle (required, minimum 6 characters)
+- "Remember Me" checkbox (30 days session persistence)
+- Forgot password link (placeholder for future implementation)
+- Registration link redirecting to `/register`
+- Social login buttons (Google & LinkedIn) with "coming soon" toast notifications
+- Submit button with loading state and spinner animation
+- Role-based redirects after successful login
+- JWT token storage in localStorage (remember me) or sessionStorage
+- Success toast notification on login
+- Error handling for 401, 403, 500 errors
+- Validation errors displayed below fields
+- Root error display for API errors
+- Responsive design (desktop, tablet, mobile)
+- Hero section with platform statistics (50k+ users, 10k+ companies, 95% match rate)
+- Gradient background with animation
+- Terms of Service and Privacy Policy links
+
+**Responsive Breakpoints:**
+| Screen Size              | Hero Section | Form Layout  | Social Buttons |
+| ------------------------ | ------------ | ------------ | -------------- |
+| **Desktop (>968px)**     | Visible      | Side by side | Horizontal     |
+| **Tablet (768px–968px)** | Visible      | Stacked      | Horizontal     |
+| **Mobile (<768px)**      | Hidden       | Full width   | Vertical       |
+
+**API Integration (Mock - Ready for Backend):**
+- POST `/api/auth/login` - Authenticate user
+- GET `/api/auth/me` - Get current user (protected)
+- POST `/api/auth/logout` - Logout user
+
+### ProtectedRoute Features
+- Authentication guard for protected routes
+- Role-based access control
+- Redirects to login if not authenticated
+- Redirects to home if role not authorized
+
+### ScrollToTop Features
+- Automatically scrolls to top of page on route change
+- Improves user experience during navigation
+
+### NotFoundPage Features
+- 404 error page for unknown routes
+- Friendly error message
+- Link to return home
+
 ## Tech Stack
 ### Client
-- React 18.2.0
-- Vite 5.0.8
-- React Router DOM 6.20.0
-- Axios 1.6.2
-- React Hook Form 7.48.2
-- React Hot Toast 2.4.1
-- Google Fonts Icons (Material Symbols)
+- **React 18.2.0** - UI Library
+- **Vite 5.0.8** - Build tool and development server
+- **React Router DOM 6.20.0** - Client-side routing
+- **Axios 1.6.2** - HTTP client for API requests
+- **React Hook Form 7.48.2** - Form handling and validation
+- **React Hot Toast 2.4.1** Toast notifications
+- **CSS3** - Custom styling with CSS variables
+- **Google Fonts Icons** - Icon system
 
 ### Server
 - Node.js 18.x
@@ -287,6 +355,9 @@ SmartHire/
 │   │   │   │   ├── TagGroup/
 │   │   │   │   │   ├── TagGroup.jsx
 │   │   │   │   │   └── TagGroup.css
+│   │   │   │   ├── Toast
+│   │   │   │   │   ├── Toast.jsx
+│   │   │   │   │   └── Toast.css
 │   │   │   │   └── ScrollToTop.jsx
 │   │   │   ├── jobs/
 │   │   │   │   └── JobCard/
@@ -315,8 +386,16 @@ SmartHire/
 │   │   │   │   ├── CompanyDetailsPage.jsx
 │   │   │   │   └── CompanyDetailsPage.css
 │   │   │   ├── LoginPage/
+│   │   │   │   ├── LoginPage.jsx
+│   │   │   │   └── LoginPage.css
 │   │   │   ├── RegisterPage/
+│   │   │   │   ├── RegisterPage.jsx
+│   │   │   │   └── RegisterPage.css
 │   │   │   └── NotFoundPage/
+│   │   │   │   ├── NotFundPage.jsx
+│   │   │   │   └── NotFoundPage.css
+│   │   ├── services
+│   │   │   └── api.js
 │   │   ├── contexts/
 │   │   │   └── AuthContext.jsx
 │   │   ├── data/
@@ -329,10 +408,11 @@ SmartHire/
 │   │   │   └── variables.css
 │   │   ├── App.jsx
 │   │   └── main.jsx
+│   ├── .env
 │   ├── index.html
 │   └── package.json
 │
-├── server/                          # Node.js + Express backend
+├── server/              # Node.js + Express backend
 │   ├── src/
 │   │   ├── config/
 │   │   │   └── database.js
@@ -349,7 +429,7 @@ SmartHire/
 │   ├── package.json
 │   └── server.js
 │
-├── examplecodefiles/                # Reference code examples
+├── examplecodefiles/     # Reference code examples
 ├── README.md
 └── .gitignore
 
@@ -398,6 +478,7 @@ Follow these steps to run the project locally in under 15 minutes:
 
 ### Frontend .env (create in client/ folder)
 **VITE_API_URL=** `http://localhost:5000/api`
+**VITE_USE_MOCK_API=true**
 
 ### Backend .env (create in server/ folder)
 PORT=5000
@@ -739,7 +820,6 @@ client/src/components/common/Tag/
 | internship | Orange | `tag-internship` |
 | featured   | Gold   | `tag-featured`   |
 
-
 **Props:**
 | Prop        | Type     | Default | Description                  |
 | ----------- | -------- | ------- | ---------------------------- |
@@ -747,7 +827,6 @@ client/src/components/common/Tag/
 | `children`  | node     | —       | Tag content                  |
 | `removable` | boolean  | `false` | Shows remove (✕) button      
 | `onRemove`  | function | —       | Handler for removing the tag |
-
 
 ## TagGroup Component
 **Location:** `client/src/components/common/TagGroup/TagGroup.jsx`
@@ -764,6 +843,33 @@ client/src/components/common/TagGroup/
 | `maxDisplay` | number  | `3`      | Max tags to show before collapsing |
 | `showExpand` | boolean | `true`   | Shows expand/collapse button       |
 
+### LoginPage Component
+**Location:** `client/src/pages/LoginPage/LoginPage.jsx`
+
+**File Structure:**
+client/src/pages/LoginPage/
+├── LoginPage.jsx
+└── LoginPage.css
+
+**Form Validation:**
+| Field    | Validation Rules               | Error Message                                                     |
+| -------- | ------------------------------ | ----------------------------------------------------------------- |
+| Email    | Required, valid email format   | "Email is required" / "Please enter a valid email address"        |
+| Password | Required, minimum 6 characters | "Password is required" / "Password must be at least 6 characters" |
+
+**Responsive Breakpoints:**
+| Screen Size          | Hero Section | Form Layout  | Social Buttons |
+| -------------------- | ------------ | ------------ | -------------- |
+| Desktop (>968px)     | Visible      | Side by side | Horizontal     |
+| Tablet (768px–968px) | Visible      | Stacked      | Horizontal     |
+| Mobile (<768px)      | Hidden       | Full width   | Vertical       |
+
+**Test Credentials:**
+| Role       | Email                                                 | Password    | Dashboard             |
+| ---------- | ----------------------------------------------------- | ----------- | --------------------- |
+| Job Seeker | [jobseeker@example.com](mailto:jobseeker@example.com) | password123 | `/dashboard/seeker`   |
+| Employer   | [employer@example.com](mailto:employer@example.com)   | password123 | `/dashboard/employer` |
+| Admin      | [admin@example.com](mailto:admin@example.com)         | password123 | `/dashboard/admin`    |
 
 ### ProtectedRoute Component
 
@@ -880,7 +986,8 @@ client/src/pages/NotFoundPage/
 | Database connection error          | Start MySQL in XAMPP and check `.env` configuration                 |
 | Protected route redirecting        | Check AuthContext and localStorage for token                        |
 | 404 page not showing               | Ensure `*` route is last in Routes                                  |
-
+| Login not working                  | Ensure correct test credentials are used                            |
+| Toast notifications not showing    | Verify `react-hot-toast` is installed and Toaster is in App.jsx     |
 
 ## Contributing
 **Create a new branch:**
@@ -927,6 +1034,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Complete Job Details Page with apply, save, share, and similar jobs
 - Complete Companies Page with search, responsive grid, and company cards
 - Complete Company Details Page with tabs, open positions, and about section
+- Complete Login Page with email/password validation, remember me, and role-based redirects
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -935,7 +1043,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Google Material Icons integration
 
 **In Progress (Sprint 1 remaining tasks):**
-- Login and Register page functionality
+- Register page functionality
 - Backend API development
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.

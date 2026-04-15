@@ -24,6 +24,7 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [Tag Component](#tag-component)
   - [TagGroup Component](#taggroup-component)
   - [LoginPage Component](#loginpage-component)
+  - [RegisterPage Component](#registerpage-component)
   - [ProtectedRoute Component](#protectedroute-component)
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
@@ -274,17 +275,33 @@ client/src/pages/LoginPage/
 - Gradient background with animation
 - Terms of Service and Privacy Policy links
 
-**Responsive Breakpoints:**
-| Screen Size              | Hero Section | Form Layout  | Social Buttons |
-| ------------------------ | ------------ | ------------ | -------------- |
-| **Desktop (>968px)**     | Visible      | Side by side | Horizontal     |
-| **Tablet (768px–968px)** | Visible      | Stacked      | Horizontal     |
-| **Mobile (<768px)**      | Hidden       | Full width   | Vertical       |
+#### RegisterPage Component
 
-**API Integration (Mock - Ready for Backend):**
-- POST `/api/auth/login` - Authenticate user
-- GET `/api/auth/me` - Get current user (protected)
-- POST `/api/auth/logout` - Logout user
+**Location:** `client/src/pages/RegisterPage/RegisterPage.jsx`
+
+**File Structure:**
+client/src/pages/RegisterPage/
+├── RegisterPage.jsx
+└── RegisterPage.css
+
+**Features:**
+- Full name field with validation (required, min 2 characters, letters/spaces/hyphens/apostrophes only)
+- Email field with validation (required, valid format)
+- Password field (required, min 6 characters, must contain at least one number) – no show/hide toggle
+- Confirm password field (required, must match password)
+- Role dropdown (Job Seeker / Employer)
+- Conditional Company Name field (appears only when Employer role is selected, required)
+- Submit button with loading state and spinner animation
+- Login link redirecting to `/login`
+- On successful registration: success toast, redirect to `/login`
+- Error handling:
+  - 409 – "Email already exists"
+  - 400 – Validation errors from API
+- Validation errors displayed below each field
+- Responsive design (desktop, tablet, mobile)
+- Same hero section and styling as Login page
+- Gradient background with animation
+- Terms of Service and Privacy Policy links
 
 ### ProtectedRoute Features
 - Authentication guard for protected routes
@@ -871,6 +888,38 @@ client/src/pages/LoginPage/
 | Employer   | [employer@example.com](mailto:employer@example.com)   | password123 | `/dashboard/employer` |
 | Admin      | [admin@example.com](mailto:admin@example.com)         | password123 | `/dashboard/admin`    |
 
+### RegisterPage Component
+**Location:** `client/src/pages/RegisterPage/RegisterPage.jsx`
+
+**File Structure:**
+client/src/pages/RegisterPage/
+├── RegisterPage.jsx
+└── RegisterPage.css
+
+**Form Validation:**
+| Field            | Validation Rules                                                          | Error Message                                                       |
+| ---------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Full Name        | Required, min 2 chars, letters/spaces/hyphens/apostrophes only            | "Full name is required" / "Name must be at least 2 characters" / "Name can only contain letters, spaces, hyphens, and apostrophes" |
+| Email            | Required, valid email format                                              | "Email is required" / "Invalid email address"                       |
+| Password         | Required, min 6 chars, at least 1 number                                  | "Password is required" / "Password must be at least 6 characters" / "Password must contain at least one number" |
+| Confirm Password | Required, must match password                                             | "Please confirm your password" / "Passwords do not match"           |
+| Company Name     | Required only if role = employer                                          | "Company name is required for employers"                            |
+
+**Conditional Logic:**
+- Company Name field appears only when Employer role is selected
+- Field is removed when switching back to Job Seeker
+
+**Responsive Breakpoints:**
+| Screen Size              | Hero Section | Form Layout |
+| ------------------------ | ------------ | ----------- |
+| **Desktop (>968px)**     | Visible      | Side by side|
+| **Tablet (768px–968px)** | Visible      | Stacked     |
+| **Mobile (<768px)**      | Hidden       | Full width  |
+
+**API Integration (Mock - Ready for Backend):**
+- POST `/api/auth/register` - Register new user
+- Returns success toast and redirects to `/login`
+
 ### ProtectedRoute Component
 
 **Location:** `client/src/components/auth/ProtectedRoute.jsx`
@@ -1035,6 +1084,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Complete Companies Page with search, responsive grid, and company cards
 - Complete Company Details Page with tabs, open positions, and about section
 - Complete Login Page with email/password validation, remember me, and role-based redirects
+- Complete Register Page with full name, email, password, confirm password, role dropdown, conditional company name, and validation
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -1043,7 +1093,6 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Google Material Icons integration
 
 **In Progress (Sprint 1 remaining tasks):**
-- Register page functionality
 - Backend API development
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.

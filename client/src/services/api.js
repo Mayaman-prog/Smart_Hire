@@ -61,6 +61,46 @@ const mockAPI = {
       };
     }
     
+    // Mock registration endpoint
+    if (url === '/auth/register') {
+      const { email, password, name, role, companyName } = data;
+      
+      // Check if email already exists
+      const existingUser = Object.values(MOCK_USERS).find(u => u.email === email);
+      if (existingUser) {
+        throw {
+          response: {
+            status: 409,
+            data: { message: 'Email already exists' }
+          }
+        };
+      }
+      
+      // Create new user
+      const newId = Object.keys(MOCK_USERS).length + 1;
+      const newUser = {
+        id: newId,
+        email,
+        name,
+        role,
+        password, // mock stores plain; real would hash
+        ...(role === 'employer' && { company_id: newId, company_name: companyName })
+      };
+      MOCK_USERS[email] = newUser;
+      
+      // Return user data without password
+      const { password: _, ...userWithoutPassword } = newUser;
+      return {
+        data: {
+          success: true,
+          data: {
+            token: `mock_jwt_token_${Date.now()}`,
+            user: userWithoutPassword
+          }
+        }
+      };
+    }
+    
     // Mock get current user
     if (url === '/auth/me') {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');

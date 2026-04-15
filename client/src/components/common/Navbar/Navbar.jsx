@@ -89,11 +89,6 @@ const Navbar = () => {
     const navLinks = getNavLinks();
     const dropdownItems = getUserDropdownItems();
 
-    const getUserInitials = () => {
-        if (!user?.name) return 'U';
-        return user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    };
-
     const getRoleBadgeClass = () => {
         switch (user?.role) {
             case 'employer': return 'role-badge employer';
@@ -144,10 +139,8 @@ const Navbar = () => {
                                     ref={buttonRef}
                                     className="user-avatar"
                                     onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                                    aria-expanded={isUserDropdownOpen}
                                 >
-                                    <div className="avatar-circle">
-                                        {getUserInitials()}
-                                    </div>
                                     <span className="user-name">{user?.name?.split(' ')[0] || 'User'}</span>
                                     <span className="material-symbols-outlined dropdown-icon">arrow_drop_down</span>
                                 </button>
@@ -214,9 +207,6 @@ const Navbar = () => {
 
                     {isAuthenticated && (
                         <div className="drawer-user-info">
-                            <div className="drawer-avatar">
-                                {getUserInitials()}
-                            </div>
                             <div className="drawer-user-details">
                                 <p className="drawer-user-name">{user?.name || 'User'}</p>
                                 <p className="drawer-user-email">{user?.email}</p>

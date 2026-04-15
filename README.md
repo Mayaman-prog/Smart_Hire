@@ -31,6 +31,7 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [TagGroup Component](#taggroup-component)
   - [LoginPage Component](#loginpage-component)
   - [RegisterPage Component](#registerpage-component)
+  - [JobSeekerDashboard Component](#jobseekerdashboard-component)
   - [ProtectedRoute Component](#protectedroute-component)
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
@@ -266,13 +267,6 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 
 #### LoginPage Component
 
-**Location:** `client/src/pages/LoginPage/LoginPage.jsx`
-
-**File Structure:**
-client/src/pages/LoginPage/
-├── LoginPage.jsx
-└── LoginPage.css
-
 **Features:**
 - Email field with validation (required, valid email format)
 - Password field with show/hide toggle (required, minimum 6 characters)
@@ -294,13 +288,6 @@ client/src/pages/LoginPage/
 
 #### RegisterPage Component
 
-**Location:** `client/src/pages/RegisterPage/RegisterPage.jsx`
-
-**File Structure:**
-client/src/pages/RegisterPage/
-├── RegisterPage.jsx
-└── RegisterPage.css
-
 **Features:**
 - Full name field with validation (required, min 2 characters, letters/spaces/hyphens/apostrophes only)
 - Email field with validation (required, valid format)
@@ -320,17 +307,45 @@ client/src/pages/RegisterPage/
 - Gradient background with animation
 - Terms of Service and Privacy Policy links
 
+#### JobSeekerDashboard Component
+
+**Features:**
+- Sidebar navigation with tabs: Overview, Applied Jobs, Saved Jobs, Profile
+- Overview dashboard with:
+  - Welcome message and profile strength statistic
+  - Stats cards: Profile Strength, Applied, Interviewing, Offers
+  - Recommended jobs section with AI‑matched job cards
+  - Recent activity feed (interview invitations, status updates, profile views)
+- Applied Jobs tab:
+  - List of user’s job applications with status badges (pending, reviewed, interviewing, offered, rejected, hired)
+  - Withdraw button for pending applications (with confirmation modal)
+- Saved Jobs tab:
+  - Display saved jobs with Apply Now and Remove buttons
+- Profile tab:
+  - Edit profile form (name, email, password change with current password verification)
+  - Resume upload (PDF, DOC, DOCX)
+- Mock data stored in `localStorage` (no backend required)
+- Loading skeletons and error toasts
+- Responsive design (mobile, tablet, desktop)
+
+
 ### ProtectedRoute Features
+
+**Features:**
 - Authentication guard for protected routes
 - Role-based access control
 - Redirects to login if not authenticated
 - Redirects to home if role not authorized
 
 ### ScrollToTop Features
+
+**Features:**
 - Automatically scrolls to top of page on route change
 - Improves user experience during navigation
 
 ### NotFoundPage Features
+
+**Features:**
 - 404 error page for unknown routes
 - Friendly error message
 - Link to return home
@@ -426,6 +441,10 @@ SmartHire/
 │   │   │   ├── RegisterPage/
 │   │   │   │   ├── RegisterPage.jsx
 │   │   │   │   └── RegisterPage.css
+│   │   │   ├── dashboard/
+│   │   │   │   └── jobseeker/
+│   │   │   │       ├── JobSeekerDashboard.jsx
+│   │   │   │       └── JobSeekerDashboard.css
 │   │   │   └── NotFoundPage/
 │   │   │       ├── NotFoundPage.jsx
 │   │   │       └── NotFoundPage.css
@@ -471,7 +490,6 @@ SmartHire/
 │
 ├── examplecodefiles/                # Reference code examples
 ├── README.md
-└── .gitignore
 
 ## Setup Instructions
 
@@ -1016,6 +1034,53 @@ client/src/pages/RegisterPage/
 - POST `/api/auth/register` - Register new user
 - Returns success toast and redirects to `/login`
 
+### JobSeekerDashboard Component
+
+**Location:** `client/src/pages/dashboard/jobseeker/JobSeekerDashboard.jsx`
+
+**File Structure:**
+client/src/pages/dashboard/jobseeker/
+├── JobSeekerDashboard.jsx
+└── JobSeekerDashboard.css
+
+**Stats Cards:**
+| Stat              | Description                          |
+| ----------------- | ------------------------------------ |
+| Profile Strength  | Percentage of profile completeness   |
+| Applied           | Total number of applications         |
+| Interviewing      | Applications in interviewing stage   |
+| Offers            | Applications that received an offer  |
+
+**Application Status Badges:**
+| Status        | Color   | CSS Class           |
+| ------------- | ------- | ------------------- |
+| pending       | Yellow  | `status-pending`    |
+| reviewed      | Blue    | `status-reviewed`   |
+| interviewing  | Indigo  | `status-interviewing`|
+| offered       | Green   | `status-offered`    |
+| rejected      | Red     | `status-rejected`   |
+| hired         | Green   | `status-hired`      |
+
+**LocalStorage Keys Used:**
+- `mock_applications_{userId}` – stores user’s applications
+- `mock_saved_{userId}` – stores saved jobs
+- `user` – stores user object (name, email, role)
+
+**API Integration (Mock – Ready for Backend):**
+- `GET /api/applications/me` – fetch user’s applications
+- `DELETE /api/applications/:id` – withdraw application
+- `GET /api/saved-jobs` – fetch saved jobs
+- `DELETE /api/saved-jobs/:jobId` – remove saved job
+- `PUT /api/users/profile` – update profile
+- `POST /api/users/resume` – upload resume
+
+**Responsive Breakpoints:**
+| Screen Size          | Layout                         |
+| -------------------- | ------------------------------ |
+| Desktop (>1024px)    | Sidebar + main content (2‑col) |
+| Tablet (768px–1024px)| Sidebar collapses, full width  |
+| Mobile (<768px)      | Stacked layout                 |
+
 ### ProtectedRoute Component
 
 **Location:** `client/src/components/auth/ProtectedRoute.jsx`
@@ -1186,6 +1251,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Complete Login Page with email/password validation, remember me, and role-based redirects
 - Complete Register Page with full name, email, password, confirm password, role dropdown, conditional company name, and validation
 - Complete Backend JWT Authentication (register, login, profile) with bcrypt, express-validator, rate limiting
+- Complete Job Seeker Dashboard with overview, applied jobs, saved jobs, profile edit, and resume upload (mock data)
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -1197,6 +1263,6 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Job CRUD APIs
 - Application APIs
 - Company management APIs
-- Dashboard pages for each role
+- Employer and Admin dashboards
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.

@@ -16,19 +16,9 @@ import CompanyDetailsPage from "./pages/CompanyDetailsPage/CompanyDetailsPage";
 import LoginPage from "./pages/LoginPage/LoginPage";
 import RegisterPage from "./pages/RegisterPage/RegisterPage";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
-import JobSeekerDashboard from './pages/Dashboard/jobseeker/JobSeekerDashboard';
-import EmployerDashboard from './pages/Dashboard/employer/EmployerDashboard';
-
-// Dashboard placeholders
-const AdminDashboard = () => (
-  <div className="dashboard-placeholder">
-    <h2>Admin Dashboard</h2>
-    <p>
-      User management, company verification, and system analytics will appear
-      here.
-    </p>
-  </div>
-);
+import JobSeekerDashboard from "./pages/Dashboard/jobseeker/JobSeekerDashboard";
+import EmployerDashboard from "./pages/Dashboard/employer/EmployerDashboard";
+import AdminDashboard from "./pages/Dashboard/admin/AdminDashboard";
 
 function App() {
   return (

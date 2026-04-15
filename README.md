@@ -9,6 +9,12 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
 - [Prerequisites](#prerequisites)
 - [Project Structure](#project-structure)
 - [Setup Instructions](#setup-instructions)
+  - [Client Setup](#client-setup)
+  - [Server Setup](#server-setup)
+  - [Database Setup](#database-setup)
+- [Environment Variables](#environment-variables)
+- [API Endpoints](#api-endpoints)
+  - [Authentication Routes](#authentication-routes)
 - [Components Implemented](#components-implemented)
   - [Navbar Component](#navbar-component)
   - [Footer Component](#footer-component)
@@ -73,6 +79,17 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - JWT token storage in localStorage/sessionStorage
 - Success and error toast notifications
 - Social login buttons (Google & LinkedIn - UI ready)
+
+### Backend Features
+- JWT authentication (register, login, profile)
+- Password hashing with bcrypt (10 rounds)
+- Input validation with express-validator
+- Rate limiting (5 login attempts per 15 minutes)
+- MySQL database with 16+ tables
+- Transaction support for registration
+- CORS configured for frontend
+- Helmet.js for security headers
+- Morgan for request logging
 
 ### Component Features
 
@@ -332,9 +349,10 @@ client/src/pages/RegisterPage/
 ### Server
 - Node.js 18.x
 - Express.js 4.18.2
-- JWT Authentication
+- JWT Authentication (jsonwebtoken)
 - bcryptjs for password hashing
-- CORS
+- express-rate-limit for rate limiting
+- CORS, Helmet, Morgan
 - MySQL2
 
 ### Database
@@ -409,8 +427,8 @@ SmartHire/
 │   │   │   │   ├── RegisterPage.jsx
 │   │   │   │   └── RegisterPage.css
 │   │   │   └── NotFoundPage/
-│   │   │   │   ├── NotFundPage.jsx
-│   │   │   │   └── NotFoundPage.css
+│   │   │       ├── NotFoundPage.jsx
+│   │   │       └── NotFoundPage.css
 │   │   ├── services
 │   │   │   └── api.js
 │   │   ├── contexts/
@@ -429,14 +447,19 @@ SmartHire/
 │   ├── index.html
 │   └── package.json
 │
-├── server/              # Node.js + Express backend
+├── server/                          # Node.js + Express backend
 │   ├── src/
 │   │   ├── config/
 │   │   │   └── database.js
 │   │   ├── controllers/
+│   │   │   └── authController.js
 │   │   ├── middleware/
+│   │   │   ├── authMiddleware.js
+│   │   │   └── rateLimiter.js
 │   │   ├── routes/
+│   │   │   └── authRoutes.js
 │   │   └── utils/
+│   │       └── generateToken.js
 │   ├── database/
 │   │   ├── schema.sql
 │   │   └── seed.sql
@@ -446,7 +469,7 @@ SmartHire/
 │   ├── package.json
 │   └── server.js
 │
-├── examplecodefiles/     # Reference code examples
+├── examplecodefiles/                # Reference code examples
 ├── README.md
 └── .gitignore
 
@@ -475,21 +498,15 @@ Follow these steps to run the project locally in under 15 minutes:
 #### Server will run on: `http://localhost:5000`
 
 ## Database Setup (MySQL)
-### Start MySQL
-- Open XAMPP Control Panel
-- Click Start button next to MySQL
+- Start MySQL (via XAMPP Control Panel)
+- Create database:
+`CREATE DATABASE smart_hire;`
+`USE smart_hire;`
 
-### Create database
-#### Open MySQL command line:
-- mysql -u root -p
-**Then run:**
-- CREATE DATABASE smart_hire;
-- USE smart_hire;
-- EXIT;
-
-### Run Database Setup Script
-- cd server
-- npm run setup-db
+- Run Database Setup Script
+`cd server`
+`npm run setup-db`
+- This creates all tables and inserts seed data.
 
 ## Environment Variables
 
@@ -508,9 +525,88 @@ DB_NAME=smart_hire
 DB_PORT=3306
 
 JWT_SECRET=super_secret_jwt_key_change_this_in_production
-JWT_EXPIRE=7d
+JWT_EXPIRE=24h
 
 FRONTEND_URL=`http://localhost:5173`
+
+## API Endpoints
+
+### Authentication Routes (/api/path)
+| Method | Endpoint  | Description                                  | Access  |
+| ------ | --------- | -------------------------------------------- | ------- |
+| POST   | /register | Register a new user (job_seeker or employer) | Public  |
+| POST   | /login    | Login user, returns JWT token                | Public  |
+| GET    | /profile  | Get current user profile (requires JWT)      | Private |
+
+### Register (Job Seeker)
+**POST** `/api/auth/register`
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "role": "job_seeker"
+}
+
+### Register (Employer)
+**POST** `/api/auth/register`
+{
+  "name": "Jane Smith",
+  "email": "company@example.com",
+  "password": "password123",
+  "role": "employer",
+  "companyName": "Tech Corp"
+}
+
+### Login
+**POST** `/api/auth/login`
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+### Response (200 OK):
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "user": {
+      "id": 1,
+      "email": "john@example.com",
+      "name": "John Doe",
+      "role": "job_seeker",
+      "company_id": null,
+      "is_active": 1
+    }
+  }
+}
+
+### Get Profile (Authenticated)
+
+**GET** `/api/auth/profile`
+**Headers:** `Authorized: Bearer <token>`
+**Response** (200 OK):
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": 1,
+      "email": "john@example.com",
+      "name": "John Doe",
+      "role": "job_seeker",
+      "company_id": null,
+      "is_active": 1
+    }
+  }
+}
+
+### Error Response
+- **400** – Validation failed (invalid input)
+- **401** – Invalid email or password
+- **403** – Account disabled
+- **409** – Email already exists
+- **429** – Too many login attempts (rate limit)
+- **500** – Internal server error
 
 ## Run the Project
 ### Start server (Terminal 1)
@@ -1015,28 +1111,32 @@ client/src/pages/NotFoundPage/
 
 ## Troubleshooting
 
-| Issue                              | Solution                                                            |
-| ---------------------------------- | ------------------------------------------------------------------- |
-| Navbar items squished              | Restart Vite: `rm -rf node_modules/.vite && npm run dev`            |
-| CSS not applying                   | Check import paths in component files                               |
-| JobCard not showing                | Verify data in `client/src/data/jobs.json`                          |
-| Footer not sticky                  | Ensure layout uses `min-height: 100vh` and `flex-direction: column` |
-| Form validation not working        | Check `validators.js` path in imports                               |
-| HomePage featured jobs not showing | Ensure `jobs.json` has `is_featured: true` jobs                     |
-| Search redirect not working        | Check AuthContext and localStorage                                  |
-| Icons not showing                  | Ensure Google Fonts link is added in `index.html`                   |
-| Filters not working                | Check URL query params and state management                         |
-| Mobile filter drawer not showing   | Verify CSS media queries are working                                |
-| Apply button not working           | Check authentication status and user role                           |
-| Similar jobs not showing           | Verify job type matching in JSON data                               |
-| Company search not working         | Ensure `companies.json` contains valid data                         |
-| Company cards not showing          | Check `CompanyCard` component import                                |
-| Company details not showing        | Verify company ID in URL and `companies.json`                       |
-| Database connection error          | Start MySQL in XAMPP and check `.env` configuration                 |
-| Protected route redirecting        | Check AuthContext and localStorage for token                        |
-| 404 page not showing               | Ensure `*` route is last in Routes                                  |
-| Login not working                  | Ensure correct test credentials are used                            |
-| Toast notifications not showing    | Verify `react-hot-toast` is installed and Toaster is in App.jsx     |
+| Issue                              | Solution                                                                |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| Navbar items squished              | Restart Vite: `rm -rf node_modules/.vite && npm run dev`                |
+| CSS not applying                   | Check import paths in component files                                   |
+| JobCard not showing                | Verify data in `client/src/data/jobs.json`                              |
+| Footer not sticky                  | Ensure layout uses `min-height: 100vh` and `flex-direction: column`     |
+| Form validation not working        | Check `validators.js` path in imports                                   |
+| HomePage featured jobs not showing | Ensure `jobs.json` has `is_featured: true` jobs                         |
+| Search redirect not working        | Check `AuthContext` and `localStorage`                                  |
+| Icons not showing                  | Ensure Google Fonts link is added in `index.html`                       |
+| Filters not working                | Check URL query params and state management                             |
+| Mobile filter drawer not showing   | Verify CSS media queries are working                                    |
+| Apply button not working           | Check authentication status and user role                               |
+| Similar jobs not showing           | Verify job type matching in JSON data                                   |
+| Company search not working         | Ensure `companies.json` contains valid data                             |
+| Company cards not showing          | Check `CompanyCard` component import                                    |
+| Company details not showing        | Verify company ID in URL and `companies.json`                           |
+| Database connection error          | Start MySQL in XAMPP and check `.env` configuration                     |
+| Protected route redirecting        | Check `AuthContext` and `localStorage` for token                        |
+| 404 page not showing               | Ensure `*` route is last in Routes                                      |
+| Login not working                  | Ensure correct test credentials are used                                |
+| Toast notifications not showing    | Verify `react-hot-toast` is installed and `<Toaster />` is in `App.jsx` |
+| 500 Internal Server Error          | Check server terminal for detailed error; verify database tables exist  |
+| JWT_SECRET missing                 | Add `JWT_SECRET` to `.env` (minimum 32 characters)                      |
+| Rate limit exceeded                | Wait 15 minutes or restart server                                       |
+
 
 ## Contributing
 **Create a new branch:**
@@ -1085,6 +1185,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Complete Company Details Page with tabs, open positions, and about section
 - Complete Login Page with email/password validation, remember me, and role-based redirects
 - Complete Register Page with full name, email, password, confirm password, role dropdown, conditional company name, and validation
+- Complete Backend JWT Authentication (register, login, profile) with bcrypt, express-validator, rate limiting
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -1093,6 +1194,9 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Google Material Icons integration
 
 **In Progress (Sprint 1 remaining tasks):**
-- Backend API development
+- Job CRUD APIs
+- Application APIs
+- Company management APIs
+- Dashboard pages for each role
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.

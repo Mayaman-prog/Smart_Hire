@@ -1134,8 +1134,8 @@ client/src/pages/dashboard/jobseeker/
 | hired         | Green   | `status-hired`      |
 
 **LocalStorage Keys Used:**
-- `mock_applications_{userId}` – stores user’s applications
-- `mock_saved_{userId}` – stores saved jobs
+- `applied_{userId}` – stores applied job IDs (used by JobDetailsPage and dashboard)
+- `saved_jobs_{userId}` – stores saved job IDs (used by JobDetailsPage and dashboard)
 - `user` – stores user object (name, email, role)
 
 **API Integration (Mock – Ready for Backend):**
@@ -1399,31 +1399,34 @@ client/src/pages/NotFoundPage/
 
 ## Troubleshooting
 
-| Issue                              | Solution                                                                |
-| ---------------------------------- | ----------------------------------------------------------------------- |
-| Navbar items squished              | Restart Vite: `rm -rf node_modules/.vite && npm run dev`                |
-| CSS not applying                   | Check import paths in component files                                   |
-| JobCard not showing                | Verify data in `client/src/data/jobs.json`                              |
-| Footer not sticky                  | Ensure layout uses `min-height: 100vh` and `flex-direction: column`     |
-| Form validation not working        | Check `validators.js` path in imports                                   |
-| HomePage featured jobs not showing | Ensure `jobs.json` has `is_featured: true` jobs                         |
-| Search redirect not working        | Check `AuthContext` and `localStorage`                                  |
-| Icons not showing                  | Ensure Google Fonts link is added in `index.html`                       |
-| Filters not working                | Check URL query params and state management                             |
-| Mobile filter drawer not showing   | Verify CSS media queries are working                                    |
-| Apply button not working           | Check authentication status and user role                               |
-| Similar jobs not showing           | Verify job type matching in JSON data                                   |
-| Company search not working         | Ensure `companies.json` contains valid data                             |
-| Company cards not showing          | Check `CompanyCard` component import                                    |
-| Company details not showing        | Verify company ID in URL and `companies.json`                           |
-| Database connection error          | Start MySQL in XAMPP and check `.env` configuration                     |
-| Protected route redirecting        | Check `AuthContext` and `localStorage` for token                        |
-| 404 page not showing               | Ensure `*` route is last in Routes                                      |
-| Login not working                  | Ensure correct test credentials are used                                |
-| Toast notifications not showing    | Verify `react-hot-toast` is installed and `<Toaster />` is in `App.jsx` |
-| 500 Internal Server Error          | Check server terminal for detailed error; verify database tables exist  |
-| JWT_SECRET missing                 | Add `JWT_SECRET` to `.env` (minimum 32 characters)                      |
-| Rate limit exceeded                | Wait 15 minutes or restart server                                       |
+| Issue                                     | Solution                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------- |
+| Navbar items squished                     | Restart Vite: `rm -rf node_modules/.vite && npm run dev`                |
+| CSS not applying                          | Check import paths in component files                                   |
+| JobCard not showing                       | Verify data in `client/src/data/jobs.json`                              |
+| Footer not sticky                         | Ensure layout uses `min-height: 100vh` and `flex-direction: column`     |
+| Form validation not working               | Check `validators.js` path in imports                                   |
+| HomePage featured jobs not showing        | Ensure `jobs.json` has `is_featured: true` jobs                         |
+| Search redirect not working               | Check `AuthContext` and `localStorage`                                  |
+| Icons not showing                         | Ensure Google Fonts link is added in `index.html`                       |
+| Filters not working                       | Check URL query params and state management                             |
+| Mobile filter drawer not showing          | Verify CSS media queries are working                                    |
+| Apply button not working                  | Check authentication status and user role                               |
+| Similar jobs not showing                  | Verify job type matching in JSON data                                   |
+| Company search not working                | Ensure `companies.json` contains valid data                             |
+| Company cards not showing                 | Check `CompanyCard` component import                                    |
+| Company details not showing               | Verify company ID in URL and `companies.json`                           |
+| Database connection error                 | Start MySQL in XAMPP and check `.env` configuration                     |
+| Protected route redirecting               | Check `AuthContext` and `localStorage` for token                        |
+| 404 page not showing                      | Ensure `*` route is last in Routes                                      |
+| Login not working                         | Ensure correct test credentials are used                                |
+| Toast notifications not showing           | Verify `react-hot-toast` is installed and `<Toaster />` is in `App.jsx` |
+| 500 Internal Server Error                 | Check server terminal for detailed error; verify database tables exist  |
+| JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (minimum 32 characters)                      |
+| Rate limit exceeded                       | Wait 15 minutes or restart server                                       |
+| Apply button stays enabled after applying | Check `localStorage` key `applied_{userId}` and 409 mock implementation |
+| Saved jobs not appearing in dashboard     | Verify `saved_jobs_{userId}` localStorage key is used consistently      |
+
 
 
 ## Contributing
@@ -1467,14 +1470,14 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Responsive Navbar with role-based navigation and mobile drawer
 - Responsive Footer with newsletter and social links
 - Complete Homepage with hero section, search bar, featured jobs, and "How It Works"
-- Complete Jobs Page with filters, search, pagination, and sorting
-- Complete Job Details Page with apply, save, share, and similar jobs
+- Complete Jobs Page with debounced search, URL query sync, filters, pagination, clear filters, and mock API integration
+- Complete Job Details Page with apply (loading, disable, 409 handling) and save (localStorage toggle)
 - Complete Companies Page with search, responsive grid, and company cards
 - Complete Company Details Page with tabs, open positions, and about section
 - Complete Login Page with email/password validation, remember me, and role-based redirects
 - Complete Register Page with full name, email, password, confirm password, role dropdown, conditional company name, and validation
 - Complete Backend JWT Authentication (register, login, profile) with bcrypt, express-validator, rate limiting
-- Complete Job Seeker Dashboard with overview, applied jobs, saved jobs, profile edit, and resume upload (mock data)
+- Complete Job Seeker Dashboard with overview, applied jobs (from localStorage), saved jobs (from same localStorage key), profile edit, and resume upload (mock data)
 - Complete Employer Dashboard with overview, multi‑step job posting, job management (edit/close/delete), applicant management with status updates (mock data)
 - Complete Admin Dashboard with system overview, user management (ban/unban/delete), company verification (verify/delete), job moderation (feature/unfeature/delete), and critical events feed (mock data)
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
@@ -1485,8 +1488,8 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Google Material Icons integration
 
 **In Progress (Sprint 1 remaining tasks):**
-- Job CRUD APIs
-- Application APIs
-- Company management APIs
+- Job CRUD APIs (real backend)
+- Application APIs (real backend)
+- Company management APIs (real backend)
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.

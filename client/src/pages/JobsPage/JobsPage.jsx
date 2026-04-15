@@ -1,26 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import JobCard, {
-  getJobTypeColor,
-  getJobTypeLabel,
-} from "../../components/jobs/JobCard/JobCard";
-import jobsData from "../../data/jobs.json";
+import { jobAPI } from "../../services/api";
+import JobCard from "../../components/jobs/JobCard/JobCard";
+import toast from "react-hot-toast";
 import "./JobsPage.css";
 
 const JobsPage = () => {
-  // URL query parameters
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // State for jobs data
-  const [allJobs, setAllJobs] = useState([]);
-  const [filteredJobs, setFilteredJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // UI state
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "recent");
-
-  // Filter states - initialized from URL params
+  // Filter states from URL
   const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
   const [location, setLocation] = useState(searchParams.get("location") || "");
   const [selectedJobTypes, setSelectedJobTypes] = useState(() => {
@@ -31,172 +19,75 @@ const JobsPage = () => {
     min: parseInt(searchParams.get("minSalary")) || 0,
     max: parseInt(searchParams.get("maxSalary")) || 200000,
   });
-
-  // Pagination
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "recent");
   const [currentPage, setCurrentPage] = useState(
-    parseInt(searchParams.get("page")) || 1,
+    parseInt(searchParams.get("page")) || 1
   );
-  const itemsPerPage = 6;
+  const limit = 6;
 
-  // Debounced search timer
-  const [debounceTimer, setDebounceTimer] = useState(null);
+  // Debounced values (300ms)
+  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
+  const [debouncedLocation, setDebouncedLocation] = useState(location);
 
-  // Job type options with color classes matching JobCard
-  const jobTypeOptions = [
-    {
-      value: "full-time",
-      label: "Full Time",
-      colorClass: "job-type-full-time",
-    },
-    {
-      value: "part-time",
-      label: "Part Time",
-      colorClass: "job-type-part-time",
-    },
-    { value: "remote", label: "Remote", colorClass: "job-type-remote" },
-    { value: "contract", label: "Contract", colorClass: "job-type-contract" },
-    {
-      value: "internship",
-      label: "Internship",
-      colorClass: "job-type-internship",
-    },
-  ];
+  const [jobs, setJobs] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Load jobs from JSON file (will be replaced with API call later)
+  // Debounce timers
   useEffect(() => {
-    setTimeout(() => {
-      setAllJobs(jobsData.jobs);
-      setLoading(false);
-    }, 800);
-  }, []);
+    const timer = setTimeout(() => setDebouncedKeyword(keyword), 300);
+    return () => clearTimeout(timer);
+  }, [keyword]);
 
-  // Sort jobs based on selected sort option
-  const sortJobs = useCallback((jobs, sortType) => {
-    const sorted = [...jobs];
-    switch (sortType) {
-      case "salary_high":
-        return sorted.sort((a, b) => b.salary_max - a.salary_max);
-      case "salary_low":
-        return sorted.sort((a, b) => a.salary_min - b.salary_min);
-      case "recent":
-      default:
-        return sorted.sort(
-          (a, b) => new Date(b.posted_date) - new Date(a.posted_date),
-        );
-    }
-  }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedLocation(location), 300);
+    return () => clearTimeout(timer);
+  }, [location]);
 
-  // Apply all filters and sorting to jobs
-  const applyFilters = useCallback(() => {
-    let filtered = [...allJobs];
-
-    // Filter by keyword (title or company)
-    if (keyword) {
-      filtered = filtered.filter(
-        (job) =>
-          job.title.toLowerCase().includes(keyword.toLowerCase()) ||
-          job.company.toLowerCase().includes(keyword.toLowerCase()),
-      );
-    }
-
-    // Filter by location
-    if (location) {
-      filtered = filtered.filter((job) =>
-        job.location.toLowerCase().includes(location.toLowerCase()),
-      );
-    }
-
-    // Filter by selected job types
-    if (selectedJobTypes.length > 0) {
-      filtered = filtered.filter((job) =>
-        selectedJobTypes.includes(job.job_type),
-      );
-    }
-
-    // Filter by salary range
-    filtered = filtered.filter(
-      (job) =>
-        job.salary_min >= salaryRange.min && job.salary_max <= salaryRange.max,
-    );
-
-    // Apply sorting
-    filtered = sortJobs(filtered, sortBy);
-
-    setFilteredJobs(filtered);
-    setCurrentPage(1);
-  }, [
-    allJobs,
-    keyword,
-    location,
-    selectedJobTypes,
-    salaryRange,
-    sortJobs,
-    sortBy,
-  ]);
-
-  // Update URL query parameters when filters change
+  // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    if (keyword) params.set("keyword", keyword);
-    if (location) params.set("location", location);
+    if (debouncedKeyword) params.set("keyword", debouncedKeyword);
+    if (debouncedLocation) params.set("location", debouncedLocation);
     if (selectedJobTypes.length > 0)
       params.set("jobTypes", selectedJobTypes.join(","));
     if (salaryRange.min > 0) params.set("minSalary", salaryRange.min);
     if (salaryRange.max < 200000) params.set("maxSalary", salaryRange.max);
-    if (currentPage > 1) params.set("page", currentPage);
     if (sortBy !== "recent") params.set("sort", sortBy);
-    setSearchParams(params);
-  }, [
-    keyword,
-    location,
-    selectedJobTypes,
-    salaryRange,
-    currentPage,
-    sortBy,
-    setSearchParams,
-  ]);
+    if (currentPage > 1) params.set("page", currentPage);
+    setSearchParams(params, { replace: true });
+  }, [debouncedKeyword, debouncedLocation, selectedJobTypes, salaryRange, sortBy, currentPage, setSearchParams]);
 
-  // Apply filters when data or filters change
+  // Fetch jobs from API
   useEffect(() => {
-    if (!loading) {
-      applyFilters();
-    }
-  }, [applyFilters, loading]);
+    const fetchJobs = async () => {
+      setLoading(true);
+      try {
+        const params = {
+          keyword: debouncedKeyword,
+          location: debouncedLocation,
+          job_type: selectedJobTypes.length ? selectedJobTypes.join(",") : undefined,
+          min_salary: salaryRange.min > 0 ? salaryRange.min : undefined,
+          max_salary: salaryRange.max < 200000 ? salaryRange.max : undefined,
+          sort: sortBy,
+          page: currentPage,
+          limit,
+        };
+        Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
+        const response = await jobAPI.getJobs(params);
+        setJobs(response.data.data);
+        setTotal(response.data.total || 0);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load jobs");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, [debouncedKeyword, debouncedLocation, selectedJobTypes, salaryRange, sortBy, currentPage, limit]);
 
-  // Handle sort option change
-  const handleSortChange = (e) => {
-    setSortBy(e.target.value);
-    setCurrentPage(1);
-  };
-
-  // Debounced search for keyword (300ms delay)
-  const handleKeywordChange = (e) => {
-    const value = e.target.value;
-    setKeyword(value);
-
-    if (debounceTimer) clearTimeout(debounceTimer);
-    const timer = setTimeout(() => {}, 300);
-    setDebounceTimer(timer);
-  };
-
-  // Handle location input change
-  const handleLocationChange = (e) => {
-    setLocation(e.target.value);
-  };
-
-  // Toggle job type selection
-  const toggleJobType = (type) => {
-    setSelectedJobTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
-    );
-  };
-
-  // Handle salary range change
-  const handleSalaryChange = (type, value) => {
-    setSalaryRange((prev) => ({ ...prev, [type]: parseInt(value) || 0 }));
-  };
-
-  // Clear all filters and reset to default
   const clearAllFilters = () => {
     setKeyword("");
     setLocation("");
@@ -206,25 +97,32 @@ const JobsPage = () => {
     setCurrentPage(1);
   };
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedJobs = filteredJobs.slice(
-    startIndex,
-    startIndex + itemsPerPage,
-  );
-  const showingStart = startIndex + 1;
-  const showingEnd = Math.min(startIndex + itemsPerPage, filteredJobs.length);
+  const toggleJobType = (type) => {
+    setSelectedJobTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+    setCurrentPage(1);
+  };
 
-  // Navigate to specific page
+  const totalPages = Math.ceil(total / limit);
+  const startIndex = (currentPage - 1) * limit;
+  const showingStart = startIndex + 1;
+  const showingEnd = Math.min(startIndex + limit, total);
+
   const goToPage = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Count active filters for display
-  const activeFilterCount =
-    selectedJobTypes.length + (keyword ? 1 : 0) + (location ? 1 : 0);
+  const jobTypeOptions = [
+    { value: "full-time", label: "Full Time", colorClass: "job-type-full-time" },
+    { value: "part-time", label: "Part Time", colorClass: "job-type-part-time" },
+    { value: "remote", label: "Remote", colorClass: "job-type-remote" },
+    { value: "contract", label: "Contract", colorClass: "job-type-contract" },
+    { value: "internship", label: "Internship", colorClass: "job-type-internship" },
+  ];
+
+  const activeFilterCount = selectedJobTypes.length + (keyword ? 1 : 0) + (location ? 1 : 0);
 
   return (
     <div className="jobs-page">
@@ -233,30 +131,26 @@ const JobsPage = () => {
         <div className="search-section">
           <div className="search-bar">
             <div className="search-input-group">
-              <span className="material-symbols-outlined search-icon">
-                search
-              </span>
+              <span className="material-symbols-outlined search-icon">search</span>
               <input
                 type="text"
                 placeholder="Job title, keyword, or company"
                 value={keyword}
-                onChange={handleKeywordChange}
+                onChange={(e) => setKeyword(e.target.value)}
                 className="search-input"
               />
             </div>
             <div className="search-input-group">
-              <span className="material-symbols-outlined search-icon">
-                location_on
-              </span>
+              <span className="material-symbols-outlined search-icon">location_on</span>
               <input
                 type="text"
                 placeholder="City, state, or remote"
                 value={location}
-                onChange={handleLocationChange}
+                onChange={(e) => setLocation(e.target.value)}
                 className="search-input"
               />
             </div>
-            <button className="search-btn">
+            <button className="search-btn" onClick={() => {}}>
               <span className="material-symbols-outlined">search</span>
               Search
             </button>
@@ -266,24 +160,18 @@ const JobsPage = () => {
           {(activeFilterCount > 0 || selectedJobTypes.length > 0) && (
             <div className="active-filters">
               <span className="filter-count">
-                {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""}{" "}
-                active
+                {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} active
               </span>
-              {selectedJobTypes.map((type) => {
-                const option = jobTypeOptions.find((opt) => opt.value === type);
+              {selectedJobTypes.map(type => {
+                const opt = jobTypeOptions.find(o => o.value === type);
                 return (
-                  <span
-                    key={type}
-                    className={`active-filter-tag ${option?.colorClass}`}
-                  >
-                    {option?.label}
+                  <span key={type} className={`active-filter-tag ${opt?.colorClass}`}>
+                    {opt?.label}
                     <button onClick={() => toggleJobType(type)}>×</button>
                   </span>
                 );
               })}
-              <button onClick={clearAllFilters} className="clear-all-link">
-                Clear all
-              </button>
+              <button onClick={clearAllFilters} className="clear-all-link">Clear all</button>
             </div>
           )}
         </div>
@@ -293,43 +181,36 @@ const JobsPage = () => {
           <aside className="filters-sidebar desktop-sidebar">
             <div className="filters-header">
               <h3>Filters</h3>
-              <button onClick={clearAllFilters} className="clear-filters-link">
-                Clear all
-              </button>
+              <button onClick={clearAllFilters} className="clear-filters-link">Clear all</button>
             </div>
 
-            {/* Job Type Filter - Using same tag styles as JobCard */}
             <div className="filter-group">
               <h4>Job Type</h4>
               <div className="job-type-buttons">
-                {jobTypeOptions.map((option) => (
+                {jobTypeOptions.map(opt => (
                   <button
-                    key={option.value}
-                    onClick={() => toggleJobType(option.value)}
-                    className={`job-type-filter-btn ${option.colorClass} ${selectedJobTypes.includes(option.value) ? "selected" : ""}`}
+                    key={opt.value}
+                    onClick={() => toggleJobType(opt.value)}
+                    className={`job-type-filter-btn ${opt.colorClass} ${selectedJobTypes.includes(opt.value) ? "selected" : ""}`}
                   >
-                    {option.label}
-                    {selectedJobTypes.includes(option.value) && (
-                      <span className="check-mark">✓</span>
-                    )}
+                    {opt.label}
+                    {selectedJobTypes.includes(opt.value) && <span className="check-mark">✓</span>}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Location Filter */}
             <div className="filter-group">
               <h4>Location</h4>
               <input
                 type="text"
                 placeholder="City or remote"
                 value={location}
-                onChange={handleLocationChange}
+                onChange={(e) => setLocation(e.target.value)}
                 className="filter-input"
               />
             </div>
 
-            {/* Salary Range Filter */}
             <div className="filter-group">
               <h4>Salary Range</h4>
               <div className="salary-inputs">
@@ -339,7 +220,7 @@ const JobsPage = () => {
                     type="number"
                     placeholder="0"
                     value={salaryRange.min}
-                    onChange={(e) => handleSalaryChange("min", e.target.value)}
+                    onChange={(e) => setSalaryRange({ ...salaryRange, min: parseInt(e.target.value) || 0 })}
                   />
                 </div>
                 <div className="salary-input">
@@ -348,15 +229,12 @@ const JobsPage = () => {
                     type="number"
                     placeholder="200000"
                     value={salaryRange.max}
-                    onChange={(e) => handleSalaryChange("max", e.target.value)}
+                    onChange={(e) => setSalaryRange({ ...salaryRange, max: parseInt(e.target.value) || 200000 })}
                   />
                 </div>
               </div>
               <div className="salary-range-bar">
-                <div
-                  className="salary-range-fill"
-                  style={{ width: `${(salaryRange.max / 200000) * 100}%` }}
-                ></div>
+                <div className="salary-range-fill" style={{ width: `${(salaryRange.max / 200000) * 100}%` }}></div>
               </div>
               <div className="salary-values">
                 <span>${salaryRange.min.toLocaleString()}</span>
@@ -365,103 +243,52 @@ const JobsPage = () => {
               </div>
             </div>
 
-            <button onClick={clearAllFilters} className="clear-filters-btn">
-              Clear Filters
-            </button>
+            <button onClick={clearAllFilters} className="clear-filters-btn">Clear Filters</button>
           </aside>
 
-          {/* Mobile Filter Button - Opens drawer on click */}
-          <button
-            className="mobile-filter-btn"
-            onClick={() => setIsFilterOpen(true)}
-          >
+          {/* Mobile Filter Button */}
+          <button className="mobile-filter-btn" onClick={() => setIsFilterOpen(true)}>
             <span className="material-symbols-outlined">filter_list</span>
             Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
           </button>
 
-          {/* Mobile Filter Drawer - Slide in panel */}
+          {/* Mobile Filter Drawer */}
           {isFilterOpen && (
-            <div
-              className="filter-drawer"
-              onClick={() => setIsFilterOpen(false)}
-            >
-              <div
-                className="filter-drawer-content"
-                onClick={(e) => e.stopPropagation()}
-              >
+            <div className="filter-drawer" onClick={() => setIsFilterOpen(false)}>
+              <div className="filter-drawer-content" onClick={(e) => e.stopPropagation()}>
                 <div className="drawer-header">
                   <h3>Filters</h3>
                   <button onClick={() => setIsFilterOpen(false)}>
                     <span className="material-symbols-outlined">close</span>
                   </button>
                 </div>
-
                 <div className="drawer-body">
                   <div className="filter-group">
                     <h4>Job Type</h4>
                     <div className="job-type-buttons">
-                      {jobTypeOptions.map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => toggleJobType(option.value)}
-                          className={`job-type-filter-btn ${option.colorClass} ${selectedJobTypes.includes(option.value) ? "selected" : ""}`}
-                        >
-                          {option.label}
-                          {selectedJobTypes.includes(option.value) && (
-                            <span className="check-mark">✓</span>
-                          )}
+                      {jobTypeOptions.map(opt => (
+                        <button key={opt.value} onClick={() => toggleJobType(opt.value)} className={`job-type-filter-btn ${opt.colorClass} ${selectedJobTypes.includes(opt.value) ? "selected" : ""}`}>
+                          {opt.label}
+                          {selectedJobTypes.includes(opt.value) && <span className="check-mark">✓</span>}
                         </button>
                       ))}
                     </div>
                   </div>
-
                   <div className="filter-group">
                     <h4>Location</h4>
-                    <input
-                      type="text"
-                      placeholder="City or remote"
-                      value={location}
-                      onChange={handleLocationChange}
-                      className="filter-input"
-                    />
+                    <input type="text" placeholder="City or remote" value={location} onChange={(e) => setLocation(e.target.value)} className="filter-input" />
                   </div>
-
                   <div className="filter-group">
                     <h4>Salary Range</h4>
                     <div className="salary-inputs">
-                      <input
-                        type="number"
-                        placeholder="Min"
-                        value={salaryRange.min}
-                        onChange={(e) =>
-                          handleSalaryChange("min", e.target.value)
-                        }
-                      />
-                      <input
-                        type="number"
-                        placeholder="Max"
-                        value={salaryRange.max}
-                        onChange={(e) =>
-                          handleSalaryChange("max", e.target.value)
-                        }
-                      />
+                      <input type="number" placeholder="Min" value={salaryRange.min} onChange={(e) => setSalaryRange({ ...salaryRange, min: parseInt(e.target.value) || 0 })} />
+                      <input type="number" placeholder="Max" value={salaryRange.max} onChange={(e) => setSalaryRange({ ...salaryRange, max: parseInt(e.target.value) || 200000 })} />
                     </div>
                   </div>
                 </div>
-
                 <div className="drawer-footer">
-                  <button
-                    onClick={clearAllFilters}
-                    className="drawer-clear-btn"
-                  >
-                    Clear All
-                  </button>
-                  <button
-                    onClick={() => setIsFilterOpen(false)}
-                    className="drawer-apply-btn"
-                  >
-                    Apply Filters
-                  </button>
+                  <button onClick={clearAllFilters} className="drawer-clear-btn">Clear All</button>
+                  <button onClick={() => setIsFilterOpen(false)} className="drawer-apply-btn">Apply Filters</button>
                 </div>
               </div>
             </div>
@@ -469,30 +296,20 @@ const JobsPage = () => {
 
           {/* Main Content - Job Cards */}
           <main className="jobs-content">
-            {/* Results Info and Sort Dropdown */}
             <div className="results-info">
               <p>
-                Showing{" "}
-                {filteredJobs.length > 0
-                  ? `${showingStart}-${showingEnd}`
-                  : "0"}{" "}
-                of {filteredJobs.length} jobs
+                Showing {total > 0 ? `${showingStart}-${showingEnd}` : "0"} of {total} jobs
               </p>
-              <select
-                className="sort-select"
-                value={sortBy}
-                onChange={handleSortChange}
-              >
+              <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                 <option value="recent">Most recent</option>
                 <option value="salary_high">Salary: High to Low</option>
                 <option value="salary_low">Salary: Low to High</option>
               </select>
             </div>
 
-            {/* Loading Skeleton - Shows 6 placeholder cards */}
             {loading ? (
               <div className="jobs-grid loading-skeleton">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
+                {[1,2,3,4,5,6].map(i => (
                   <div key={i} className="skeleton-card">
                     <div className="skeleton-logo"></div>
                     <div className="skeleton-title"></div>
@@ -501,67 +318,35 @@ const JobsPage = () => {
                   </div>
                 ))}
               </div>
-            ) : paginatedJobs.length > 0 ? (
+            ) : jobs.length > 0 ? (
               <>
-                {/* Job Cards Grid */}
                 <div className="jobs-grid">
-                  {paginatedJobs.map((job) => (
-                    <JobCard key={job.id} job={job} />
-                  ))}
+                  {jobs.map(job => <JobCard key={job.id} job={job} />)}
                 </div>
-
-                {/* Pagination Controls */}
                 {totalPages > 1 && (
                   <div className="pagination">
-                    <button
-                      className="pagination-btn"
-                      disabled={currentPage === 1}
-                      onClick={() => goToPage(currentPage - 1)}
-                    >
-                      <span className="material-symbols-outlined">
-                        chevron_left
-                      </span>
-                      Previous
+                    <button className="pagination-btn" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}>
+                      <span className="material-symbols-outlined">chevron_left</span> Previous
                     </button>
-
                     <div className="pagination-pages">
-                      {[...Array(totalPages).keys()]
-                        .map((i) => i + 1)
-                        .map((page) => (
-                          <button
-                            key={page}
-                            className={`pagination-page ${currentPage === page ? "active" : ""}`}
-                            onClick={() => goToPage(page)}
-                          >
-                            {page}
-                          </button>
-                        ))}
+                      {[...Array(totalPages).keys()].map(i => i+1).map(page => (
+                        <button key={page} className={`pagination-page ${currentPage === page ? "active" : ""}`} onClick={() => goToPage(page)}>{page}</button>
+                      ))}
                     </div>
-
-                    <button
-                      className="pagination-btn"
-                      disabled={currentPage === totalPages}
-                      onClick={() => goToPage(currentPage + 1)}
-                    >
-                      Next
-                      <span className="material-symbols-outlined">
-                        chevron_right
-                      </span>
+                    <button className="pagination-btn" disabled={currentPage === totalPages} onClick={() => goToPage(currentPage + 1)}>
+                      Next <span className="material-symbols-outlined">chevron_right</span>
                     </button>
                   </div>
                 )}
               </>
             ) : (
-              /* Empty State - No jobs found */
               <div className="empty-state">
                 <div className="empty-icon">
                   <span className="material-symbols-outlined">search_off</span>
                 </div>
                 <h3>No jobs found</h3>
                 <p>Try adjusting your filters or search term</p>
-                <button onClick={clearAllFilters} className="empty-clear-btn">
-                  Clear all filters
-                </button>
+                <button onClick={clearAllFilters} className="empty-clear-btn">Clear all filters</button>
               </div>
             )}
           </main>

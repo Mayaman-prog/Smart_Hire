@@ -25,9 +25,9 @@ const LoginPage = () => {
     },
   });
 
-  // Social login handlers with console log for debugging
+  // Social login handlers
   const handleGoogleLogin = () => {
-    console.log('Google button clicked'); // Check console
+    console.log('Google button clicked');
     toast('Google login coming soon!', {
       duration: 3000,
       icon: '🔜',
@@ -35,7 +35,7 @@ const LoginPage = () => {
   };
 
   const handleLinkedInLogin = () => {
-    console.log('LinkedIn button clicked'); // Check console
+    console.log('LinkedIn button clicked');
     toast('LinkedIn login coming soon!', {
       duration: 3000,
       icon: '🔜',
@@ -53,7 +53,7 @@ const LoginPage = () => {
         const role = result.user.role;
         switch (role) {
           case 'job_seeker':
-            navigate('/dashboard/seeker');
+            navigate('/');  // ← Changed: go to home page (dashboard for job seekers)
             break;
           case 'employer':
             navigate('/dashboard/employer');
@@ -62,7 +62,7 @@ const LoginPage = () => {
             navigate('/dashboard/admin');
             break;
           default:
-            navigate('/dashboard/seeker');
+            navigate('/');
         }
       } else {
         // Handle specific error types

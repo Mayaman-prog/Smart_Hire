@@ -1,6 +1,6 @@
 import axios from "axios";
 
-// Mock data for testing
+// MOCK DATA (only used when VITE_USE_MOCK_API=true)
 const MOCK_USERS = {
   "jobseeker@example.com": {
     id: 1,
@@ -26,15 +26,12 @@ const MOCK_USERS = {
   },
 };
 
-// Simulate network delay
 const delay = (ms = 800) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Mock API implementation
 const mockAPI = {
   post: async (url, data) => {
     await delay();
 
-    // Mock login endpoint
     if (url === "/auth/login") {
       const { email, password } = data;
       const user = MOCK_USERS[email];
@@ -49,6 +46,7 @@ const mockAPI = {
       }
 
       const { password: _, ...userWithoutPassword } = user;
+
       return {
         data: {
           success: true,
@@ -60,13 +58,13 @@ const mockAPI = {
       };
     }
 
-    // Mock registration endpoint
     if (url === "/auth/register") {
       const { email, password, name, role, companyName } = data;
 
       const existingUser = Object.values(MOCK_USERS).find(
         (u) => u.email === email,
       );
+
       if (existingUser) {
         throw {
           response: {
@@ -88,9 +86,11 @@ const mockAPI = {
           company_name: companyName,
         }),
       };
+
       MOCK_USERS[email] = newUser;
 
       const { password: _, ...userWithoutPassword } = newUser;
+
       return {
         data: {
           success: true,
@@ -102,20 +102,27 @@ const mockAPI = {
       };
     }
 
-    // Mock get current user
     if (url === "/auth/me") {
       const token =
         localStorage.getItem("token") || sessionStorage.getItem("token");
+
       if (!token) {
         throw {
-          response: { status: 401, data: { message: "Not authenticated" } },
+          response: {
+            status: 401,
+            data: { message: "Not authenticated" },
+          },
         };
       }
 
       const userData = localStorage.getItem("user");
+
       if (!userData) {
         throw {
-          response: { status: 401, data: { message: "User not found" } },
+          response: {
+            status: 401,
+            data: { message: "User not found" },
+          },
         };
       }
 
@@ -127,11 +134,13 @@ const mockAPI = {
       };
     }
 
-    // Mock apply for job (add this)
     if (url === "/applications") {
       const token =
         localStorage.getItem("token") || sessionStorage.getItem("token");
-      if (!token) throw { response: { status: 401 } };
+
+      if (!token) {
+        throw { response: { status: 401 } };
+      }
 
       const userData = JSON.parse(localStorage.getItem("user") || "{}");
       const userId = userData.id;
@@ -150,6 +159,7 @@ const mockAPI = {
 
       applied.push(jobId);
       localStorage.setItem(appliedKey, JSON.stringify(applied));
+
       return {
         data: {
           success: true,
@@ -169,16 +179,24 @@ const mockAPI = {
     if (url === "/auth/me") {
       const token =
         localStorage.getItem("token") || sessionStorage.getItem("token");
+
       if (!token) {
         throw {
-          response: { status: 401, data: { message: "Not authenticated" } },
+          response: {
+            status: 401,
+            data: { message: "Not authenticated" },
+          },
         };
       }
 
       const userData = localStorage.getItem("user");
+
       if (!userData) {
         throw {
-          response: { status: 401, data: { message: "User not found" } },
+          response: {
+            status: 401,
+            data: { message: "User not found" },
+          },
         };
       }
 
@@ -190,9 +208,7 @@ const mockAPI = {
       };
     }
 
-    // Mock jobs list
     if (url === "/jobs" || url.startsWith("/jobs?")) {
-      // Return mock jobs from localStorage or default
       const mockJobs = [
         {
           id: 1,
@@ -250,12 +266,18 @@ const mockAPI = {
           posted_date: "2025-04-05",
         },
       ];
-      return { data: { data: mockJobs, total: mockJobs.length } };
+
+      return {
+        data: {
+          success: true,
+          data: mockJobs,
+          total: mockJobs.length,
+        },
+      };
     }
 
-    // Mock single job
     if (url.match(/\/jobs\/\d+/)) {
-      const id = parseInt(url.split("/").pop());
+      const id = parseInt(url.split("/").pop(), 10);
       const mockJob = {
         id,
         title: "Sample Job",
@@ -266,7 +288,23 @@ const mockAPI = {
         job_type: "full-time",
         posted_date: "2025-04-01",
       };
-      return { data: { data: mockJob } };
+
+      return {
+        data: {
+          success: true,
+          data: mockJob,
+        },
+      };
+    }
+
+    if (url === "/jobs/me") {
+      return {
+        data: {
+          success: true,
+          data: [],
+          total: 0,
+        },
+      };
     }
 
     throw {
@@ -275,12 +313,12 @@ const mockAPI = {
   },
 
   interceptors: {
-    request: { use: () => {}, eject: () => {} },
-    response: { use: () => {}, eject: () => {} },
+    request: { use: () => {} },
+    response: { use: () => {} },
   },
 };
 
-// Create real axios instance for when backend is ready
+// REAL AXIOS INSTANCE
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   headers: {
@@ -293,9 +331,15 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    console.log(
+      `API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`,
+    );
+
     return config;
   },
   (error) => Promise.reject(error),
@@ -308,10 +352,12 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem("token");
       sessionStorage.removeItem("token");
       localStorage.removeItem("user");
+
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }
+
     return Promise.reject(error);
   },
 );
@@ -319,6 +365,7 @@ axiosInstance.interceptors.response.use(
 const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API === "true";
 const api = USE_MOCK_API ? mockAPI : axiosInstance;
 
+// API EXPORTS
 export const authAPI = {
   login: (email, password) => api.post("/auth/login", { email, password }),
   register: (userData) => api.post("/auth/register", userData),
@@ -330,9 +377,11 @@ export const jobAPI = {
   getJobs: (params) => api.get("/jobs", { params }),
   getFeaturedJobs: () => api.get("/jobs/featured"),
   getJobById: (id) => api.get(`/jobs/${id}`),
+  getMyJobs: () => api.get("/jobs/me"),
   createJob: (jobData) => api.post("/jobs", jobData),
   updateJob: (id, jobData) => api.put(`/jobs/${id}`, jobData),
   deleteJob: (id) => api.delete(`/jobs/${id}`),
+  getRecommendedJobs: () => api.get("/jobs/recommended"),
 };
 
 export const applicationAPI = {
@@ -342,6 +391,11 @@ export const applicationAPI = {
   getEmployerApplications: () => api.get("/applications/employer"),
   updateApplicationStatus: (applicationId, status) =>
     api.put(`/applications/${applicationId}/status`, { status }),
+  withdrawApplication: (id) => api.delete(`/applications/${id}`),
+};
+
+export const employerAPI = {
+  getDashboardSummary: () => api.get("/employer/dashboard-summary"),
 };
 
 export const companyAPI = {
@@ -354,6 +408,30 @@ export const savedJobsAPI = {
   saveJob: (jobId) => api.post("/saved-jobs", { jobId }),
   getSavedJobs: () => api.get("/saved-jobs"),
   removeSavedJob: (jobId) => api.delete(`/saved-jobs/${jobId}`),
+};
+
+export const userAPI = {
+  updateProfile: (data) => api.put("/users/profile", data),
+  uploadResume: (formData) =>
+    api.post("/users/resume", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+};
+
+export const adminAPI = {
+  getUsers: () => api.get("/admin/users"),
+  toggleUser: (id) => api.patch(`/admin/users/${id}/toggle`),
+
+  getJobs: () => api.get("/admin/jobs"),
+  deleteJob: (id) => api.delete(`/admin/jobs/${id}`),
+
+  getCompanies: () => api.get("/admin/companies"),
+  getStatsOverview: () => api.get("/admin/stats/overview"),
+};
+
+export const notificationAPI = {
+  getNotifications: () => api.get("/notifications"),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
 };
 
 export default api;

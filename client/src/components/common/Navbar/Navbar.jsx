@@ -54,7 +54,7 @@ const Navbar = () => {
         const roleSpecificLinks = [];
         switch (user?.role) {
             case 'job_seeker':
-                roleSpecificLinks.push({ path: '/dashboard/seeker', label: 'Dashboard', icon: 'dashboard' });
+                // No dashboard link in main nav – only in dropdown
                 break;
             case 'employer':
                 roleSpecificLinks.push({ path: '/dashboard/employer', label: 'Dashboard', icon: 'dashboard' });
@@ -76,6 +76,7 @@ const Navbar = () => {
             items.push({ path: '/dashboard/employer?tab=post-job', label: 'Post a Job', icon: 'post_add' });
         }
 
+        // Dashboard link for all authenticated users in dropdown
         items.push({ path: '/dashboard', label: 'Dashboard', icon: 'dashboard' });
         items.push({ path: '/profile', label: 'Profile', icon: 'person' });
 

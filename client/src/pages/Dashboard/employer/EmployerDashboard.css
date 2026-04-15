@@ -526,7 +526,9 @@
   color: #dc2626;
 }
 
-.job-location, .job-salary, .job-applicants {
+.job-location,
+.job-salary,
+.job-applicants {
   font-size: 0.875rem;
   color: var(--gray-color);
   margin-bottom: var(--spacing-xs);
@@ -536,21 +538,46 @@
   display: flex;
   gap: var(--spacing-sm);
   margin-top: var(--spacing-md);
+  flex-wrap: wrap;
 }
 
 .job-actions button {
-  padding: 6px 16px;
-  border: 1px solid var(--border-color);
+  min-width: 110px;
+  padding: 10px 16px;
   border-radius: var(--radius-md);
-  background: white;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.job-actions button.delete {
-  background: var(--danger-color);
-  color: white;
-  border: none;
+.job-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.job-actions .btn-secondary {
+  background: var(--white);
+  color: var(--gray-700);
+  border: 1px solid var(--border-color);
+}
+
+.job-actions .btn-secondary:hover:not(:disabled) {
+  background: var(--light-gray);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.job-actions .btn-danger {
+  background: #ef4444;
+  color: var(--white);
+  border: 1px solid #ef4444;
+}
+
+.job-actions .btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
 }
 
 /* Applicants Tab */

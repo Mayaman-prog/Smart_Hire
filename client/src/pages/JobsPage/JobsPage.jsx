@@ -8,24 +8,25 @@ import "./JobsPage.css";
 const JobsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Filter states from URL
   const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
   const [location, setLocation] = useState(searchParams.get("location") || "");
   const [selectedJobTypes, setSelectedJobTypes] = useState(() => {
     const types = searchParams.get("jobTypes");
     return types ? types.split(",") : [];
   });
+
   const [salaryRange, setSalaryRange] = useState({
-    min: parseInt(searchParams.get("minSalary")) || 0,
-    max: parseInt(searchParams.get("maxSalary")) || 200000,
+    min: parseInt(searchParams.get("minSalary"), 10) || 0,
+    max: parseInt(searchParams.get("maxSalary"), 10) || 200000,
   });
+
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "recent");
   const [currentPage, setCurrentPage] = useState(
-    parseInt(searchParams.get("page")) || 1
+    parseInt(searchParams.get("page"), 10) || 1,
   );
+
   const limit = 6;
 
-  // Debounced values (300ms)
   const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
   const [debouncedLocation, setDebouncedLocation] = useState(location);
 
@@ -34,7 +35,6 @@ const JobsPage = () => {
   const [loading, setLoading] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Debounce timers
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedKeyword(keyword), 300);
     return () => clearTimeout(timer);
@@ -45,48 +45,78 @@ const JobsPage = () => {
     return () => clearTimeout(timer);
   }, [location]);
 
-  // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
+
     if (debouncedKeyword) params.set("keyword", debouncedKeyword);
     if (debouncedLocation) params.set("location", debouncedLocation);
-    if (selectedJobTypes.length > 0)
+    if (selectedJobTypes.length > 0) {
       params.set("jobTypes", selectedJobTypes.join(","));
-    if (salaryRange.min > 0) params.set("minSalary", salaryRange.min);
-    if (salaryRange.max < 200000) params.set("maxSalary", salaryRange.max);
+    }
+    if (salaryRange.min > 0) params.set("minSalary", String(salaryRange.min));
+    if (salaryRange.max < 200000) {
+      params.set("maxSalary", String(salaryRange.max));
+    }
     if (sortBy !== "recent") params.set("sort", sortBy);
-    if (currentPage > 1) params.set("page", currentPage);
-    setSearchParams(params, { replace: true });
-  }, [debouncedKeyword, debouncedLocation, selectedJobTypes, salaryRange, sortBy, currentPage, setSearchParams]);
+    if (currentPage > 1) params.set("page", String(currentPage));
 
-  // Fetch jobs from API
+    setSearchParams(params, { replace: true });
+  }, [
+    debouncedKeyword,
+    debouncedLocation,
+    selectedJobTypes,
+    salaryRange,
+    sortBy,
+    currentPage,
+    setSearchParams,
+  ]);
+
   useEffect(() => {
     const fetchJobs = async () => {
       setLoading(true);
+
       try {
         const params = {
-          keyword: debouncedKeyword,
-          location: debouncedLocation,
-          job_type: selectedJobTypes.length ? selectedJobTypes.join(",") : undefined,
+          keyword: debouncedKeyword || undefined,
+          location: debouncedLocation || undefined,
+          job_type:
+            selectedJobTypes.length > 0
+              ? selectedJobTypes.join(",")
+              : undefined,
           min_salary: salaryRange.min > 0 ? salaryRange.min : undefined,
           max_salary: salaryRange.max < 200000 ? salaryRange.max : undefined,
           sort: sortBy,
           page: currentPage,
           limit,
         };
-        Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
+
+        Object.keys(params).forEach((key) => {
+          if (params[key] === undefined) delete params[key];
+        });
+
         const response = await jobAPI.getJobs(params);
-        setJobs(response.data.data);
-        setTotal(response.data.total || 0);
+
+        setJobs(response.data?.data || []);
+        setTotal(response.data?.total || 0);
       } catch (error) {
-        console.error(error);
-        toast.error("Failed to load jobs");
+        console.error("Jobs fetch error:", error);
+        toast.error(error.response?.data?.message || "Failed to load jobs");
+        setJobs([]);
+        setTotal(0);
       } finally {
         setLoading(false);
       }
     };
+
     fetchJobs();
-  }, [debouncedKeyword, debouncedLocation, selectedJobTypes, salaryRange, sortBy, currentPage, limit]);
+  }, [
+    debouncedKeyword,
+    debouncedLocation,
+    selectedJobTypes,
+    salaryRange,
+    sortBy,
+    currentPage,
+  ]);
 
   const clearAllFilters = () => {
     setKeyword("");
@@ -98,15 +128,15 @@ const JobsPage = () => {
   };
 
   const toggleJobType = (type) => {
-    setSelectedJobTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    setSelectedJobTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
     );
     setCurrentPage(1);
   };
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.max(Math.ceil(total / limit), 1);
   const startIndex = (currentPage - 1) * limit;
-  const showingStart = startIndex + 1;
+  const showingStart = total > 0 ? startIndex + 1 : 0;
   const showingEnd = Math.min(startIndex + limit, total);
 
   const goToPage = (page) => {
@@ -115,86 +145,141 @@ const JobsPage = () => {
   };
 
   const jobTypeOptions = [
-    { value: "full-time", label: "Full Time", colorClass: "job-type-full-time" },
-    { value: "part-time", label: "Part Time", colorClass: "job-type-part-time" },
+    {
+      value: "full-time",
+      label: "Full Time",
+      colorClass: "job-type-full-time",
+    },
+    {
+      value: "part-time",
+      label: "Part Time",
+      colorClass: "job-type-part-time",
+    },
     { value: "remote", label: "Remote", colorClass: "job-type-remote" },
-    { value: "contract", label: "Contract", colorClass: "job-type-contract" },
-    { value: "internship", label: "Internship", colorClass: "job-type-internship" },
+    {
+      value: "contract",
+      label: "Contract",
+      colorClass: "job-type-contract",
+    },
+    {
+      value: "internship",
+      label: "Internship",
+      colorClass: "job-type-internship",
+    },
   ];
 
-  const activeFilterCount = selectedJobTypes.length + (keyword ? 1 : 0) + (location ? 1 : 0);
+  const activeFilterCount =
+    selectedJobTypes.length + (keyword ? 1 : 0) + (location ? 1 : 0);
 
   return (
     <div className="jobs-page">
       <div className="container">
-        {/* Search Bar Section */}
         <div className="search-section">
           <div className="search-bar">
             <div className="search-input-group">
-              <span className="material-symbols-outlined search-icon">search</span>
+              <span className="material-symbols-outlined search-icon">
+                search
+              </span>
               <input
                 type="text"
                 placeholder="Job title, keyword, or company"
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
+                onChange={(e) => {
+                  setKeyword(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="search-input"
               />
             </div>
+
             <div className="search-input-group">
-              <span className="material-symbols-outlined search-icon">location_on</span>
+              <span className="material-symbols-outlined search-icon">
+                location_on
+              </span>
               <input
                 type="text"
                 placeholder="City, state, or remote"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="search-input"
               />
             </div>
-            <button className="search-btn" onClick={() => {}}>
+
+            <button
+              className="search-btn"
+              onClick={() => setCurrentPage(1)}
+              type="button"
+            >
               <span className="material-symbols-outlined">search</span>
               Search
             </button>
           </div>
 
-          {/* Active Filters Display */}
           {(activeFilterCount > 0 || selectedJobTypes.length > 0) && (
             <div className="active-filters">
               <span className="filter-count">
-                {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} active
+                {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""}{" "}
+                active
               </span>
-              {selectedJobTypes.map(type => {
-                const opt = jobTypeOptions.find(o => o.value === type);
+
+              {selectedJobTypes.map((type) => {
+                const opt = jobTypeOptions.find((o) => o.value === type);
                 return (
-                  <span key={type} className={`active-filter-tag ${opt?.colorClass}`}>
-                    {opt?.label}
-                    <button onClick={() => toggleJobType(type)}>×</button>
+                  <span
+                    key={type}
+                    className={`active-filter-tag ${opt?.colorClass || ""}`}
+                  >
+                    {opt?.label || type}
+                    <button type="button" onClick={() => toggleJobType(type)}>
+                      ×
+                    </button>
                   </span>
                 );
               })}
-              <button onClick={clearAllFilters} className="clear-all-link">Clear all</button>
+
+              <button
+                onClick={clearAllFilters}
+                className="clear-all-link"
+                type="button"
+              >
+                Clear all
+              </button>
             </div>
           )}
         </div>
 
         <div className="jobs-layout">
-          {/* Desktop Filter Sidebar */}
           <aside className="filters-sidebar desktop-sidebar">
             <div className="filters-header">
               <h3>Filters</h3>
-              <button onClick={clearAllFilters} className="clear-filters-link">Clear all</button>
+              <button
+                onClick={clearAllFilters}
+                className="clear-filters-link"
+                type="button"
+              >
+                Clear all
+              </button>
             </div>
 
             <div className="filter-group">
               <h4>Job Type</h4>
               <div className="job-type-buttons">
-                {jobTypeOptions.map(opt => (
+                {jobTypeOptions.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => toggleJobType(opt.value)}
-                    className={`job-type-filter-btn ${opt.colorClass} ${selectedJobTypes.includes(opt.value) ? "selected" : ""}`}
+                    type="button"
+                    className={`job-type-filter-btn ${opt.colorClass} ${
+                      selectedJobTypes.includes(opt.value) ? "selected" : ""
+                    }`}
                   >
                     {opt.label}
-                    {selectedJobTypes.includes(opt.value) && <span className="check-mark">✓</span>}
+                    {selectedJobTypes.includes(opt.value) && (
+                      <span className="check-mark">✓</span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -206,13 +291,17 @@ const JobsPage = () => {
                 type="text"
                 placeholder="City or remote"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="filter-input"
               />
             </div>
 
             <div className="filter-group">
               <h4>Salary Range</h4>
+
               <div className="salary-inputs">
                 <div className="salary-input">
                   <label>Min ($)</label>
@@ -220,22 +309,42 @@ const JobsPage = () => {
                     type="number"
                     placeholder="0"
                     value={salaryRange.min}
-                    onChange={(e) => setSalaryRange({ ...salaryRange, min: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => {
+                      setSalaryRange({
+                        ...salaryRange,
+                        min: parseInt(e.target.value, 10) || 0,
+                      });
+                      setCurrentPage(1);
+                    }}
                   />
                 </div>
+
                 <div className="salary-input">
                   <label>Max ($)</label>
                   <input
                     type="number"
                     placeholder="200000"
                     value={salaryRange.max}
-                    onChange={(e) => setSalaryRange({ ...salaryRange, max: parseInt(e.target.value) || 200000 })}
+                    onChange={(e) => {
+                      setSalaryRange({
+                        ...salaryRange,
+                        max: parseInt(e.target.value, 10) || 200000,
+                      });
+                      setCurrentPage(1);
+                    }}
                   />
                 </div>
               </div>
+
               <div className="salary-range-bar">
-                <div className="salary-range-fill" style={{ width: `${(salaryRange.max / 200000) * 100}%` }}></div>
+                <div
+                  className="salary-range-fill"
+                  style={{
+                    width: `${(salaryRange.max / 200000) * 100}%`,
+                  }}
+                />
               </div>
+
               <div className="salary-values">
                 <span>${salaryRange.min.toLocaleString()}</span>
                 <span>—</span>
@@ -243,64 +352,143 @@ const JobsPage = () => {
               </div>
             </div>
 
-            <button onClick={clearAllFilters} className="clear-filters-btn">Clear Filters</button>
+            <button
+              onClick={clearAllFilters}
+              className="clear-filters-btn"
+              type="button"
+            >
+              Clear Filters
+            </button>
           </aside>
 
-          {/* Mobile Filter Button */}
-          <button className="mobile-filter-btn" onClick={() => setIsFilterOpen(true)}>
+          <button
+            className="mobile-filter-btn"
+            onClick={() => setIsFilterOpen(true)}
+            type="button"
+          >
             <span className="material-symbols-outlined">filter_list</span>
             Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
           </button>
 
-          {/* Mobile Filter Drawer */}
           {isFilterOpen && (
-            <div className="filter-drawer" onClick={() => setIsFilterOpen(false)}>
-              <div className="filter-drawer-content" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="filter-drawer"
+              onClick={() => setIsFilterOpen(false)}
+            >
+              <div
+                className="filter-drawer-content"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="drawer-header">
                   <h3>Filters</h3>
-                  <button onClick={() => setIsFilterOpen(false)}>
+                  <button onClick={() => setIsFilterOpen(false)} type="button">
                     <span className="material-symbols-outlined">close</span>
                   </button>
                 </div>
+
                 <div className="drawer-body">
                   <div className="filter-group">
                     <h4>Job Type</h4>
                     <div className="job-type-buttons">
-                      {jobTypeOptions.map(opt => (
-                        <button key={opt.value} onClick={() => toggleJobType(opt.value)} className={`job-type-filter-btn ${opt.colorClass} ${selectedJobTypes.includes(opt.value) ? "selected" : ""}`}>
+                      {jobTypeOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => toggleJobType(opt.value)}
+                          className={`job-type-filter-btn ${opt.colorClass} ${
+                            selectedJobTypes.includes(opt.value)
+                              ? "selected"
+                              : ""
+                          }`}
+                        >
                           {opt.label}
-                          {selectedJobTypes.includes(opt.value) && <span className="check-mark">✓</span>}
+                          {selectedJobTypes.includes(opt.value) && (
+                            <span className="check-mark">✓</span>
+                          )}
                         </button>
                       ))}
                     </div>
                   </div>
+
                   <div className="filter-group">
                     <h4>Location</h4>
-                    <input type="text" placeholder="City or remote" value={location} onChange={(e) => setLocation(e.target.value)} className="filter-input" />
+                    <input
+                      type="text"
+                      placeholder="City or remote"
+                      value={location}
+                      onChange={(e) => {
+                        setLocation(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="filter-input"
+                    />
                   </div>
+
                   <div className="filter-group">
                     <h4>Salary Range</h4>
                     <div className="salary-inputs">
-                      <input type="number" placeholder="Min" value={salaryRange.min} onChange={(e) => setSalaryRange({ ...salaryRange, min: parseInt(e.target.value) || 0 })} />
-                      <input type="number" placeholder="Max" value={salaryRange.max} onChange={(e) => setSalaryRange({ ...salaryRange, max: parseInt(e.target.value) || 200000 })} />
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        value={salaryRange.min}
+                        onChange={(e) => {
+                          setSalaryRange({
+                            ...salaryRange,
+                            min: parseInt(e.target.value, 10) || 0,
+                          });
+                          setCurrentPage(1);
+                        }}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Max"
+                        value={salaryRange.max}
+                        onChange={(e) => {
+                          setSalaryRange({
+                            ...salaryRange,
+                            max: parseInt(e.target.value, 10) || 200000,
+                          });
+                          setCurrentPage(1);
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
+
                 <div className="drawer-footer">
-                  <button onClick={clearAllFilters} className="drawer-clear-btn">Clear All</button>
-                  <button onClick={() => setIsFilterOpen(false)} className="drawer-apply-btn">Apply Filters</button>
+                  <button
+                    onClick={clearAllFilters}
+                    className="drawer-clear-btn"
+                    type="button"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    onClick={() => setIsFilterOpen(false)}
+                    className="drawer-apply-btn"
+                    type="button"
+                  >
+                    Apply Filters
+                  </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Main Content - Job Cards */}
           <main className="jobs-content">
             <div className="results-info">
               <p>
-                Showing {total > 0 ? `${showingStart}-${showingEnd}` : "0"} of {total} jobs
+                Showing {showingStart}-{showingEnd} of {total} jobs
               </p>
-              <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+
+              <select
+                className="sort-select"
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
                 <option value="recent">Most recent</option>
                 <option value="salary_high">Salary: High to Low</option>
                 <option value="salary_low">Salary: Low to High</option>
@@ -309,32 +497,65 @@ const JobsPage = () => {
 
             {loading ? (
               <div className="jobs-grid loading-skeleton">
-                {[1,2,3,4,5,6].map(i => (
+                {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div key={i} className="skeleton-card">
-                    <div className="skeleton-logo"></div>
-                    <div className="skeleton-title"></div>
-                    <div className="skeleton-text"></div>
-                    <div className="skeleton-text"></div>
+                    <div className="skeleton-logo" />
+                    <div className="skeleton-title" />
+                    <div className="skeleton-text" />
+                    <div className="skeleton-text" />
                   </div>
                 ))}
               </div>
             ) : jobs.length > 0 ? (
               <>
                 <div className="jobs-grid">
-                  {jobs.map(job => <JobCard key={job.id} job={job} />)}
+                  {jobs.map((job) => (
+                    <JobCard key={job.id} job={job} />
+                  ))}
                 </div>
+
                 {totalPages > 1 && (
                   <div className="pagination">
-                    <button className="pagination-btn" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}>
-                      <span className="material-symbols-outlined">chevron_left</span> Previous
+                    <button
+                      className="pagination-btn"
+                      disabled={currentPage === 1}
+                      onClick={() => goToPage(currentPage - 1)}
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined">
+                        chevron_left
+                      </span>
+                      Previous
                     </button>
+
                     <div className="pagination-pages">
-                      {[...Array(totalPages).keys()].map(i => i+1).map(page => (
-                        <button key={page} className={`pagination-page ${currentPage === page ? "active" : ""}`} onClick={() => goToPage(page)}>{page}</button>
-                      ))}
+                      {[...Array(totalPages).keys()].map((i) => {
+                        const page = i + 1;
+                        return (
+                          <button
+                            key={page}
+                            className={`pagination-page ${
+                              currentPage === page ? "active" : ""
+                            }`}
+                            onClick={() => goToPage(page)}
+                            type="button"
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
                     </div>
-                    <button className="pagination-btn" disabled={currentPage === totalPages} onClick={() => goToPage(currentPage + 1)}>
-                      Next <span className="material-symbols-outlined">chevron_right</span>
+
+                    <button
+                      className="pagination-btn"
+                      disabled={currentPage === totalPages}
+                      onClick={() => goToPage(currentPage + 1)}
+                      type="button"
+                    >
+                      Next
+                      <span className="material-symbols-outlined">
+                        chevron_right
+                      </span>
                     </button>
                   </div>
                 )}
@@ -346,7 +567,13 @@ const JobsPage = () => {
                 </div>
                 <h3>No jobs found</h3>
                 <p>Try adjusting your filters or search term</p>
-                <button onClick={clearAllFilters} className="empty-clear-btn">Clear all filters</button>
+                <button
+                  onClick={clearAllFilters}
+                  className="empty-clear-btn"
+                  type="button"
+                >
+                  Clear all filters
+                </button>
               </div>
             )}
           </main>

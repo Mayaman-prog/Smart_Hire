@@ -1,5 +1,3 @@
--- Smart Hire Database Schema - Complete Version
-
 -- 1. COMPANIES TABLE
 CREATE TABLE IF NOT EXISTS companies (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -24,6 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
     role ENUM('job_seeker', 'employer', 'admin') DEFAULT 'job_seeker',
     company_id INT NULL,
     is_active BOOLEAN DEFAULT TRUE,
+    last_login TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL,
@@ -32,7 +31,34 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_is_active (is_active)
 );
 
--- 3. JOB CATEGORIES TABLE
+-- 3. JOB SEEKERS EXTENDED INFO
+CREATE TABLE IF NOT EXISTS job_seekers (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    phone VARCHAR(20),
+    headline VARCHAR(255),
+    about TEXT,
+    experience_years INT DEFAULT 0,
+    expected_salary DECIMAL(10,2),
+    profile_completeness INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 4. EMPLOYERS EXTENDED INFO
+CREATE TABLE IF NOT EXISTS employers (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    company_id INT NOT NULL,
+    position VARCHAR(100),
+    department VARCHAR(100),
+    is_primary_contact BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+);
+
+-- 5. JOB CATEGORIES TABLE
 CREATE TABLE IF NOT EXISTS job_categories (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) UNIQUE NOT NULL,
@@ -43,7 +69,7 @@ CREATE TABLE IF NOT EXISTS job_categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. JOB TYPES TABLE
+-- 6. JOB TYPES TABLE
 CREATE TABLE IF NOT EXISTS job_types (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(50) UNIQUE NOT NULL,
@@ -52,7 +78,7 @@ CREATE TABLE IF NOT EXISTS job_types (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. LOCATIONS TABLE
+-- 7. LOCATIONS TABLE
 CREATE TABLE IF NOT EXISTS locations (
     id INT PRIMARY KEY AUTO_INCREMENT,
     city VARCHAR(100),
@@ -65,7 +91,7 @@ CREATE TABLE IF NOT EXISTS locations (
     INDEX idx_country (country)
 );
 
--- 6. SKILLS TABLE
+-- 8. SKILLS TABLE
 CREATE TABLE IF NOT EXISTS skills (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) UNIQUE NOT NULL,
@@ -75,7 +101,7 @@ CREATE TABLE IF NOT EXISTS skills (
     INDEX idx_name (name)
 );
 
--- 7. JOBS TABLE
+-- 9. JOBS TABLE (with fixed foreign key on posted_by)
 CREATE TABLE IF NOT EXISTS jobs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(255) NOT NULL,
@@ -90,14 +116,14 @@ CREATE TABLE IF NOT EXISTS jobs (
     job_type_id INT NULL,
     location_id INT NULL,
     company_id INT NOT NULL,
-    posted_by INT NOT NULL,
+    posted_by INT NULL,   -- allow NULL, and ON DELETE SET NULL
     is_active BOOLEAN DEFAULT TRUE,
     is_featured BOOLEAN DEFAULT FALSE,
     deadline DATE NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
-    FOREIGN KEY (posted_by) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (posted_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (category_id) REFERENCES job_categories(id) ON DELETE SET NULL,
     FOREIGN KEY (job_type_id) REFERENCES job_types(id) ON DELETE SET NULL,
     FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL,
@@ -107,7 +133,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     INDEX idx_is_featured (is_featured)
 );
 
--- 8. APPLICATIONS TABLE
+-- 10. APPLICATIONS TABLE
 CREATE TABLE IF NOT EXISTS applications (
     id INT PRIMARY KEY AUTO_INCREMENT,
     job_id INT NOT NULL,
@@ -124,7 +150,7 @@ CREATE TABLE IF NOT EXISTS applications (
     INDEX idx_applied_at (applied_at)
 );
 
--- 9. RESUMES TABLE
+-- 11. RESUMES TABLE
 CREATE TABLE IF NOT EXISTS resumes (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -137,7 +163,7 @@ CREATE TABLE IF NOT EXISTS resumes (
     INDEX idx_user_id (user_id)
 );
 
--- 10. SAVED JOBS TABLE
+-- 12. SAVED JOBS TABLE
 CREATE TABLE IF NOT EXISTS saved_jobs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -150,7 +176,7 @@ CREATE TABLE IF NOT EXISTS saved_jobs (
     INDEX idx_user_id (user_id)
 );
 
--- 11. SHORTLISTED CANDIDATES TABLE
+-- 13. SHORTLISTED CANDIDATES TABLE
 CREATE TABLE IF NOT EXISTS shortlisted_candidates (
     id INT PRIMARY KEY AUTO_INCREMENT,
     job_id INT NOT NULL,
@@ -166,7 +192,7 @@ CREATE TABLE IF NOT EXISTS shortlisted_candidates (
     INDEX idx_employer_id (employer_id)
 );
 
--- 12. NOTIFICATIONS TABLE
+-- 14. NOTIFICATIONS TABLE
 CREATE TABLE IF NOT EXISTS notifications (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -181,7 +207,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     INDEX idx_is_read (is_read)
 );
 
--- 13. JOB SEEKER SKILLS TABLE
+-- 15. JOB SEEKER SKILLS TABLE
 CREATE TABLE IF NOT EXISTS job_seeker_skills (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -193,7 +219,7 @@ CREATE TABLE IF NOT EXISTS job_seeker_skills (
     UNIQUE KEY unique_seeker_skill (user_id, skill_id)
 );
 
--- 14. JOB REQUIRED SKILLS TABLE
+-- 16. JOB REQUIRED SKILLS TABLE
 CREATE TABLE IF NOT EXISTS job_required_skills (
     id INT PRIMARY KEY AUTO_INCREMENT,
     job_id INT NOT NULL,
@@ -204,7 +230,7 @@ CREATE TABLE IF NOT EXISTS job_required_skills (
     UNIQUE KEY unique_job_skill (job_id, skill_id)
 );
 
--- 15. ACTIVITY LOGS TABLE
+-- 17. ACTIVITY LOGS TABLE
 CREATE TABLE IF NOT EXISTS activity_logs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT,
@@ -219,7 +245,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     INDEX idx_created_at (created_at)
 );
 
--- 16. CONTACT MESSAGES TABLE
+-- 18. CONTACT MESSAGES TABLE
 CREATE TABLE IF NOT EXISTS contact_messages (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,

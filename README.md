@@ -123,7 +123,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Hero section with gradient background and wave effect
 - Call-to-action buttons (Search Jobs, Post a Job) with authentication check
 - Search bar with keyword and location inputs using Google Material Icons
-- Featured jobs section fetching from JSON data
+- Featured jobs section fetching from backend/API data
 - Loading skeleton animation while fetching data
 - Empty state when no featured jobs available
 - Error state with retry button
@@ -151,27 +151,25 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Mobile filter drawer (slide-in panel)
 - URL query params sync (filters persist after page refresh)
 - CSS variables for consistent theming
+- Backend-driven filtering, sorting, and pagination
 
 #### JobDetailsPage
 
 **Features:**
 - Dynamic job details fetching using URL parameters (useParams)
 - Job header with title, company name (clickable), company logo, and relative posted date
-- Metadata row displaying location, job type badge, salary range, and experience level
+- Metadata row displaying location, job type badge, salary range
 - Detailed job description and requirements sections
-- Key responsibilities list with checkmark icons
-- Perks & Benefits grid with icons
-- Job Overview card with date posted, job type, salary, and deadline
+- Job Overview card with date posted, job type, and salary
 - About the Company card with description and view profile link
-- SmartHire Match Insights - AI-powered match percentage for authenticated job seekers
+- SmartHire Match Insights for authenticated job seekers
 - Apply Now button with authentication check (redirects to login if not logged in)
 - Apply Now button disabled if already applied, shows loading state during submission
 - Success toast notification on successful application
 - Hide apply button if employer is viewing their own job
-- Save Job button with heart icon toggle (localStorage persistence)
+- Save Job button with heart icon toggle
 - Share button that copies current job URL to clipboard with toast notification
-- Print button to print job details
-- Similar Jobs section displaying 3 related jobs based on job type
+- Similar Jobs section displaying related jobs based on job type
 - Loading skeleton animation while fetching data
 - Error state with 404 page for invalid job IDs
 - Fully responsive design (mobile, tablet, desktop)
@@ -326,7 +324,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Profile tab:
   - Edit profile form (name, email, password change with current password verification)
   - Resume upload (PDF, DOC, DOCX)
-- Mock data stored in `localStorage` (no backend required)
+- Fully integrated with backend APIs for applications, saved jobs, profile updates, recommended jobs, and notifications
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
 
@@ -354,7 +352,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
   - Filter applicants by job
   - Status badges (pending, reviewed, shortlisted, interviewing, offered, rejected, hired)
   - Status update buttons: Review, Shortlist, Reject, Hire (calls PUT to update status)
-- Mock data stored in `localStorage` (no backend required)
+- Fully integrated with backend APIs for job CRUD and applicant management
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
 
@@ -382,7 +380,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
   - Feature/Unfeature job (PUT `/api/admin/jobs/:id/feature`)
   - Delete job (with confirmation modal)
 - Settings tab (placeholder)
-- All data stored in `localStorage` (mock)
+- Fully integrated with backend APIs
 - Loading skeletons and success/error toasts
 - Responsive design (mobile, tablet, desktop)
 
@@ -532,14 +530,32 @@ SmartHire/
 │   │   ├── config/
 │   │   │   └── database.js
 │   │   ├── controllers/
-│   │   │   └── authController.js
+│   │   │   ├── adminController.js
+│   │   │   ├── applicationController.js
+│   │   │   ├── authController.js
+│   │   │   ├── companyController.js
+│   │   │   ├── employerController.js
+│   │   │   ├── jobController.js
+│   │   │   ├── notificationController.js
+│   │   │   ├── savedJobsController.js
+│   │   │   └── userController.js
 │   │   ├── middleware/
 │   │   │   ├── authMiddleware.js
 │   │   │   └── rateLimiter.js
 │   │   ├── routes/
-│   │   │   └── authRoutes.js
+│   │   │   ├── adminRoutes.js
+│   │   │   ├── applicationRoutes.js
+│   │   │   ├── authRoutes.js
+│   │   │   ├── companyRoutes.js
+│   │   │   ├── employerRoutes.js
+│   │   │   ├── jobRoutes.js
+│   │   │   ├── notificationRoutes.js
+│   │   │   ├── savedJobsRoutesjs
+│   │   │   └── userRoutes.js
 │   │   └── utils/
 │   │       └── generateToken.js
+│   ├── upload/
+│   │   └── resume
 │   ├── database/
 │   │   ├── schema.sql
 │   │   └── seed.sql
@@ -602,7 +618,7 @@ Follow these steps to run the project locally in under 15 minutes:
 
 ### Frontend .env (create in client/ folder)
 **VITE_API_URL=** `http://localhost:5000/api`
-**VITE_USE_MOCK_API=true**
+**VITE_USE_MOCK_API=false**
 
 ### Backend .env (create in server/ folder)
 PORT=5000
@@ -708,6 +724,58 @@ FRONTEND_URL=`http://localhost:5173`
 - npm run dev
 
 ### Open browser at: `http://localhost:5173`
+
+## API Endpoints
+
+**Authentication Routes (/api/path)**
+| Method | Endpoint    | Description                                  | Access  |
+| ------ | ----------- | -------------------------------------------- | ------- |
+| POST   | `/register` | Register a new user (job_seeker or employer) | Public  |
+| POST   | `/login`    | Login user, returns JWT token                | Public  |
+| GET    | `/profile`  | Get current user profile (requires JWT)      | Private |
+
+**Job Routes (/api/jobs)**
+| Method | Endpoint            | Description                                | Access         |
+| ------ | ------------------- | ------------------------------------------ | -------------- |
+| GET    | `/jobs`             | Get jobs with filters, sorting, pagination | Public         |
+| GET    | `/jobs/:id`         | Get single job details                     | Public         |
+| GET    | `/jobs/me`          | Get employer jobs                          | Employer       |
+| GET    | `/jobs/recommended` | Get recommended jobs                       | Job Seeker     |
+| POST   | `/jobs`             | Create a new job                           | Employer       |
+| PUT    | `/jobs/:id`         | Update a job                               | Employer/Admin |
+| DELETE | `/jobs/:id`         | Delete a job                               | Employer/Admin |
+
+**Application Routes (/api/applications)**
+| Method | Endpoint                   | Description               | Access     |
+| ------ | -------------------------- | ------------------------- | ---------- |
+| GET    | `/applications/me`         | Get user applications     | Job Seeker |
+| GET    | `/applications/employer`   | Get employer applicants   | Employer   |
+| POST   | `/applications`            | Submit job application    | Job Seeker |
+| PUT    | `/applications/:id/status` | Update application status | Employer   |
+| DELETE | `/applications/:id`        | Withdraw application      | Job Seeker |
+
+**Saved Jobs Routes (/api/saved-jobs)**
+| Method | Endpoint             | Description      | Access     |
+| ------ | -------------------- | ---------------- | ---------- |
+| GET    | `/saved-jobs`        | Fetch saved jobs | Job Seeker |
+| POST   | `/saved-jobs`        | Save a job       | Job Seeker |
+| DELETE | `/saved-jobs/:jobId` | Remove saved job | Job Seeker |
+
+**Company Routes (/api/companies)**
+| Method | Endpoint         | Description                  | Access |
+| ------ | ---------------- | ---------------------------- | ------ |
+| GET    | `/companies`     | Fetch all companies          | Public |
+| GET    | `/companies/:id` | Fetch single company details | Public |
+
+**Admin Routes (/api/admin)**
+| Method | Endpoint                  | Description               | Access |
+| ------ | ------------------------- | ------------------------- | ------ |
+| GET    | `/admin/users`            | Fetch all users           | Admin  |
+| PATCH  | `/admin/users/:id/toggle` | Toggle user active status | Admin  |
+| GET    | `/admin/jobs`             | Fetch all jobs            | Admin  |
+| DELETE | `/admin/jobs/:id`         | Delete job                | Admin  |
+| GET    | `/admin/companies`        | Fetch all companies       | Admin  |
+| GET    | `/admin/stats/overview`   | Fetch dashboard analytics | Admin  |
 
 ## Components Implemented
 
@@ -1102,7 +1170,7 @@ client/src/pages/RegisterPage/
 | **Tablet (768px–968px)** | Visible      | Stacked     |
 | **Mobile (<768px)**      | Hidden       | Full width  |
 
-**API Integration (Mock - Ready for Backend):**
+**API Integration (Live Backend):**
 - POST `/api/auth/register` - Register new user
 - Returns success toast and redirects to `/login`
 
@@ -1128,7 +1196,6 @@ client/src/pages/dashboard/jobseeker/
 | ------------- | ------- | ------------------- |
 | pending       | Yellow  | `status-pending`    |
 | reviewed      | Blue    | `status-reviewed`   |
-| interviewing  | Indigo  | `status-interviewing`|
 | offered       | Green   | `status-offered`    |
 | rejected      | Red     | `status-rejected`   |
 | hired         | Green   | `status-hired`      |
@@ -1138,13 +1205,15 @@ client/src/pages/dashboard/jobseeker/
 - `saved_jobs_{userId}` – stores saved job IDs (used by JobDetailsPage and dashboard)
 - `user` – stores user object (name, email, role)
 
-**API Integration (Mock – Ready for Backend):**
+**API Integration (Live Backend):**
 - `GET /api/applications/me` – fetch user’s applications
 - `DELETE /api/applications/:id` – withdraw application
 - `GET /api/saved-jobs` – fetch saved jobs
 - `DELETE /api/saved-jobs/:jobId` – remove saved job
 - `PUT /api/users/profile` – update profile
 - `POST /api/users/resume` – upload resume
+- GET `/api/jobs/recommended` – fetch recommended jobs
+- GET `/api/notifications` – fetch notifications
 
 **Responsive Breakpoints:**
 | Screen Size              | Layout                         |
@@ -1161,33 +1230,6 @@ client/src/pages/dashboard/employer/
 ├── EmployerDashboard.jsx
 └── EmployerDashboard.css
 
-**Features:**
-
-- Sidebar navigation with tabs: Overview, Post a Job, My Jobs, Applicants
-- Overview dashboard with:
-  - Stats cards: Total Applicants, Active Jobs, Interviews Scheduled, Pending Offers
-  - Hiring Performance chart (job views vs. applications)
-  - AI High‑Score Matches (top candidates with match percentage)
-  - Recent activity feed
-  - Recruiter tip section
-- Post a Job multi‑step form:
-  - Step 1: Basic Info (title, location, salary, job type, experience level)
-  - Step 2: Details (description, requirements, responsibilities)
-  - Step 3: Review and submit
-- My Jobs tab:
-  - List of all jobs with status (Active/Closed)
-  - Edit, Close, Delete buttons
-  - Edit job modal (pre‑filled form, update via PUT)
-  - Delete with confirmation modal
-  - Close job (set `is_active = false`)
-- Applicants tab:
-  - Filter applicants by job
-  - Status badges (pending, reviewed, shortlisted, interviewing, offered, rejected, hired)
-  - Status update buttons: Review, Shortlist, Reject, Hire (calls PUT to update status)
-- Mock data stored in `localStorage` (no backend required)
-- Loading skeletons and error toasts
-- Responsive design (mobile, tablet, desktop)
-
 **Stats Cards:**
 | Stat                 | Description                        |
 | -------------------- | ---------------------------------- |
@@ -1202,8 +1244,6 @@ client/src/pages/dashboard/employer/
 | pending      | Yellow | `status-pending`      |
 | reviewed     | Blue   | `status-reviewed`     |
 | shortlisted  | Green  | `status-shortlisted`  |
-| interviewing | Indigo | `status-interviewing` |
-| offered      | Green  | `status-offered`      |
 | rejected     | Red    | `status-rejected`     |
 | hired        | Green  | `status-hired`        |
 
@@ -1212,7 +1252,7 @@ client/src/pages/dashboard/employer/
 - `mock_employer_applicants_{companyId}` – stores applicants for the company’s jobs
 - `user` – stores user object (name, email, role, company_name)
 
-**API Integration (Mock – Ready for Backend):**
+**API Integration (Live Backend):**
 - `GET /api/jobs/me` – fetch employer’s jobs
 - `POST /api/jobs` – create a new job
 - `PUT /api/jobs/:id` – update job
@@ -1237,72 +1277,43 @@ client/src/pages/dashboard/admin/
 ├── AdminDashboard.jsx
 └── AdminDashboard.css
 
-**Features:**
-- Sidebar navigation with tabs: Overview, User Management, Company Verifications, Job Moderation, Settings
-- Overview dashboard with:
-  - Stats cards: System Health, Monthly Recurring Revenue
-  - Ecosystem Growth chart (User Registrations vs Job Postings)
-  - Action Required card (pending company verifications)
-  - System Health metrics (server load, API latency)
-  - Critical System Events feed (real‑time platform activities)
-  - Download Reports button
-- User Management tab:
-  - Search, pagination for users
-  - Ban/Unban user (with confirmation modal)
-  - Delete user (with confirmation modal)
-- Company Verifications tab:
-  - Search, pagination for companies
-  - Verify company (with confirmation modal)
-  - Delete company (with confirmation modal)
-- Job Moderation tab:
-  - Search, pagination for jobs
-  - Feature/Unfeature job (toggle `is_featured`)
-  - Delete job (with confirmation modal)
-- Settings tab (placeholder)
-- All data stored in `localStorage` (mock)
-- Loading skeletons and success/error toasts
-- Responsive design (mobile, tablet, desktop)
-
 **Stats Cards (Overview):**
-| Stat              | Description                         |
-| ----------------- | ----------------------------------- |
-| System Health     | Overall platform health percentage  |
-| Revenue           | Monthly recurring revenue (mock)    |
+| Stat           | Description                |
+| -------------- | -------------------------- |
+| Total Users    | Total registered users     |
+| Active Users   | Users currently active     |
+| Total Jobs     | Total jobs in the platform |
+| Active Jobs    | Jobs currently active      |
+| Companies      | Total registered companies |
+| Inactive Users | Users currently inactive   |
+
 
 **Status Badges (Tables):**
-| Type        | Color   | CSS Class           |
-| ----------- | ------- | ------------------- |
-| Active      | Green   | `status-badge active`   |
-| Banned      | Red     | `status-badge banned`   |
-| Verified    | Green   | `status-badge verified` |
-| Pending     | Red     | `status-badge pending`  |
-| Featured    | Green   | `status-badge featured` |
-| Normal      | Red     | `status-badge normal`   |
-| Closed      | Red     | `status-badge closed`   |
+| Type     | Color | CSS Class               |
+| -------- | ----- | ----------------------- |
+| Active   | Green | `status-badge active`   |
+| Inactive | Red   | `status-badge inactive` |
+
 
 **LocalStorage Keys Used:**
 - `mock_admin_users` – stores all platform users
 - `mock_admin_companies` – stores all companies
 - `mock_admin_jobs` – stores all jobs
 
-**API Integration (Mock – Ready for Backend):**
-- `GET /api/admin/users` – fetch all users
-- `PUT /api/admin/users/:id/ban` – ban user
-- `PUT /api/admin/users/:id/unban` – unban user
-- `DELETE /api/admin/users/:id` – delete user
-- `GET /api/admin/companies` – fetch all companies
-- `PUT /api/admin/companies/:id/verify` – verify company
-- `DELETE /api/admin/companies/:id` – delete company
-- `GET /api/admin/jobs` – fetch all jobs
-- `PUT /api/admin/jobs/:id/feature` – feature job
-- `DELETE /api/admin/jobs/:id` – delete job
+**API Integration (Live Backend):**
+- GET `/api/admin/users` – fetch all users
+- PATCH `/api/admin/users/:id/toggle` – toggle user active status
+- GET `/api/admin/jobs` – fetch all jobs
+- DELETE `/api/admin/jobs/:id` – delete job
+- GET `/api/admin/companies` – fetch all companies
+- GET `/api/admin/stats/overview` – fetch dashboard analytics
 
 **Responsive Breakpoints:**
-| Screen Size          | Layout                                     |
-| -------------------- | ------------------------------------------ |
-| Desktop (>1024px)    | Sidebar + main content (2‑col)             |
-| Tablet (768px–1024px)| Sidebar collapses, full width              |
-| Mobile (<768px)      | Stacked layout, tables scroll horizontally |
+| Screen Size               | Layout                                     |
+| ------------------------- | ------------------------------------------ |
+| **Desktop (>1024px)**     | Sidebar + main content (2‑col)             |
+| **Tablet (768px–1024px)** | Sidebar collapses, full width              |
+| **Mobile (<768px)**       | Stacked layout, tables scroll horizontally |
 
 ### ProtectedRoute Component
 
@@ -1399,35 +1410,34 @@ client/src/pages/NotFoundPage/
 
 ## Troubleshooting
 
-| Issue                                     | Solution                                                                |
-| ----------------------------------------- | ----------------------------------------------------------------------- |
-| Navbar items squished                     | Restart Vite: `rm -rf node_modules/.vite && npm run dev`                |
-| CSS not applying                          | Check import paths in component files                                   |
-| JobCard not showing                       | Verify data in `client/src/data/jobs.json`                              |
-| Footer not sticky                         | Ensure layout uses `min-height: 100vh` and `flex-direction: column`     |
-| Form validation not working               | Check `validators.js` path in imports                                   |
-| HomePage featured jobs not showing        | Ensure `jobs.json` has `is_featured: true` jobs                         |
-| Search redirect not working               | Check `AuthContext` and `localStorage`                                  |
-| Icons not showing                         | Ensure Google Fonts link is added in `index.html`                       |
-| Filters not working                       | Check URL query params and state management                             |
-| Mobile filter drawer not showing          | Verify CSS media queries are working                                    |
-| Apply button not working                  | Check authentication status and user role                               |
-| Similar jobs not showing                  | Verify job type matching in JSON data                                   |
-| Company search not working                | Ensure `companies.json` contains valid data                             |
-| Company cards not showing                 | Check `CompanyCard` component import                                    |
-| Company details not showing               | Verify company ID in URL and `companies.json`                           |
-| Database connection error                 | Start MySQL in XAMPP and check `.env` configuration                     |
-| Protected route redirecting               | Check `AuthContext` and `localStorage` for token                        |
-| 404 page not showing                      | Ensure `*` route is last in Routes                                      |
-| Login not working                         | Ensure correct test credentials are used                                |
-| Toast notifications not showing           | Verify `react-hot-toast` is installed and `<Toaster />` is in `App.jsx` |
-| 500 Internal Server Error                 | Check server terminal for detailed error; verify database tables exist  |
-| JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (minimum 32 characters)                      |
-| Rate limit exceeded                       | Wait 15 minutes or restart server                                       |
-| Apply button stays enabled after applying | Check `localStorage` key `applied_{userId}` and 409 mock implementation |
-| Saved jobs not appearing in dashboard     | Verify `saved_jobs_{userId}` localStorage key is used consistently      |
-
-
+| Issue                                     | Solution                                                               |
+| ----------------------------------------- | ---------------------------------------------------------------------- |
+| Navbar items squished                     | Restart Vite: `rm -rf node_modules/.vite && npm run dev`               |
+| CSS not applying                          | Check import paths in component files                                  |
+| JobCard not showing                       | Verify API response shape and component props                          |
+| Footer not sticky                         | Ensure layout uses `min-height: 100vh` and `flex-direction: column`    |
+| Form validation not working               | Check `validators.js` path in imports                                  |
+| HomePage featured jobs not showing        | Ensure featured jobs exist in database                                 |
+| Search redirect not working               | Check AuthContext and route guards                                     |
+| Icons not showing                         | Ensure Google Fonts link is added in `index.html`                      |
+| Filters not working                       | Check URL query params, backend filters, and state management          |
+| Mobile filter drawer not showing          | Verify CSS media queries are working                                   |
+| Apply button not working                  | Check authentication status and user role                              |
+| Similar jobs not showing                  | Verify similar jobs backend query                                      |
+| Company search not working                | Ensure companies endpoint returns valid data                           |
+| Company cards not showing                 | Check `CompanyCard` component import                                   |
+| Company details not showing               | Verify company ID in URL and companies endpoint                        |
+| Database connection error                 | Start MySQL in XAMPP and check `.env` configuration                    |
+| Protected route redirecting               | Check AuthContext and token storage                                    |
+| 404 page not showing                      | Ensure `*` route is last in Routes                                     |
+| Login not working                         | Ensure correct test credentials are used                               |
+| Toast notifications not showing           | Verify react-hot-toast is installed and `<Toaster />` is in `App.jsx`  |
+| 500 Internal Server Error                 | Check server terminal for detailed error; verify database tables exist |
+| JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (minimum 32 characters)                     |
+| Rate limit exceeded                       | Wait 15 minutes or restart server                                      |
+| Apply button stays enabled after applying | Verify application status is returned correctly from backend           |
+| Saved jobs not appearing in dashboard     | Verify `saved_jobs` routes and API response shape                      |
+| Charts not loading                        | Verify Recharts is installed and `/api/admin/stats/overview` works     |
 
 ## Contributing
 **Create a new branch:**
@@ -1470,26 +1480,33 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Responsive Navbar with role-based navigation and mobile drawer
 - Responsive Footer with newsletter and social links
 - Complete Homepage with hero section, search bar, featured jobs, and "How It Works"
-- Complete Jobs Page with debounced search, URL query sync, filters, pagination, clear filters, and mock API integration
-- Complete Job Details Page with apply (loading, disable, 409 handling) and save (localStorage toggle)
+- Complete Jobs Page with debounced search, URL query sync, filters, pagination, clear filters, sorting, and backend integration
+- Complete Job Details Page with apply flow, duplicate prevention, save flow, similar jobs, and live backend integration
 - Complete Companies Page with search, responsive grid, and company cards
 - Complete Company Details Page with tabs, open positions, and about section
 - Complete Login Page with email/password validation, remember me, and role-based redirects
 - Complete Register Page with full name, email, password, confirm password, role dropdown, conditional company name, and validation
-- Complete Backend JWT Authentication (register, login, profile) with bcrypt, express-validator, rate limiting
-- Complete Job Seeker Dashboard with overview, applied jobs (from localStorage), saved jobs (from same localStorage key), profile edit, and resume upload (mock data)
-- Complete Employer Dashboard with overview, multi‑step job posting, job management (edit/close/delete), applicant management with status updates (mock data)
-- Complete Admin Dashboard with system overview, user management (ban/unban/delete), company verification (verify/delete), job moderation (feature/unfeature/delete), and critical events feed (mock data)
+- Complete Backend JWT Authentication (register, login, profile) with bcrypt, express-validator, and rate limiting
+- Complete Job Seeker Dashboard with overview, applied jobs, saved jobs, profile edit, resume upload, and notifications using live backend APIs
+- Complete Employer Dashboard with overview, job creation, edit/delete, activate/deactivate, and applicant management using live backend APIs
+- Complete Admin Dashboard with users, jobs, companies, filters, pagination, and analytics charts using live backend APIs
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
 - Authentication context with JWT structure
 - CSS variables for consistent theming
 - Google Material Icons integration
+- Admin analytics charts using Recharts
 
-**In Progress (Sprint 1 remaining tasks):**
-- Job CRUD APIs (real backend)
-- Application APIs (real backend)
-- Company management APIs (real backend)
+**Frontend–Backend Integration Completed:**
+
+- Authentication APIs
+- Job CRUD APIs
+- Application APIs
+- Saved Jobs APIs
+- Company APIs
+- Admin APIs
+- Dashboard analytics APIs
+- Backend-driven filtering, sorting, and pagination
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.

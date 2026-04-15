@@ -1,5 +1,5 @@
 import React from "react";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import "./Toast.css";
 
 // Custom toast functions

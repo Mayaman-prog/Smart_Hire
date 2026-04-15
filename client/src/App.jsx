@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "./App.css";
 import Navbar from "./components/common/Navbar/Navbar";
@@ -21,6 +21,9 @@ import EmployerDashboard from "./pages/Dashboard/employer/EmployerDashboard";
 import AdminDashboard from "./pages/Dashboard/admin/AdminDashboard";
 
 function App() {
+  const location = useLocation();
+  const isDashboardRoute = location.pathname.startsWith("/dashboard");
+  
   return (
     <div className="app">
       {/* Toast Notifications - Using CSS classes from globals.css */}
@@ -52,7 +55,7 @@ function App() {
       />
 
       <ScrollToTop />
-      <Navbar />
+      {!isDashboardRoute && <Navbar />}
 
       <main className="main-content">
         <Routes>
@@ -98,7 +101,7 @@ function App() {
         </Routes>
       </main>
 
-      <Footer />
+      {!isDashboardRoute && <Footer />}
     </div>
   );
 }

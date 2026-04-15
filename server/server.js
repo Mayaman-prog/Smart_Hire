@@ -3,12 +3,20 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
 
-// Import pool from database config (not the whole module)
+// Import pool from database config
 const { pool } = require('./src/config/database');
 
-// Import auth routes
+// Import routes
 const authRoutes = require('./src/routes/authRoutes');
+const jobRoutes = require('./src/routes/jobRoutes');
+const companyRoutes = require('./src/routes/companyRoutes');
+const applicationRoutes = require('./src/routes/applicationRoutes');
+const savedJobsRoutes = require('./src/routes/savedJobsRoutes');
+const adminRoutes = require('./src/routes/adminRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const notificationRoutes = require('./src/routes/notificationRoutes');
 
 dotenv.config();
 
@@ -26,8 +34,10 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API ROUTES
+// Serve uploaded files (for resumes)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// API ROUTES
 app.get('/api', (req, res) => {
     res.status(200).json({
         success: true,
@@ -38,7 +48,11 @@ app.get('/api', (req, res) => {
             test: '/api/test',
             jobs: '/api/jobs',
             companies: '/api/companies',
-            auth: '/api/auth'
+            auth: '/api/auth',
+            applications: '/api/applications',
+            savedJobs: '/api/saved-jobs',
+            admin: '/api/admin',
+            users: '/api/users'
         }
     });
 });
@@ -62,6 +76,30 @@ app.get('/api/test', (req, res) => {
 // Auth routes
 app.use('/api/auth', authRoutes);
 
+// Job routes
+app.use('/api/jobs', jobRoutes);
+
+// Company routes
+app.use('/api/companies', companyRoutes);
+
+// Application routes
+app.use('/api/applications', applicationRoutes);
+
+// Employer routes
+app.use("/api/employer", require("./src/routes/employerRoutes"));
+
+// Saved Jobs routes
+app.use('/api/saved-jobs', savedJobsRoutes);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
+
+// User routes
+app.use('/api/users', userRoutes);
+
+// Notification routes
+app.use('/api/notifications', notificationRoutes);
+
 // 404 handler - MUST be last
 app.use('*', (req, res) => {
     res.status(404).json({
@@ -70,7 +108,7 @@ app.use('*', (req, res) => {
     });
 });
 
-// Error handler
+// Error handler 
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
     res.status(500).json({

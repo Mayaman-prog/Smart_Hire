@@ -11,16 +11,18 @@ const { loginLimiter, authLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
-// Apply general rate limiting to all auth routes
 router.use(authLimiter);
 
-// Register route
 router.post('/register', registerValidation, register);
-
-// Login route with stricter rate limiting
 router.post('/login', loginLimiter, loginValidation, login);
 
-// Protected route: get profile
-router.get('/profile', protect, getProfile);
+// Protected routes
+router.get('/me', protect, getProfile);
+
+console.log('✅ Auth routes registered:');
+console.log('  - POST /register');
+console.log('  - POST /login');
+console.log('  - GET /profile');
+console.log('  - GET /me');
 
 module.exports = router;

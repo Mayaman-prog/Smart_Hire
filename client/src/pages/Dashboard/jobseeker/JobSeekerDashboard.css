@@ -525,6 +525,21 @@
   cursor: pointer;
 }
 
+/* FIX: Make all buttons always visible */
+.withdraw-btn,
+.remove-btn,
+.apply-btn {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-block !important;
+}
+
+.application-card .withdraw-btn,
+.saved-job-card .remove-btn,
+.saved-job-card .apply-btn {
+  opacity: 1 !important;
+}
+
 /* Profile Tab */
 .profile-form {
   max-width: 500px;
@@ -627,4 +642,42 @@
   .time {
     align-self: flex-end;
   }
+}
+
+/* Force all action buttons to always be visible */
+.job-actions .apply-btn,
+.job-actions .remove-btn,
+.saved-job-card .apply-btn,
+.saved-job-card .remove-btn,
+.application-card .withdraw-btn {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure the Remove button has a background color */
+.remove-btn {
+  background: var(--danger-color) !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+
+/* Ensure Apply button has correct styles */
+.apply-btn {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  flex: 1;
 }

@@ -4,6 +4,12 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
+// Import pool from database config (not the whole module)
+const { pool } = require('./src/config/database');
+
+// Import auth routes
+const authRoutes = require('./src/routes/authRoutes');
+
 dotenv.config();
 
 const app = express();
@@ -22,7 +28,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // API ROUTES
 
-// Root API route
 app.get('/api', (req, res) => {
     res.status(200).json({
         success: true,
@@ -38,7 +43,6 @@ app.get('/api', (req, res) => {
     });
 });
 
-// Health check
 app.get('/api/health', (req, res) => {
     res.status(200).json({
         status: 'OK',
@@ -47,7 +51,6 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Test endpoint
 app.get('/api/test', (req, res) => {
     res.json({
         success: true,
@@ -56,7 +59,10 @@ app.get('/api/test', (req, res) => {
     });
 });
 
-// 404 handler - Must be LAST
+// Auth routes
+app.use('/api/auth', authRoutes);
+
+// 404 handler - MUST be last
 app.use('*', (req, res) => {
     res.status(404).json({
         success: false,
@@ -76,9 +82,22 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`API URL: http://localhost:${PORT}/api`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
-    console.log(`Test API: http://localhost:${PORT}/api/test`);
-});
+// Test database connection using pool
+const startServer = async () => {
+    try {
+        await pool.query('SELECT 1');
+        console.log('Database connected successfully');
+        
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+            console.log(`API URL: http://localhost:${PORT}/api`);
+            console.log(`Health check: http://localhost:${PORT}/api/health`);
+            console.log(`Test API: http://localhost:${PORT}/api/test`);
+        });
+    } catch (error) {
+        console.error('Database connection failed:', error.message);
+        process.exit(1);
+    }
+};
+
+startServer();

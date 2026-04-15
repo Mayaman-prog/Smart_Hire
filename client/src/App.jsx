@@ -6,7 +6,6 @@ import Navbar from "./components/common/Navbar/Navbar";
 import Footer from "./components/common/Footer/Footer";
 import ScrollToTop from "./components/common/ScrollToTop";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 
 // Import all pages
 import HomePage from "./pages/HomePage/HomePage";
@@ -16,15 +15,10 @@ import CompaniesPage from "./pages/CompaniesPage/CompaniesPage";
 import CompanyDetailsPage from "./pages/CompanyDetailsPage/CompanyDetailsPage";
 import LoginPage from "./pages/LoginPage/LoginPage";
 import RegisterPage from "./pages/RegisterPage/RegisterPage";
+import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
+import JobSeekerDashboard from './pages/Dashboard/jobseeker/JobSeekerDashboard';
 
 // Dashboard placeholders
-const JobSeekerDashboard = () => (
-  <div className="dashboard-placeholder">
-    <h2>Job Seeker Dashboard</h2>
-    <p>Your applications, saved jobs, and profile settings will appear here.</p>
-  </div>
-);
-
 const EmployerDashboard = () => (
   <div className="dashboard-placeholder">
     <h2>Employer Dashboard</h2>

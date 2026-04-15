@@ -32,6 +32,7 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [LoginPage Component](#loginpage-component)
   - [RegisterPage Component](#registerpage-component)
   - [JobSeekerDashboard Component](#jobseekerdashboard-component)
+  - [EmployerDashboard Component](#employerdashboard-component)
   - [ProtectedRoute Component](#protectedroute-component)
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
@@ -265,7 +266,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - "Show less" button to collapse
 - Responsive wrapping
 
-#### LoginPage Component
+#### LoginPage
 
 **Features:**
 - Email field with validation (required, valid email format)
@@ -286,7 +287,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Gradient background with animation
 - Terms of Service and Privacy Policy links
 
-#### RegisterPage Component
+#### RegisterPage
 
 **Features:**
 - Full name field with validation (required, min 2 characters, letters/spaces/hyphens/apostrophes only)
@@ -307,7 +308,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Gradient background with animation
 - Terms of Service and Privacy Policy links
 
-#### JobSeekerDashboard Component
+#### JobSeekerDashboard
 
 **Features:**
 - Sidebar navigation with tabs: Overview, Applied Jobs, Saved Jobs, Profile
@@ -328,6 +329,33 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
 
+#### EmployerDashboard
+
+**Features:**
+- Sidebar navigation with tabs: Overview, Post a Job, My Jobs, Applicants
+- Overview dashboard with:
+  - Stats cards: Total Applicants, Active Jobs, Interviews Scheduled, Pending Offers
+  - Hiring Performance chart (job views vs. applications)
+  - AI High‑Score Matches (top candidates with match percentage)
+  - Recent activity feed
+  - Recruiter tip section
+- Post a Job multi‑step form:
+  - Step 1: Basic Info (title, location, salary, job type, experience level)
+  - Step 2: Details (description, requirements, responsibilities)
+  - Step 3: Review and submit
+- My Jobs tab:
+  - List of all jobs with status (Active/Closed)
+  - Edit, Close, Delete buttons
+  - Edit job modal (pre‑filled form, update via PUT)
+  - Delete with confirmation modal
+  - Close job (set `is_active = false`)
+- Applicants tab:
+  - Filter applicants by job
+  - Status badges (pending, reviewed, shortlisted, interviewing, offered, rejected, hired)
+  - Status update buttons: Review, Shortlist, Reject, Hire (calls PUT to update status)
+- Mock data stored in `localStorage` (no backend required)
+- Loading skeletons and error toasts
+- Responsive design (mobile, tablet, desktop)
 
 ### ProtectedRoute Features
 
@@ -442,9 +470,12 @@ SmartHire/
 │   │   │   │   ├── RegisterPage.jsx
 │   │   │   │   └── RegisterPage.css
 │   │   │   ├── dashboard/
-│   │   │   │   └── jobseeker/
-│   │   │   │       ├── JobSeekerDashboard.jsx
-│   │   │   │       └── JobSeekerDashboard.css
+│   │   │   │   ├── jobseeker/
+│   │   │   │   │   ├── JobSeekerDashboard.jsx
+│   │   │   │   │   └── JobSeekerDashboard.css
+│   │   │   │   └── employer/
+│   │   │   │       ├── EmployerDashboard.jsx
+│   │   │   │       └── EmployerDashboard.css
 │   │   │   └── NotFoundPage/
 │   │   │       ├── NotFoundPage.jsx
 │   │   │       └── NotFoundPage.css
@@ -463,6 +494,7 @@ SmartHire/
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   ├── .env
+│   ├── .gitignore
 │   ├── index.html
 │   └── package.json
 │
@@ -485,6 +517,7 @@ SmartHire/
 │   ├── scripts/
 │   │   └── setup-db.js
 │   ├── .env
+│   ├── .gitignore
 │   ├── package.json
 │   └── server.js
 │
@@ -1081,6 +1114,75 @@ client/src/pages/dashboard/jobseeker/
 | Tablet (768px–1024px)| Sidebar collapses, full width  |
 | Mobile (<768px)      | Stacked layout                 |
 
+### EmployerDashboard Component
+**Location:** `client/src/pages/dashboard/employer/EmployerDashboard.jsx`
+
+**File Structure:**
+client/src/pages/dashboard/employer/
+├── EmployerDashboard.jsx
+└── EmployerDashboard.css
+
+**Features:**
+
+- Sidebar navigation with tabs: Overview, Post a Job, My Jobs, Applicants
+- Overview dashboard with:
+  - Stats cards: Total Applicants, Active Jobs, Interviews Scheduled, Pending Offers
+  - Hiring Performance chart (job views vs. applications)
+  - AI High‑Score Matches (top candidates with match percentage)
+  - Recent activity feed
+  - Recruiter tip section
+- Post a Job multi‑step form:
+  - Step 1: Basic Info (title, location, salary, job type, experience level)
+  - Step 2: Details (description, requirements, responsibilities)
+  - Step 3: Review and submit
+- My Jobs tab:
+  - List of all jobs with status (Active/Closed)
+  - Edit, Close, Delete buttons
+  - Edit job modal (pre‑filled form, update via PUT)
+  - Delete with confirmation modal
+  - Close job (set `is_active = false`)
+- Applicants tab:
+  - Filter applicants by job
+  - Status badges (pending, reviewed, shortlisted, interviewing, offered, rejected, hired)
+  - Status update buttons: Review, Shortlist, Reject, Hire (calls PUT to update status)
+- Mock data stored in `localStorage` (no backend required)
+- Loading skeletons and error toasts
+- Responsive design (mobile, tablet, desktop)
+
+**Stats Cards:**
+| Stat                 | Description                        |
+| -------------------- | ---------------------------------- |
+| Total Applicants     | All applications received          |
+| Active Jobs          | Number of currently active jobs    |
+| Interviews Scheduled | Applications in interviewing stage |
+| Pending Offers       | Applications with offers sent      |
+
+**Application Status Badges**
+| Status       | Color  | CSS Class             |
+| ------------ | ------ | --------------------- |
+| pending      | Yellow | `status-pending`      |
+| reviewed     | Blue   | `status-reviewed`     |
+| shortlisted  | Green  | `status-shortlisted`  |
+| interviewing | Indigo | `status-interviewing` |
+| offered      | Green  | `status-offered`      |
+| rejected     | Red    | `status-rejected`     |
+| hired        | Green  | `status-hired`        |
+
+**LocalStorage Keys Used:**
+- `mock_employer_jobs_{companyId}` – stores employer’s jobs
+- `mock_employer_applicants_{companyId}` – stores applicants for the company’s jobs
+- `user` – stores user object (name, email, role, company_name)
+
+**API Integration (Mock – Ready for Backend):**
+- `GET /api/jobs/me` – fetch employer’s jobs
+- `POST /api/jobs` – create a new job
+- `PUT /api/jobs/:id` – update job
+- `DELETE /api/jobs/:id` – delete job
+- `GET /api/applications/employer` – fetch applicants
+- `PUT /api/applications/:id/status` – update application status
+
+**Responsive Breakpoints:**
+
 ### ProtectedRoute Component
 
 **Location:** `client/src/components/auth/ProtectedRoute.jsx`
@@ -1252,6 +1354,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Complete Register Page with full name, email, password, confirm password, role dropdown, conditional company name, and validation
 - Complete Backend JWT Authentication (register, login, profile) with bcrypt, express-validator, rate limiting
 - Complete Job Seeker Dashboard with overview, applied jobs, saved jobs, profile edit, and resume upload (mock data)
+- Complete Employer Dashboard with overview, multi‑step job posting, job management (edit/close/delete), applicant management with status updates (mock data)
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -1263,6 +1366,6 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Job CRUD APIs
 - Application APIs
 - Company management APIs
-- Employer and Admin dashboards
+-bAdmin dashboard
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.

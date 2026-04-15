@@ -33,6 +33,7 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [RegisterPage Component](#registerpage-component)
   - [JobSeekerDashboard Component](#jobseekerdashboard-component)
   - [EmployerDashboard Component](#employerdashboard-component)
+  - [AdminDashboard Component](#admindashboard-component)
   - [ProtectedRoute Component](#protectedroute-component)
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
@@ -357,6 +358,34 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
 
+#### AdminDashboard
+
+**Features:**
+- Sidebar navigation with tabs: Overview, User Management, Company Verifications, Job Moderation, Settings
+- Overview dashboard with:
+  - Stats cards: System Health, Monthly Recurring Revenue
+  - Ecosystem Growth chart (User Registrations vs Job Postings)
+  - Action Required card (pending company verifications)
+  - System Health metrics (server load, API latency)
+  - Critical System Events feed (real‑time platform activities)
+  - Download Reports button
+- User Management tab:
+  - Search, filter, pagination for users
+  - Ban/Unban user (PUT `/api/admin/users/:id/ban` / `/unban`)
+  - Delete user (with confirmation modal)
+- Company Verifications tab:
+  - Search, pagination for companies
+  - Verify company (PUT `/api/admin/companies/:id/verify`)
+  - Delete company (with confirmation modal)
+- Job Moderation tab:
+  - Search, pagination for jobs
+  - Feature/Unfeature job (PUT `/api/admin/jobs/:id/feature`)
+  - Delete job (with confirmation modal)
+- Settings tab (placeholder)
+- All data stored in `localStorage` (mock)
+- Loading skeletons and success/error toasts
+- Responsive design (mobile, tablet, desktop)
+
 ### ProtectedRoute Features
 
 **Features:**
@@ -521,8 +550,18 @@ SmartHire/
 │   ├── package.json
 │   └── server.js
 │
-├── examplecodefiles/                # Reference code examples
-├── README.md
+├── docs/
+├── ExampleCodeFiles/                # Reference code examples
+|   ├── ComponentTestPage
+|   |   ├── ComponentTestPage.jsx
+|   |   └── ComponentTestPage.css
+|   ├── TagTestPage
+|   |   ├── TagTestPage.jsx
+|   |   └── TagTestPage.css
+|   ├── TestCardsPage
+|   |   ├── TestCardsPage.jsx
+|   |   └── TestCardsPage.css
+└── README.md
 
 ## Setup Instructions
 
@@ -1022,11 +1061,11 @@ client/src/pages/LoginPage/
 | Password | Required, minimum 6 characters | "Password is required" / "Password must be at least 6 characters" |
 
 **Responsive Breakpoints:**
-| Screen Size          | Hero Section | Form Layout  | Social Buttons |
-| -------------------- | ------------ | ------------ | -------------- |
-| Desktop (>968px)     | Visible      | Side by side | Horizontal     |
-| Tablet (768px–968px) | Visible      | Stacked      | Horizontal     |
-| Mobile (<768px)      | Hidden       | Full width   | Vertical       |
+| Screen Size              | Hero Section | Form Layout  | Social Buttons |
+| ------------------------ | ------------ | ------------ | -------------- |
+| **Desktop (>968px)**     | Visible      | Side by side | Horizontal     |
+| **Tablet (768px–968px)** | Visible      | Stacked      | Horizontal     |
+| **Mobile (<768px)**      | Hidden       | Full width   | Vertical       |
 
 **Test Credentials:**
 | Role       | Email                                                 | Password    | Dashboard             |
@@ -1108,11 +1147,11 @@ client/src/pages/dashboard/jobseeker/
 - `POST /api/users/resume` – upload resume
 
 **Responsive Breakpoints:**
-| Screen Size          | Layout                         |
-| -------------------- | ------------------------------ |
-| Desktop (>1024px)    | Sidebar + main content (2‑col) |
-| Tablet (768px–1024px)| Sidebar collapses, full width  |
-| Mobile (<768px)      | Stacked layout                 |
+| Screen Size              | Layout                         |
+| ------------------------ | ------------------------------ |
+| **Desktop (>1024px)**    | Sidebar + main content (2‑col) |
+| **Tablet (768px–1024px)**| Sidebar collapses, full width  |
+| **Mobile (<768px)**      | Stacked layout                 |
 
 ### EmployerDashboard Component
 **Location:** `client/src/pages/dashboard/employer/EmployerDashboard.jsx`
@@ -1182,6 +1221,88 @@ client/src/pages/dashboard/employer/
 - `PUT /api/applications/:id/status` – update application status
 
 **Responsive Breakpoints:**
+| Screen Size               | Layout                         |
+| ------------------------- | ------------------------------ |
+| **Desktop (>1024px)**     | Sidebar + main content (2-col) |
+| **Tablet (768px–1024px)** | Sidebar collapses, full width  |
+| **Mobile (<768px)**       | Stacked layout                 |
+
+
+### AdminDashboard Component
+
+**Location:** `client/src/pages/dashboard/admin/AdminDashboard.jsx`
+
+**File Structure:**
+client/src/pages/dashboard/admin/
+├── AdminDashboard.jsx
+└── AdminDashboard.css
+
+**Features:**
+- Sidebar navigation with tabs: Overview, User Management, Company Verifications, Job Moderation, Settings
+- Overview dashboard with:
+  - Stats cards: System Health, Monthly Recurring Revenue
+  - Ecosystem Growth chart (User Registrations vs Job Postings)
+  - Action Required card (pending company verifications)
+  - System Health metrics (server load, API latency)
+  - Critical System Events feed (real‑time platform activities)
+  - Download Reports button
+- User Management tab:
+  - Search, pagination for users
+  - Ban/Unban user (with confirmation modal)
+  - Delete user (with confirmation modal)
+- Company Verifications tab:
+  - Search, pagination for companies
+  - Verify company (with confirmation modal)
+  - Delete company (with confirmation modal)
+- Job Moderation tab:
+  - Search, pagination for jobs
+  - Feature/Unfeature job (toggle `is_featured`)
+  - Delete job (with confirmation modal)
+- Settings tab (placeholder)
+- All data stored in `localStorage` (mock)
+- Loading skeletons and success/error toasts
+- Responsive design (mobile, tablet, desktop)
+
+**Stats Cards (Overview):**
+| Stat              | Description                         |
+| ----------------- | ----------------------------------- |
+| System Health     | Overall platform health percentage  |
+| Revenue           | Monthly recurring revenue (mock)    |
+
+**Status Badges (Tables):**
+| Type        | Color   | CSS Class           |
+| ----------- | ------- | ------------------- |
+| Active      | Green   | `status-badge active`   |
+| Banned      | Red     | `status-badge banned`   |
+| Verified    | Green   | `status-badge verified` |
+| Pending     | Red     | `status-badge pending`  |
+| Featured    | Green   | `status-badge featured` |
+| Normal      | Red     | `status-badge normal`   |
+| Closed      | Red     | `status-badge closed`   |
+
+**LocalStorage Keys Used:**
+- `mock_admin_users` – stores all platform users
+- `mock_admin_companies` – stores all companies
+- `mock_admin_jobs` – stores all jobs
+
+**API Integration (Mock – Ready for Backend):**
+- `GET /api/admin/users` – fetch all users
+- `PUT /api/admin/users/:id/ban` – ban user
+- `PUT /api/admin/users/:id/unban` – unban user
+- `DELETE /api/admin/users/:id` – delete user
+- `GET /api/admin/companies` – fetch all companies
+- `PUT /api/admin/companies/:id/verify` – verify company
+- `DELETE /api/admin/companies/:id` – delete company
+- `GET /api/admin/jobs` – fetch all jobs
+- `PUT /api/admin/jobs/:id/feature` – feature job
+- `DELETE /api/admin/jobs/:id` – delete job
+
+**Responsive Breakpoints:**
+| Screen Size          | Layout                                     |
+| -------------------- | ------------------------------------------ |
+| Desktop (>1024px)    | Sidebar + main content (2‑col)             |
+| Tablet (768px–1024px)| Sidebar collapses, full width              |
+| Mobile (<768px)      | Stacked layout, tables scroll horizontally |
 
 ### ProtectedRoute Component
 
@@ -1355,6 +1476,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Complete Backend JWT Authentication (register, login, profile) with bcrypt, express-validator, rate limiting
 - Complete Job Seeker Dashboard with overview, applied jobs, saved jobs, profile edit, and resume upload (mock data)
 - Complete Employer Dashboard with overview, multi‑step job posting, job management (edit/close/delete), applicant management with status updates (mock data)
+- Complete Admin Dashboard with system overview, user management (ban/unban/delete), company verification (verify/delete), job moderation (feature/unfeature/delete), and critical events feed (mock data)
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -1366,6 +1488,5 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Job CRUD APIs
 - Application APIs
 - Company management APIs
--bAdmin dashboard
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.

@@ -58,7 +58,7 @@ const Navbar = () => {
                 break;
             case 'employer':
                 roleSpecificLinks.push({ path: '/dashboard/employer', label: 'Dashboard', icon: 'dashboard' });
-                roleSpecificLinks.push({ path: '/post-job', label: 'Post Job', icon: 'post_add' });
+                roleSpecificLinks.push({ path: '/dashboard/employer?tab=post-job', label: 'Post Job', icon: 'post_add' });
                 break;
             case 'admin':
                 roleSpecificLinks.push({ path: '/dashboard/admin', label: 'Admin Panel', icon: 'admin_panel_settings' });
@@ -73,7 +73,7 @@ const Navbar = () => {
         const items = [];
 
         if (user?.role === 'employer') {
-            items.push({ path: '/post-job', label: 'Post a Job', icon: 'post_add' });
+            items.push({ path: '/dashboard/employer?tab=post-job', label: 'Post a Job', icon: 'post_add' });
         }
 
         items.push({ path: '/dashboard', label: 'Dashboard', icon: 'dashboard' });

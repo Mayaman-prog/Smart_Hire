@@ -17,17 +17,9 @@ import LoginPage from "./pages/LoginPage/LoginPage";
 import RegisterPage from "./pages/RegisterPage/RegisterPage";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 import JobSeekerDashboard from './pages/Dashboard/jobseeker/JobSeekerDashboard';
+import EmployerDashboard from './pages/Dashboard/employer/EmployerDashboard';
 
 // Dashboard placeholders
-const EmployerDashboard = () => (
-  <div className="dashboard-placeholder">
-    <h2>Employer Dashboard</h2>
-    <p>
-      Your job postings, applications, and company profile will appear here.
-    </p>
-  </div>
-);
-
 const AdminDashboard = () => (
   <div className="dashboard-placeholder">
     <h2>Admin Dashboard</h2>

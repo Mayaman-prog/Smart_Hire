@@ -12,6 +12,7 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [Client Setup](#client-setup)
   - [Server Setup](#server-setup)
   - [Database Setup](#database-setup)
+  - [Email Service Setup](#email-service-setup)
 - [Environment Variables](#environment-variables)
 - [API Endpoints](#api-endpoints)
   - [Authentication Routes](#authentication-routes)
@@ -93,6 +94,14 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - CORS configured for frontend
 - Helmet.js for security headers
 - Morgan for request logging
+
+### Email Service Features
+- **Welcome email** sent automatically after user registration.
+- **Application status update email** sent to job seekers when an employer changes the status of their application.
+- Configurable via environment variables (SMTP host, port, user, password).
+- Graceful error handling – email failures do not break the flow of registration or status updates.
+- Test script to verify SMTP configuration (`server/scripts/test-email.js`).
+- Uses **Resend** (or any SMTP provider) – high deliverability and free tier (3,000 emails/month).
 
 ### Component Features
 
@@ -528,7 +537,8 @@ SmartHire/
 ├── server/                          # Node.js + Express backend
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── database.js
+│   │   │   ├── database.js
+│   │   │   └── email.js             # Nodemailer transporter setup
 │   │   ├── controllers/
 │   │   │   ├── adminController.js
 │   │   │   ├── applicationController.js
@@ -560,7 +570,8 @@ SmartHire/
 │   │   ├── schema.sql
 │   │   └── seed.sql
 │   ├── scripts/
-│   │   └── setup-db.js
+│   │   ├── setup-db.js
+│   │   └── test-email.js          # Test email script
 │   ├── .env
 │   ├── .gitignore
 │   ├── package.json
@@ -614,6 +625,38 @@ Follow these steps to run the project locally in under 15 minutes:
 `npm run setup-db`
 - This creates all tables and inserts seed data.
 
+## Email Service Setup
+
+SmartHire uses **Nodemailer** with **Resend** (or any SMTP provider) to send transactional emails:
+
+- **Welcome emails** on user registration.
+- **Application status update emails** to job seekers.
+
+### Configure email credentials
+
+Add the following variables to your `server/.env` file:
+
+**.env**
+#### Email configuration (Resend example)
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=465
+SMTP_USER=resend
+SMTP_PASS=re_YourApiKeyHere
+EMAIL_FROM=onboarding@resend.dev
+ADMIN_EMAIL=your-email@example.com   # for test script
+
+- You can use any SMTP provider (e.g., Gmail, SendGrid, Brevo). For development, Ethereal (fake SMTP) is recommended.
+
+### Test Email Service
+
+After configuring .env, run:
+- cd server
+- node scripts/test-email.js
+
+- If successful, you will see (Test email sent successfully.) and the email will be delivered (or captured in Ethereal/Mailtrap).
+
+- Email sending is integrated into the registration and application status update flows. Failure to send an email does not break the main operation – errors are logged only.
+
 ## Environment Variables
 
 ### Frontend .env (create in client/ folder)
@@ -634,6 +677,15 @@ JWT_SECRET=super_secret_jwt_key_change_this_in_production
 JWT_EXPIRE=24h
 
 FRONTEND_URL=`http://localhost:5173`
+
+Email configuration – use your own SMTP credentials
+
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=465
+SMTP_USER=resend
+SMTP_PASS=re_YourApiKeyHere
+EMAIL_FROM=onboarding@resend.dev
+ADMIN_EMAIL=your-email@example.com   # for test script only
 
 ## API Endpoints
 
@@ -1410,34 +1462,36 @@ client/src/pages/NotFoundPage/
 
 ## Troubleshooting
 
-| Issue                                     | Solution                                                               |
-| ----------------------------------------- | ---------------------------------------------------------------------- |
-| Navbar items squished                     | Restart Vite: `rm -rf node_modules/.vite && npm run dev`               |
-| CSS not applying                          | Check import paths in component files                                  |
-| JobCard not showing                       | Verify API response shape and component props                          |
-| Footer not sticky                         | Ensure layout uses `min-height: 100vh` and `flex-direction: column`    |
-| Form validation not working               | Check `validators.js` path in imports                                  |
-| HomePage featured jobs not showing        | Ensure featured jobs exist in database                                 |
-| Search redirect not working               | Check AuthContext and route guards                                     |
-| Icons not showing                         | Ensure Google Fonts link is added in `index.html`                      |
-| Filters not working                       | Check URL query params, backend filters, and state management          |
-| Mobile filter drawer not showing          | Verify CSS media queries are working                                   |
-| Apply button not working                  | Check authentication status and user role                              |
-| Similar jobs not showing                  | Verify similar jobs backend query                                      |
-| Company search not working                | Ensure companies endpoint returns valid data                           |
-| Company cards not showing                 | Check `CompanyCard` component import                                   |
-| Company details not showing               | Verify company ID in URL and companies endpoint                        |
-| Database connection error                 | Start MySQL in XAMPP and check `.env` configuration                    |
-| Protected route redirecting               | Check AuthContext and token storage                                    |
-| 404 page not showing                      | Ensure `*` route is last in Routes                                     |
-| Login not working                         | Ensure correct test credentials are used                               |
-| Toast notifications not showing           | Verify react-hot-toast is installed and `<Toaster />` is in `App.jsx`  |
-| 500 Internal Server Error                 | Check server terminal for detailed error; verify database tables exist |
-| JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (minimum 32 characters)                     |
-| Rate limit exceeded                       | Wait 15 minutes or restart server                                      |
-| Apply button stays enabled after applying | Verify application status is returned correctly from backend           |
-| Saved jobs not appearing in dashboard     | Verify `saved_jobs` routes and API response shape                      |
-| Charts not loading                        | Verify Recharts is installed and `/api/admin/stats/overview` works     |
+| Issue                                     | Solution                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------- |
+| Navbar items squished                     | Restart Vite: `rm -rf node_modules/.vite && npm run dev`                |
+| CSS not applying                          | Check import paths in component files                                   |
+| JobCard not showing                       | Verify API response shape and component props                           |
+| Footer not sticky                         | Ensure layout uses `min-height: 100vh` and `flex-direction: column`     |
+| Form validation not working               | Check `validators.js` path in imports                                   |
+| HomePage featured jobs not showing        | Ensure featured jobs exist in database                                  |
+| Search redirect not working               | Check AuthContext and route guards                                      |
+| Icons not showing                         | Ensure Google Fonts link is added in `index.html`                       |
+| Filters not working                       | Check URL query params, backend filters, and state management           |
+| Mobile filter drawer not showing          | Verify CSS media queries are working                                    |
+| Apply button not working                  | Check authentication status and user role                               |
+| Similar jobs not showing                  | Verify similar jobs backend query                                       |
+| Company search not working                | Ensure companies endpoint returns valid data                            |
+| Company cards not showing                 | Check CompanyCard component import                                      |
+| Company details not showing               | Verify company ID in URL and companies endpoint                         |
+| Database connection error                 | Start MySQL in XAMPP and check `.env` configuration                     |
+| Protected route redirecting               | Check AuthContext and token storage                                     |
+| 404 page not showing                      | Ensure `*` route is last in Routes                                      |
+| Login not working                         | Ensure correct test credentials are used                                |
+| Toast notifications not showing           | Verify `react-hot-toast` is installed and `<Toaster />` is in `App.jsx` |
+| 500 Internal Server Error                 | Check server terminal for detailed error; verify database tables exist  |
+| JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (minimum 32 characters)                      |
+| Rate limit exceeded                       | Wait 15 minutes or restart server                                       |
+| Apply button stays enabled after applying | Verify application status is returned correctly from backend            |
+| Saved jobs not appearing in dashboard     | Verify `saved_jobs` routes and API response shape                       |
+| Charts not loading                        | Verify Recharts is installed and `/api/admin/stats/overview` works      |
+| Email not sending                         | Check SMTP credentials in `.env`; run `node scripts/test-email.js`      |
+| Email configuration error                 | Verify `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` are correct   |
 
 ## Contributing
 **Create a new branch:**
@@ -1490,6 +1544,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Complete Job Seeker Dashboard with overview, applied jobs, saved jobs, profile edit, resume upload, and notifications using live backend APIs
 - Complete Employer Dashboard with overview, job creation, edit/delete, activate/deactivate, and applicant management using live backend APIs
 - Complete Admin Dashboard with users, jobs, companies, filters, pagination, and analytics charts using live backend APIs
+- Email service integration – automated welcome emails and application status updates using Nodemailer + Resend
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data

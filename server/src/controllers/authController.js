@@ -1,95 +1,119 @@
-const { validationResult, body } = require("express-validator");
-const bcrypt = require("bcryptjs");
-const { pool } = require("../config/database");
-const generateToken = require("../utils/generateToken");
+// Import validation and hashing libraries
+const { validationResult, body } = require('express-validator');
+const bcrypt = require('bcryptjs');
+// Import database and utilities
+const { pool } = require('../config/database');
+const generateToken = require('../utils/generateToken');
+const { sendEmail } = require('../config/email');
 
+// Validation rules for registration
 const registerValidation = [
-  body("email")
+  body('email')
     .isEmail()
-    .withMessage("Please provide a valid email")
+    .withMessage('Please provide a valid email')
     .normalizeEmail(),
-  body("password")
+  body('password')
     .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters")
+    .withMessage('Password must be at least 6 characters')
     .matches(/\d/)
-    .withMessage("Password must contain at least one number"),
-  body("name")
+    .withMessage('Password must contain at least one number'),
+  body('name')
     .trim()
     .isLength({ min: 2, max: 100 })
-    .withMessage("Name must be between 2 and 100 characters"),
-  body("role")
-    .isIn(["job_seeker", "employer"])
-    .withMessage("Role must be either job_seeker or employer"),
-  body("companyName")
+    .withMessage('Name must be between 2 and 100 characters'),
+  body('role')
+    .isIn(['job_seeker', 'employer'])
+    .withMessage('Role must be either job_seeker or employer'),
+  body('companyName')
     .optional()
-    .if(body("role").equals("employer"))
+    .if(body('role').equals('employer'))
     .notEmpty()
-    .withMessage("Company name is required for employers")
+    .withMessage('Company name is required for employers')
     .trim()
     .isLength({ min: 2, max: 100 }),
 ];
 
+// Validation rules for login
 const loginValidation = [
-  body("email")
+  body('email')
     .isEmail()
-    .withMessage("Please provide a valid email")
+    .withMessage('Please provide a valid email')
     .normalizeEmail(),
-  body("password").notEmpty().withMessage("Password is required"),
+  body('password').notEmpty().withMessage('Password is required'),
 ];
 
+// Register a new user
 const register = async (req, res) => {
   let connection;
   try {
+    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
+        message: 'Validation failed',
         errors: errors.array(),
       });
     }
+    
+    // Get data from request
     const { email, password, name, role, companyName } = req.body;
+    
+    // Check if email already exists
     const [existing] = await pool.query(
-      "SELECT id FROM users WHERE email = ?",
+      'SELECT id FROM users WHERE email = ?',
       [email],
     );
     if (existing.length > 0) {
       return res
         .status(409)
-        .json({ success: false, message: "Email already exists" });
+        .json({ success: false, message: 'Email already exists' });
     }
+    
+    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    
+    // Start database transaction
     connection = await pool.getConnection();
     await connection.beginTransaction();
+    
+    // Insert user into database
     const [userResult] = await connection.query(
-      "INSERT INTO users (email, password_hash, name, role, is_active, created_at) VALUES (?, ?, ?, ?, 1, NOW())",
+      'INSERT INTO users (email, password_hash, name, role, is_active, created_at) VALUES (?, ?, ?, ?, 1, NOW())',
       [email, hashedPassword, name, role],
     );
     const userId = userResult.insertId;
+    
+    // If employer, create company and employer record
     let companyId = null;
-    if (role === "employer") {
+    if (role === 'employer') {
       const [companyResult] = await connection.query(
-        "INSERT INTO companies (name, is_verified, created_at) VALUES (?, 0, NOW())",
+        'INSERT INTO companies (name, is_verified, created_at) VALUES (?, 0, NOW())',
         [companyName],
       );
       companyId = companyResult.insertId;
-      await connection.query("UPDATE users SET company_id = ? WHERE id = ?", [
+      await connection.query('UPDATE users SET company_id = ? WHERE id = ?', [
         companyId,
         userId,
       ]);
       await connection.query(
-        "INSERT INTO employers (user_id, company_id, is_primary_contact) VALUES (?, ?, 1)",
+        'INSERT INTO employers (user_id, company_id, is_primary_contact) VALUES (?, ?, 1)',
         [userId, companyId],
       );
     } else {
+      // If job seeker, create job seeker record
       await connection.query(
-        "INSERT INTO job_seekers (user_id, profile_completeness) VALUES (?, 0)",
+        'INSERT INTO job_seekers (user_id, profile_completeness) VALUES (?, 0)',
         [userId],
       );
     }
+    
+    // Commit transaction
     await connection.commit();
     connection.release();
+
+    // Fetch the new user data
     const [newUser] = await pool.query(
       `
       SELECT 
@@ -105,37 +129,58 @@ const register = async (req, res) => {
       `,
       [userId],
     );
+
+    // Send welcome email in the background (don't wait)
+    const welcomeHtml = `
+      <h2>Welcome to SmartHire, ${name}!</h2>
+      <p>Thank you for joining SmartHire. Start your job search today.</p>
+      <p><a href="${process.env.FRONTEND_URL}/jobs">Browse Jobs</a> | <a href="${process.env.FRONTEND_URL}/dashboard">Go to Dashboard</a></p>
+      <p>If you have any questions, feel free to contact our support team.</p>
+    `;
+    const welcomeText = `Welcome to SmartHire, ${name}! Thank you for joining. Start your job search today.`;
+
+    sendEmail(email, 'Welcome to SmartHire!', welcomeHtml, welcomeText).catch(err =>
+      console.error('Failed to send welcome email:', err)
+    );
+
+    // Generate token and return response
     const token = generateToken(newUser[0]);
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: 'User registered successfully',
       data: { token, user: newUser[0] },
     });
   } catch (error) {
+    // Rollback transaction if error
     if (connection) {
       await connection.rollback();
       connection.release();
     }
-    console.error("Registration error:", error);
+    console.error('Registration error:', error);
     res
       .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+      .json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
+// User login
 const login = async (req, res) => {
   try {
+    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
+        message: 'Validation failed',
         errors: errors.array(),
       });
     }
+    
+    // Get email and password
     const { email, password } = req.body;
-    console.log("Login attempt for email:", email);
+    console.log('Login attempt for email:', email);
 
+    // Query user by email
     const [users] = await pool.query(
       `
       SELECT 
@@ -153,57 +198,69 @@ const login = async (req, res) => {
       `,
       [email],
     );
-    console.log("User query result:", users.length);
+    console.log('User query result:', users.length);
 
+    // Check if user exists
     if (users.length === 0) {
       return res
         .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+        .json({ success: false, message: 'Invalid email or password' });
     }
+    
     const user = users[0];
+    
+    // Check if account is active
     if (!user.is_active) {
       return res
         .status(403)
-        .json({ success: false, message: "Account disabled" });
+        .json({ success: false, message: 'Account disabled' });
     }
 
-    console.log("Comparing password...");
+    // Compare password with hash
+    console.log('Comparing password...');
     const isMatch = await bcrypt.compare(password, user.password_hash);
-    console.log("Password match:", isMatch);
+    console.log('Password match:', isMatch);
 
     if (!isMatch) {
       return res
         .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+        .json({ success: false, message: 'Invalid email or password' });
     }
 
-    await pool.query("UPDATE users SET last_login = NOW() WHERE id = ?", [
+    // Update last login time
+    await pool.query('UPDATE users SET last_login = NOW() WHERE id = ?', [
       user.id,
     ]);
+    
+    // Generate token
     const token = generateToken(user);
+    
+    // Return user data without password
     const { password_hash, ...userWithoutPassword } = user;
     res.json({
       success: true,
-      message: "Login successful",
+      message: 'Login successful',
       data: { token, user: userWithoutPassword },
     });
   } catch (error) {
-    console.error("Login error details:", error);
+    console.error('Login error details:', error);
     res
       .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+      .json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
+// Get logged-in user's profile
 const getProfile = async (req, res) => {
   try {
     res.json({ success: true, data: { user: req.user } });
   } catch (error) {
-    console.error("Profile error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error('Profile error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
+// Export all functions and validation rules
 module.exports = {
   register,
   registerValidation,

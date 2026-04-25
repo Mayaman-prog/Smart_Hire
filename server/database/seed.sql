@@ -54,7 +54,7 @@ INSERT INTO users (name, email, password_hash, role, is_active) VALUES
 ('Jane Applicant', 'jane@example.com', '$2a$10$rQKJqQxKJqQxKJqQxKJqQu', 'job_seeker', TRUE),
 ('TechCorp HR', 'hr@techcorp.com', '$2a$10$rQKJqQxKJqQxKJqQxKJqQu', 'employer', TRUE),
 ('DataWorks Recruiter', 'careers@dataworks.com', '$2a$10$rQKJqQxKJqQxKJqQxKJqQu', 'employer', TRUE),
-('Admin User', 'admin@smarthire.com', '$2a$10$rQKJqQxKJqQxKJqQxKJqQu', 'admin', TRUE);
+('Admin User', 'admin@smarthire.com', '$2b$10$kISi1QW8X9RNqQtXWYSuqOTCNGPxbcu1XK6LkRdpU6hu1eo2wzgka', 'admin', TRUE);
 
 -- Update employers with company_id
 UPDATE users SET company_id = 1 WHERE email = 'hr@techcorp.com';

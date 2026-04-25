@@ -1,53 +1,59 @@
-const { pool } = require("../config/database");
+// Import database connection
+const { pool } = require('../config/database');
+// Import email service
+const { sendEmail } = require('../config/email');
 
-// @desc    Apply for a job
-// @route   POST /api/applications/apply
+// Apply for a job
 const applyForJob = async (req, res) => {
   try {
     const { user } = req;
     const { jobId, cover_letter } = req.body;
-    if (user.role !== "job_seeker") {
+    
+    // Check if user is a job seeker
+    if (user.role !== 'job_seeker') {
       return res
         .status(403)
-        .json({ success: false, message: "Only job seekers can apply" });
+        .json({ success: false, message: 'Only job seekers can apply' });
     }
 
-    // Check if already applied
+    // Check if already applied to this job
     const [existing] = await pool.query(
-      "SELECT id FROM applications WHERE job_id = ? AND user_id = ?",
+      'SELECT id FROM applications WHERE job_id = ? AND user_id = ?',
       [jobId, user.id],
     );
     if (existing.length > 0) {
       return res.status(409).json({
         success: false,
-        message: "You have already applied to this job",
+        message: 'You have already applied to this job',
       });
     }
 
+    // Insert new application with pending status
     await pool.query(
-      "INSERT INTO applications (job_id, user_id, cover_letter, status, applied_at) VALUES (?, ?, ?, ?, NOW())",
-      [jobId, user.id, cover_letter || "", "pending"],
+      'INSERT INTO applications (job_id, user_id, cover_letter, status, applied_at) VALUES (?, ?, ?, ?, NOW())',
+      [jobId, user.id, cover_letter || '', 'pending'],
     );
 
     res
       .status(201)
-      .json({ success: true, message: "Application submitted successfully" });
+      .json({ success: true, message: 'Application submitted successfully' });
   } catch (error) {
-    console.error("Apply error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error('Apply error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
-// @desc Get applications for logged in job seeker
-// @route GET /api/applications/my
-// @access Private (job seeker)
+// Get all applications for the logged-in job seeker
 const getMyApplications = async (req, res) => {
   try {
     const { user } = req;
-    if (user.role !== "job_seeker") {
-      return res.status(403).json({ success: false, message: "Access denied" });
+    
+    // Only job seekers can view their own applications
+    if (user.role !== 'job_seeker') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
+    // Fetch applications with job and company details
     const [applications] = await pool.query(
       `
       SELECT 
@@ -65,27 +71,27 @@ const getMyApplications = async (req, res) => {
 
     res.json({ success: true, data: applications });
   } catch (error) {
-    console.error("getMyApplications error:", error);
+    console.error('getMyApplications error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc Get applications for employer's jobs
-// @route GET /api/applications/employer
-// @access Private (employer)
+// Get applications for employer's job postings
 const getEmployerApplications = async (req, res) => {
   try {
     const { user } = req;
 
-    if (user.role !== "employer") {
+    // Check if user is an employer
+    if (user.role !== 'employer') {
       return res.status(403).json({
         success: false,
-        message: "Only employers can view these applications",
+        message: 'Only employers can view these applications',
       });
     }
 
     const companyId = user.company_id;
 
+    // Get all applications for this company's jobs
     const [applications] = await pool.query(
       `
       SELECT 
@@ -111,39 +117,40 @@ const getEmployerApplications = async (req, res) => {
       data: applications,
     });
   } catch (error) {
-    console.error("Get employer applications error:", error);
+    console.error('Get employer applications error:', error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch applications",
+      message: 'Failed to fetch applications',
       error: error.message,
     });
   }
 };
 
-// @desc Update application status (employer only)
-// @route PUT /api/applications/:id/status
-// @access Private (employer)
+// Update application status by employer
 const updateApplicationStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
     const { user } = req;
 
+    // List of allowed statuses
     const allowedStatuses = [
-      "pending",
-      "reviewed",
-      "shortlisted",
-      "rejected",
-      "hired",
+      'pending',
+      'reviewed',
+      'shortlisted',
+      'rejected',
+      'hired',
     ];
 
+    // Validate status
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid application status",
+        message: 'Invalid application status',
       });
     }
 
+    // Check if application exists and verify employer owns it
     const [apps] = await pool.query(
       `
       SELECT a.id, j.company_id FROM applications a
@@ -155,54 +162,95 @@ const updateApplicationStatus = async (req, res) => {
     if (apps.length === 0)
       return res
         .status(404)
-        .json({ success: false, message: "Application not found" });
-    if (apps[0].company_id !== user.company_id && user.role !== "admin") {
+        .json({ success: false, message: 'Application not found' });
+    if (apps[0].company_id !== user.company_id && user.role !== 'admin') {
       return res
         .status(403)
-        .json({ success: false, message: "Not authorized" });
+        .json({ success: false, message: 'Not authorized' });
     }
-    await pool.query("UPDATE applications SET status = ? WHERE id = ?", [
+
+    // Update the status
+    await pool.query('UPDATE applications SET status = ? WHERE id = ?', [
       status,
       id,
     ]);
-    res.json({ success: true, message: "Status updated" });
+
+    // Send email notification to the job seeker (non‑blocking)
+    try {
+      // Get applicant email and job title
+      const [application] = await pool.query(
+        `
+        SELECT a.user_id, j.title as job_title
+        FROM applications a
+        JOIN jobs j ON a.job_id = j.id
+        WHERE a.id = ?
+        `,
+        [id],
+      );
+
+      if (application.length > 0) {
+        // Fetch user email
+        const [userRow] = await pool.query(
+          'SELECT email FROM users WHERE id = ?',
+          [application[0].user_id],
+        );
+
+        if (userRow.length > 0) {
+          const subject = `Application Status Update: ${application[0].job_title}`;
+          const html = `<p>Your application for <strong>${application[0].job_title}</strong> has been ${status}.</p><p>Log in to your dashboard for more details.</p>`;
+          const text = `Your application for ${application[0].job_title} has been ${status}.`;
+          // Send email in background
+          sendEmail(userRow[0].email, subject, html, text).catch(err =>
+            console.error('Failed to send status email:', err)
+          );
+        }
+      }
+    } catch (emailError) {
+      console.error('Error sending status email:', emailError.message);
+    }
+
+    res.json({ success: true, message: 'Status updated' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
-// @desc Withdraw application (job seeker only)
-// @route DELETE /api/applications/:id
-// @access Private (job seeker)
+// Withdraw application by job seeker
 const withdrawApplication = async (req, res) => {
   try {
     const { id } = req.params;
     const { user } = req;
+    
+    // Find the application
     const [apps] = await pool.query(
-      "SELECT user_id FROM applications WHERE id = ?",
+      'SELECT user_id FROM applications WHERE id = ?',
       [id],
     );
 
     if (apps.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "Application not found" });
+        .json({ success: false, message: 'Application not found' });
     }
 
-    if (apps[0].user_id !== user.id && user.role !== "admin") {
+    // Check if user owns the application
+    if (apps[0].user_id !== user.id && user.role !== 'admin') {
       return res
         .status(403)
-        .json({ success: false, message: "Not authorized" });
+        .json({ success: false, message: 'Not authorized' });
     }
-    await pool.query("DELETE FROM applications WHERE id = ?", [id]);
-    res.json({ success: true, message: "Application withdrawn" });
+    
+    // Delete the application
+    await pool.query('DELETE FROM applications WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Application withdrawn' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
+// Export all controller functions
 module.exports = {
   applyForJob,
   getMyApplications,

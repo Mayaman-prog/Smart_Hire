@@ -1,7 +1,6 @@
-const express = require("express");
-const router = express.Router();
-
-// Controllers and middleware
+const express = require('express');
+const { protect } = require('../middleware/authMiddleware');
+const { getAdminStats } = require('../controllers/adminController');
 const {
   getAllUsers,
   banUser,
@@ -14,30 +13,37 @@ const {
   featureJob,
   unfeatureJob,
   deleteJob,
-  toggleUserStatus,
-  getAdminStatsOverview,
 } = require('../controllers/adminController');
 
-// All routes in this file are protected and require admin role
-const { protect, roleCheck } = require("../middleware/authMiddleware");
+const router = express.Router();
 
-// Apply authentication and role-based access control middleware to all admin routes
+// All admin routes require authentication and admin role
 router.use(protect);
-router.use(roleCheck("admin"));
+router.use((req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Admin access required' });
+  }
+  next();
+});
 
-// Admin stats overview route
-router.get("/stats/overview", getAdminStatsOverview);
-router.patch('/users/:id/toggle', toggleUserStatus);
+// Users
+router.get('/users', getAllUsers);
+router.put('/users/:id/ban', banUser);
+router.put('/users/:id/unban', unbanUser);
+router.delete('/users/:id', deleteUser);
 
-// User management routes
-router.get("/users", getAllUsers);
-router.patch("/users/:id/toggle", toggleUserStatus);
+// Companies
+router.get('/companies', getAllCompanies);
+router.put('/companies/:id/verify', verifyCompany);
+router.delete('/companies/:id', deleteCompany);
 
-// Job management routes
-router.get("/jobs", getAllJobsAdmin);
-router.delete("/jobs/:id", deleteJobAdmin);
+// Jobs
+router.get('/jobs', getAllJobs);
+router.put('/jobs/:id/feature', featureJob);
+router.put('/jobs/:id/unfeature', unfeatureJob);
+router.delete('/jobs/:id', deleteJob);
 
-// Company management route
-router.get("/companies", getAllCompanies);
+// Stats
+router.get('/stats/overview', getAdminStats);
 
 module.exports = router;

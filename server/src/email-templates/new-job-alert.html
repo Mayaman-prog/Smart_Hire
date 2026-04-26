@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Job Alert</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #f4f7fc; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    .container { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+    .header { background: #10b981; padding: 24px 20px; text-align: center; }
+    .header h1 { color: white; font-size: 24px; font-weight: 700; margin: 0; }
+    .content { padding: 32px 28px; }
+    .job-box { background: #f8fafc; padding: 20px; border-radius: 12px; margin: 20px 0; }
+    .job-box h3 { margin: 0 0 8px; }
+    .job-box p { margin: 4px 0; font-size: 14px; color: #475569; }
+    .button { display: inline-block; background: #10b981; color: white !important; text-decoration: none; padding: 12px 28px; border-radius: 40px; font-weight: 600; margin: 20px 0 10px; }
+    .footer { text-align: center; padding: 20px; background: #f8fafc; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header"><h1>✨ New Job Alert ✨</h1></div>
+    <div class="content">
+      <p>Hi <strong>{{user_name}}</strong>,</p>
+      <p>A new job matching your saved search "<strong>{{saved_search_name}}</strong>" has been posted.</p>
+      <div class="job-box">
+        <h3>{{job_title}}</h3>
+        <p><strong>{{company_name}}</strong> · {{job_location}} · {{job_type}}</p>
+        <p>💰 {{salary_range}}</p>
+        <p>{{job_summary}}</p>
+      </div>
+      <p style="text-align: center;"><a href="{{job_url}}" class="button">View & Apply</a></p>
+      <p><a href="{{manage_alerts_url}}">Manage your job alerts</a></p>
+    </div>
+    <div class="footer"><p>SmartHire – Intelligent job matching</p></div>
+  </div>
+</body>
+</html>

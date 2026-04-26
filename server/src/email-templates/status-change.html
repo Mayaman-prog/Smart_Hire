@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application Status Updated</title>
+</head>
+
+<body style="margin:0; padding:0; background:#f4f7fc; font-family:Segoe UI, Arial, sans-serif;">
+
+  <div style="max-width:600px; margin:30px auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.08);">
+
+    <!-- HEADER -->
+    <div style="background:#2563eb; padding:22px; text-align:center;">
+      <h1 style="color:#ffffff; margin:0; font-size:22px;">
+        Application Status Update
+      </h1>
+    </div>
+
+    <!-- CONTENT -->
+    <div style="padding:28px; color:#334155;">
+
+      <p style="font-size:16px;">
+        Dear <strong>{{user_name}}</strong>,
+      </p>
+
+      <p style="font-size:15px; line-height:1.6;">
+        Your application for <strong>{{job_title}}</strong> at
+        <strong>{{company_name}}</strong> has been updated.
+      </p>
+
+      <!-- STATUS BOX -->
+      <div style="margin:25px 0; padding:20px; text-align:center; border-radius:10px; background:#f8fafc; border-left:6px solid {{status_color}};">
+
+        <div style="font-size:14px; color:#64748b; margin-bottom:8px;">
+          Current Status
+        </div>
+
+        <div style="font-size:20px; font-weight:700; color:{{status_color}}; letter-spacing:1px;">
+          {{new_status}}
+        </div>
+
+      </div>
+
+      <!-- MESSAGE -->
+      <p style="font-size:15px; color:#475569;">
+        {{status_message}}
+      </p>
+
+      <!-- BUTTON -->
+      <div style="text-align:center; margin-top:25px;">
+        <a href="{{dashboard_url}}"
+           style="display:inline-block; background:#2563eb; color:#ffffff; padding:12px 26px; text-decoration:none; border-radius:30px; font-weight:600;">
+          View Application
+        </a>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div style="text-align:center; padding:18px; font-size:12px; color:#94a3b8; background:#f8fafc;">
+      SmartHire - Intelligent Job Matching Platform
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -13,6 +13,7 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
   - [Server Setup](#server-setup)
   - [Database Setup](#database-setup)
   - [Email Service Setup](#email-service-setup)
+  - [Email Templates](#email-templates)
 - [Environment Variables](#environment-variables)
 - [API Endpoints](#api-endpoints)
   - [Authentication Routes](#authentication-routes)
@@ -102,6 +103,31 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Graceful error handling – email failures do not break the flow of registration or status updates.
 - Test script to verify SMTP configuration (`server/scripts/test-email.js`).
 - Uses **Resend** (or any SMTP provider) – high deliverability and free tier (3,000 emails/month).
+
+#### Email Templates
+Five responsive HTML email templates are used for different notifications. All templates are stored in `server/src/email-templates/`. Each template uses inline CSS for email client compatibility, includes a plain‑text fallback, and contains a clear call‑to‑action button.
+
+| Template File                   | Purpose                                                       | Key Placeholders                                                                                                                                                                                 | CTA Button           |
+| ------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
+| `application-confirmation.html` | Sent to job seeker after applying                             | `{{user_name}}`, `{{job_title}}`, `{{company_name}}`, `{{job_location}}`, `{{job_type}}`, `{{salary_range}}`, `{{dashboard_url}}`                                                                | View My Applications |
+| `status-change.html`            | Sent to job seeker when application status changes            | `{{user_name}}`, `{{job_title}}`, `{{company_name}}`, `{{new_status}}`, `{{status_color}}`, `{{status_message}}`, `{{dashboard_url}}`                                                            | View Details         |
+| `new-job-alert.html`            | Sent to job seekers when a new job matches their saved search | `{{user_name}}`, `{{saved_search_name}}`, `{{job_title}}`, `{{company_name}}`, `{{job_location}}`, `{{job_type}}`, `{{salary_range}}`, `{{job_summary}}`, `{{job_url}}`, `{{manage_alerts_url}}` | View & Apply         |
+| `new-applicant.html`            | Sent to employer when a job seeker applies                    | `{{company_name}}`, `{{job_title}}`, `{{applicant_name}}`, `{{applicant_email}}`, `{{applied_date}}`, `{{cover_letter_preview}}`, `{{applicants_url}}`                                           | Review Applicant     |
+| `account-verification.html`     | Sent to new users for email confirmation (future feature)     | `{{user_name}}`, `{{verification_url}}`                                                                                                                                                          | Verify Email Address |
+
+
+**Email Integration Flow:**
+
+| Trigger                                | Template Called                                | Recipient            |
+| -------------------------------------- | ---------------------------------------------- | -------------------- |
+| User registers                         | `account-verification.html` (or welcome email) | New user             |
+| Job seeker applies to a job            | `application-confirmation.html`                | Job seeker           |
+| Job seeker applies to a job            | `new-applicant.html`                           | Employer             |
+| Employer updates application status    | `status-change.html`                           | Job seeker           |
+| New job posted (matching saved search) | `new-job-alert.html`                           | Matching job seekers |
+
+
+All emails are sent asynchronously; failures are logged but do not break the main functionality.
 
 ### Component Features
 
@@ -549,6 +575,12 @@ SmartHire/
 │   │   │   ├── notificationController.js
 │   │   │   ├── savedJobsController.js
 │   │   │   └── userController.js
+│   │   ├── email-templates/
+│   │   │   ├── account-verification.html
+│   │   │   ├── application-confirmation.html
+│   │   │   ├── new-applicant.html
+│   │   │   ├── new-job-alert.html
+│   │   │   ├── status-change.html
 │   │   ├── middleware/
 │   │   │   ├── authMiddleware.js
 │   │   │   └── rateLimiter.js
@@ -645,7 +677,7 @@ SMTP_PASS=re_YourApiKeyHere
 EMAIL_FROM=onboarding@resend.dev
 ADMIN_EMAIL=your-email@example.com   # for test script
 
-- You can use any SMTP provider (e.g., Gmail, SendGrid, Brevo). For development, Ethereal (fake SMTP) is recommended.
+- You can use any SMTP provider (e.g., Gmail, SendGrid, Brevo). For development, Ethereal (fake SMTP) or Resend is recommended.
 
 ### Test Email Service
 
@@ -656,6 +688,20 @@ After configuring .env, run:
 - If successful, you will see (Test email sent successfully.) and the email will be delivered (or captured in Ethereal/Mailtrap).
 
 - Email sending is integrated into the registration and application status update flows. Failure to send an email does not break the main operation – errors are logged only.
+
+## Email Templates
+
+Five responsive HTML email templates are used for different notifications. ALl templates are stored in `server/src/email-templates/`.
+
+| Template                        | Trigger                              | Recipient  |
+| ------------------------------- | ------------------------------------ | ---------- |
+| `application-confirmation.html` | Job seeker applies to job            | Job seeker |
+| `status-change.html`            | Employer updates application status  | Job seeker |
+| `new-job-alert.html`            | New job posted matching saved search | Job seeker |
+| `new-applicant.html`            | Job seeker applies to job            | Employer   |
+| `account-verification.html`     | User registers (future)              | New user   |
+
+Each template uses inline CSS, is responsive, includes a plain‑text fallback, and contains a clear call‑to‑action button.
 
 ## Environment Variables
 
@@ -1545,6 +1591,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Complete Employer Dashboard with overview, job creation, edit/delete, activate/deactivate, and applicant management using live backend APIs
 - Complete Admin Dashboard with users, jobs, companies, filters, pagination, and analytics charts using live backend APIs
 - Email service integration – automated welcome emails and application status updates using Nodemailer + Resend
+- Five fully responsive HTML email templates (application confirmation, status change, new job alert, new applicant, account verification)
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data

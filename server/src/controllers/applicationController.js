@@ -2,6 +2,7 @@
 const { pool } = require('../config/database');
 // Import email service
 const { sendEmail } = require('../config/email');
+const { sendTemplatedEmail } = require('../services/emailService');
 
 // Apply for a job
 const applyForJob = async (req, res) => {
@@ -33,6 +34,96 @@ const applyForJob = async (req, res) => {
       'INSERT INTO applications (job_id, user_id, cover_letter, status, applied_at) VALUES (?, ?, ?, ?, NOW())',
       [jobId, user.id, cover_letter || '', 'pending'],
     );
+
+    // Send notification to employer about new applicant (non-blocking)
+    try {
+      // Fetch job, company, and employer info
+      const [jobInfo] = await pool.query(
+        `
+        SELECT 
+          j.title,
+          j.company_id,
+          c.name AS company_name,
+          u.email AS employer_email
+        FROM jobs j
+        JOIN companies c ON j.company_id = c.id
+        JOIN users u ON c.id = u.company_id
+        WHERE j.id = ? AND u.role = 'employer'
+        LIMIT 1
+        `,
+        [jobId],
+      );
+
+      if (jobInfo.length > 0) {
+        const { title, company_name, employer_email } = jobInfo[0];
+        const replacements = {
+          company_name: company_name,
+          job_title: title,
+          applicant_name: user.name,
+          applicant_email: user.email,
+          applied_date: new Date().toLocaleDateString(),
+          cover_letter_preview: (cover_letter || '').substring(0, 100) + ((cover_letter?.length || 0) > 100 ? '…' : ''),
+          applicants_url: `${process.env.FRONTEND_URL}/dashboard/employer?tab=applicants&jobId=${jobId}`,
+        };
+        
+        // Send email in background – don't await
+        sendTemplatedEmail(
+          employer_email,
+          'new-applicant',
+          replacements,
+          `New applicant for ${title}`
+        ).catch(err => console.error('Failed to send new applicant notification:', err));
+      }
+    } catch (notifyError) {
+      console.error('Error sending applicant notification:', notifyError.message);
+    }
+
+    // Send confirmation email to the job seeker (non-blocking)
+    try {
+      // Fetch job and company details for the email template
+      const [jobDetails] = await pool.query(
+        `
+        SELECT 
+          j.title,
+          j.location,
+          j.job_type,
+          j.salary_min,
+          j.salary_max,
+          c.name AS company_name
+        FROM jobs j
+        JOIN companies c ON j.company_id = c.id
+        WHERE j.id = ?
+        `,
+        [jobId],
+      );
+
+      if (jobDetails.length > 0) {
+        const job = jobDetails[0];
+        const salaryRange = job.salary_min && job.salary_max
+          ? `$${job.salary_min} - $${job.salary_max}`
+          : 'Not specified';
+        
+        const replacements = {
+          user_name: user.name,
+          job_title: job.title,
+          company_name: job.company_name,
+          job_location: job.location,
+          job_type: job.job_type,
+          salary_range: salaryRange,
+          dashboard_url: `${process.env.FRONTEND_URL}/dashboard/seeker`,
+        };
+
+        // Send confirmation email in background – don't await
+        sendTemplatedEmail(
+          user.email,
+          'application-confirmation',
+          replacements,
+          'Application Received'
+        ).catch(err => console.error('Application confirmation email failed:', err));
+      }
+    } catch (confirmError) {
+      console.error('Error sending confirmation email:', confirmError.message);
+    }
 
     res
       .status(201)
@@ -175,35 +266,61 @@ const updateApplicationStatus = async (req, res) => {
       id,
     ]);
 
-    // Send email notification to the job seeker (non‑blocking)
+    // Send email notification to the job seeker using template (non‑blocking)
     try {
-      // Get applicant email and job title
+      // Get applicant details and job info
       const [application] = await pool.query(
         `
-        SELECT a.user_id, j.title as job_title
+        SELECT 
+          a.user_id, 
+          u.name as job_seeker_name,
+          u.email,
+          j.title as job_title,
+          c.name as company_name
         FROM applications a
         JOIN jobs j ON a.job_id = j.id
+        JOIN companies c ON j.company_id = c.id
+        JOIN users u ON a.user_id = u.id
         WHERE a.id = ?
         `,
         [id],
       );
 
       if (application.length > 0) {
-        // Fetch user email
-        const [userRow] = await pool.query(
-          'SELECT email FROM users WHERE id = ?',
-          [application[0].user_id],
-        );
+        // Map status to color and message
+        const statusColorMap = {
+          pending: '#f59e0b',
+          reviewed: '#3b82f6',
+          shortlisted: '#8b5cf6',
+          rejected: '#ef4444',
+          hired: '#10b981',
+        };
+        const statusMessageMap = {
+          pending: 'Your application is pending review.',
+          reviewed: 'Your application has been reviewed.',
+          shortlisted: 'Congratulations! You have been shortlisted.',
+          rejected: 'We regret to inform you that your application was not selected.',
+          hired: 'Welcome aboard! You have been hired.',
+        };
 
-        if (userRow.length > 0) {
-          const subject = `Application Status Update: ${application[0].job_title}`;
-          const html = `<p>Your application for <strong>${application[0].job_title}</strong> has been ${status}.</p><p>Log in to your dashboard for more details.</p>`;
-          const text = `Your application for ${application[0].job_title} has been ${status}.`;
-          // Send email in background
-          sendEmail(userRow[0].email, subject, html, text).catch(err =>
-            console.error('Failed to send status email:', err)
-          );
-        }
+        // Prepare email template replacements
+        const replacements = {
+          user_name: application[0].job_seeker_name,
+          job_title: application[0].job_title,
+          company_name: application[0].company_name,
+          new_status: status.toUpperCase(),
+          status_color: statusColorMap[status] || '#2563eb',
+          status_message: statusMessageMap[status] || 'Your application status has been updated.',
+          dashboard_url: `${process.env.FRONTEND_URL}/dashboard/seeker`,
+        };
+
+        // Send email in background using template
+        sendTemplatedEmail(
+          application[0].email,
+          'status-change',
+          replacements,
+          `Application Status: ${status}`
+        ).catch(err => console.error('Status email failed:', err));
       }
     } catch (emailError) {
       console.error('Error sending status email:', emailError.message);

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
 import { adminAPI } from "../../../services/api";
 import toast from "react-hot-toast";
 import {
@@ -18,8 +19,8 @@ import "./AdminDashboard.css";
 // Pagination size for tables
 const PAGE_SIZE = 6;
 
-// Helper to get last N months in "YYYY-MM" format for charting
 const AdminDashboard = () => {
+  const { logout } = useAuth(); // ✅ Get logout function
   const [activeTab, setActiveTab] = useState("overview");
 
   const [users, setUsers] = useState([]);
@@ -276,6 +277,17 @@ const AdminDashboard = () => {
           </nav>
 
           <div className="sidebar-footer">
+            <button
+              className="help-btn"
+              onClick={() => toast.info("Help & Support coming soon")}
+            >
+              <span className="material-symbols-outlined">help</span>
+              Help
+            </button>
+            <button className="logout-btn" onClick={logout}>
+              <span className="material-symbols-outlined">logout</span>
+              Logout
+            </button>
             <div className="copyright">SmartHire Admin</div>
             <div className="footer-links">
               <span>Users</span>
@@ -634,8 +646,8 @@ const AdminDashboard = () => {
                   onChange={(e) => setJobTypeFilter(e.target.value)}
                 >
                   <option value="all">All job types</option>
-                  <option value="full-time">Full-time</option>
-                  <option value="part-time">Part-time</option>
+                  <option value="full-time">Full‑time</option>
+                  <option value="part-time">Part‑time</option>
                   <option value="remote">Remote</option>
                   <option value="contract">Contract</option>
                   <option value="internship">Internship</option>

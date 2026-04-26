@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const { pool } = require('../config/database');
 const generateToken = require('../utils/generateToken');
 const { sendEmail } = require('../config/email');
+const { sendTemplatedEmail } = require('../services/emailService');
 
 // Validation rules for registration
 const registerValidation = [
@@ -130,18 +131,15 @@ const register = async (req, res) => {
       [userId],
     );
 
-    // Send welcome email in the background (don't wait)
-    const welcomeHtml = `
-      <h2>Welcome to SmartHire, ${name}!</h2>
-      <p>Thank you for joining SmartHire. Start your job search today.</p>
-      <p><a href="${process.env.FRONTEND_URL}/jobs">Browse Jobs</a> | <a href="${process.env.FRONTEND_URL}/dashboard">Go to Dashboard</a></p>
-      <p>If you have any questions, feel free to contact our support team.</p>
-    `;
-    const welcomeText = `Welcome to SmartHire, ${name}! Thank you for joining. Start your job search today.`;
-
-    sendEmail(email, 'Welcome to SmartHire!', welcomeHtml, welcomeText).catch(err =>
-      console.error('Failed to send welcome email:', err)
-    );
+    // Send welcome email using template (in the background)
+    const replacements = {
+      user_name: name,
+      dashboard_url: `${process.env.FRONTEND_URL}/dashboard`,
+      jobs_url: `${process.env.FRONTEND_URL}/jobs`,
+    };
+    const subject = 'Welcome to SmartHire!';
+    sendTemplatedEmail(email, 'account-verification', replacements, subject)
+      .catch(err => console.error('Welcome email failed:', err));
 
     // Generate token and return response
     const token = generateToken(newUser[0]);

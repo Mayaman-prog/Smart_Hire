@@ -525,7 +525,7 @@
   cursor: pointer;
 }
 
-/* FIX: Make all buttons always visible */
+/* Ensure all action buttons are always visible */
 .withdraw-btn,
 .remove-btn,
 .apply-btn {
@@ -605,6 +605,281 @@
   color: var(--gray-color);
 }
 
+/* Force all action buttons to always be visible */
+.job-actions .apply-btn,
+.job-actions .remove-btn,
+.saved-job-card .apply-btn,
+.saved-job-card .remove-btn,
+.application-card .withdraw-btn {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure the Remove button has a background color */
+.remove-btn {
+  background: var(--danger-color) !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+
+/* Ensure Apply button has correct styles */
+.apply-btn {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  flex: 1;
+}
+
+/* Saved Searches Tab */
+.saved-searches-container {
+  padding: 0 10px;
+}
+
+.saved-searches-container .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.new-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.new-search-btn:hover {
+  background: var(--primary-dark);
+}
+
+.search-form-card {
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.search-form-card h4 {
+  margin: 0 0 16px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-grid .form-group label {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--dark-color);
+}
+
+.form-grid .form-group input,
+.form-grid .form-group select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.form-grid .form-group input:focus,
+.form-grid .form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.form-actions button {
+  padding: 8px 24px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+}
+
+.form-actions button[type="submit"] {
+  background: var(--primary-color);
+  color: white;
+}
+
+.form-actions button[type="submit"]:hover {
+  background: var(--primary-dark);
+}
+
+.form-actions button[type="button"] {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--gray-color);
+}
+
+.form-actions button[type="button"]:hover {
+  background: var(--light-gray);
+}
+
+.search-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-card {
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: box-shadow 0.15s;
+}
+
+.search-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.search-info h3 {
+  margin: 0 0 6px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+.search-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+.search-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tag {
+  background: var(--light-gray);
+  color: var(--dark-color);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.alert-badge {
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #d1fae5;
+  color: #059669;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.inactive {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.search-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.search-actions button {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.search-actions button:first-child {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.search-actions button:first-child:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.search-actions button:last-child {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+.search-actions button:last-child:hover {
+  background: var(--danger-color);
+  color: white;
+}
+
+.empty-message {
+  color: var(--gray-color);
+  font-size: 0.9rem;
+  margin-top: 16px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .dashboard-container {
@@ -642,42 +917,20 @@
   .time {
     align-self: flex-end;
   }
-}
 
-/* Force all action buttons to always be visible */
-.job-actions .apply-btn,
-.job-actions .remove-btn,
-.saved-job-card .apply-btn,
-.saved-job-card .remove-btn,
-.application-card .withdraw-btn {
-  opacity: 1 !important;
-  visibility: visible !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-}
+  /* Saved Searches mobile */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 
-/* Ensure the Remove button has a background color */
-.remove-btn {
-  background: var(--danger-color) !important;
-  color: white !important;
-  border: none !important;
-  padding: 8px 16px !important;
-  border-radius: var(--radius-md) !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-}
+  .search-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-/* Ensure Apply button has correct styles */
-.apply-btn {
-  background: var(--primary-color) !important;
-  color: white !important;
-  border: none !important;
-  padding: 8px 16px !important;
-  border-radius: var(--radius-md) !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  flex: 1;
+  .search-actions {
+    margin-top: 12px;
+    width: 100%;
+    justify-content: flex-end;
+  }
 }

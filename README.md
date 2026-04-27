@@ -1,6 +1,12 @@
 # Smart_Hire - Smart Job Portal System
 
-SmartHire is a modern full-stack job portal web application connecting job seekers, employers, and administrators. It is designed to be scalable, SEO-friendly, and production-ready.
+![GitHub repo size](https://img.shields.io/github/repo-size/Mayaman-prog/Smart_Hire)
+![GitHub stars](https://img.shields.io/github/stars/Mayaman-prog/Smart_Hire?style=social)
+![GitHub forks](https://img.shields.io/github/forks/Mayaman-prog/Smart_Hire?style=social)
+![GitHub issues](https://img.shields.io/github/issues/Mayaman-prog/Smart_Hire)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+SmartHire is a full-stack job portal web application connecting job seekers, employers, and administrators. It is designed to be scalable, SEO-friendly, and production-ready.
 
 ## Table of Contents
 - [Project Overview](#project-overview)
@@ -1286,13 +1292,13 @@ client/src/pages/RegisterPage/
 └── RegisterPage.css
 
 **Form Validation:**
-| Field            | Validation Rules                                                          | Error Message                                                       |
-| ---------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Field            | Validation Rules                                                          | Error Message                                                                                                                      |
+| ---------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Full Name        | Required, min 2 chars, letters/spaces/hyphens/apostrophes only            | "Full name is required" / "Name must be at least 2 characters" / "Name can only contain letters, spaces, hyphens, and apostrophes" |
-| Email            | Required, valid email format                                              | "Email is required" / "Invalid email address"                       |
-| Password         | Required, min 6 chars, at least 1 number                                  | "Password is required" / "Password must be at least 6 characters" / "Password must contain at least one number" |
-| Confirm Password | Required, must match password                                             | "Please confirm your password" / "Passwords do not match"           |
-| Company Name     | Required only if role = employer                                          | "Company name is required for employers"                            |
+| Email            | Required, valid email format                                              | "Email is required" / "Invalid email address"                                                                                      |
+| Password         | Required, min 6 chars, at least 1 number                                  | "Password is required" / "Password must be at least 6 characters" / "Password must contain at least one number"                    |
+| Confirm Password | Required, must match password                                             | "Please confirm your password" / "Passwords do not match"                                                                          |
+| Company Name     | Required only if role = employer                                          | "Company name is required for employers"                                                                                           |
 
 **Conditional Logic:**
 - Company Name field appears only when Employer role is selected
@@ -1529,12 +1535,13 @@ client/src/pages/NotFoundPage/
 ###  Database Schema
 #### Tables Created
 | Table                      | Description                                   | Records |
-| -------------------------- | --------------------------------------------- | ------- |
+|---------------------------|-----------------------------------------------|---------|
 | **companies**              | Company profiles                              | 3       |
 | **users**                  | User accounts (job seekers, employers, admin) | 5       |
 | **jobs**                   | Job postings                                  | 5       |
 | **applications**           | Job applications                              | 5       |
 | **saved_jobs**             | Jobs saved by users                           | 3       |
+| **saved_searches**         | Saved job search criteria with alerts         | 3       |
 | **notifications**          | User notifications                            | 3       |
 | **job_categories**         | Job categories                                | 8       |
 | **job_types**              | Job types                                     | 6       |
@@ -1546,6 +1553,7 @@ client/src/pages/NotFoundPage/
 | **shortlisted_candidates** | Shortlisted candidates                        | 2       |
 | **activity_logs**          | System activity tracking                      | 4       |
 | **contact_messages**       | Contact form submissions                      | 2       |
+
 
 ## Troubleshooting
 

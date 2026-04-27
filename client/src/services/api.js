@@ -410,6 +410,13 @@ export const savedJobsAPI = {
   removeSavedJob: (jobId) => api.delete(`/saved-jobs/${jobId}`),
 };
 
+export const savedSearchAPI = {
+  getSavedSearches: () => api.get("/saved-searches"),
+  createSavedSearch: (data) => api.post("/saved-searches", data),
+  updateSavedSearch: (id, data) => api.put(`/saved-searches/${id}`, data),
+  deleteSavedSearch: (id) => api.delete(`/saved-searches/${id}`),
+};
+
 export const userAPI = {
   updateProfile: (data) => api.put("/users/profile", data),
   uploadResume: (formData) =>

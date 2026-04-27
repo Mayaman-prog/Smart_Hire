@@ -297,5 +297,22 @@ CREATE TABLE IF NOT EXISTS statistics (
     total_messages INT DEFAULT 0,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 22. EMAIL LOGS TABLE
+CREATE TABLE email_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  job_id VARCHAR(36) NOT NULL,
+  recipient VARCHAR(255) NOT NULL,
+  subject VARCHAR(255),
+  template VARCHAR(100),
+  status ENUM('queued','processing','sent','failed') DEFAULT 'queued',
+  error_message TEXT,
+  attempts INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_job_id (job_id),
+  INDEX idx_status (status)
+);
+
 SELECT 'Database schema created successfully' AS Status;
 SELECT COUNT(*) AS total_tables FROM information_schema.tables WHERE table_schema = 'smart_hire';

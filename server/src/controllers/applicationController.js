@@ -1,38 +1,37 @@
 // Import database connection
-const { pool } = require('../config/database');
-// Import email service
-const { sendEmail } = require('../config/email');
-const { sendTemplatedEmail } = require('../services/emailService');
+const { pool } = require("../config/database");
+// Import email sending utility
+const { addEmailJob } = require("../queues/emailQueue");
 
 // Apply for a job
 const applyForJob = async (req, res) => {
   try {
     const { user } = req;
     const { jobId, cover_letter } = req.body;
-    
+
     // Check if user is a job seeker
-    if (user.role !== 'job_seeker') {
+    if (user.role !== "job_seeker") {
       return res
         .status(403)
-        .json({ success: false, message: 'Only job seekers can apply' });
+        .json({ success: false, message: "Only job seekers can apply" });
     }
 
     // Check if already applied to this job
     const [existing] = await pool.query(
-      'SELECT id FROM applications WHERE job_id = ? AND user_id = ?',
+      "SELECT id FROM applications WHERE job_id = ? AND user_id = ?",
       [jobId, user.id],
     );
     if (existing.length > 0) {
       return res.status(409).json({
         success: false,
-        message: 'You have already applied to this job',
+        message: "You have already applied to this job",
       });
     }
 
     // Insert new application with pending status
     await pool.query(
-      'INSERT INTO applications (job_id, user_id, cover_letter, status, applied_at) VALUES (?, ?, ?, ?, NOW())',
-      [jobId, user.id, cover_letter || '', 'pending'],
+      "INSERT INTO applications (job_id, user_id, cover_letter, status, applied_at) VALUES (?, ?, ?, ?, NOW())",
+      [jobId, user.id, cover_letter || "", "pending"],
     );
 
     // Send notification to employer about new applicant (non-blocking)
@@ -62,20 +61,25 @@ const applyForJob = async (req, res) => {
           applicant_name: user.name,
           applicant_email: user.email,
           applied_date: new Date().toLocaleDateString(),
-          cover_letter_preview: (cover_letter || '').substring(0, 100) + ((cover_letter?.length || 0) > 100 ? '…' : ''),
+          cover_letter_preview:
+            (cover_letter || "").substring(0, 100) +
+            ((cover_letter?.length || 0) > 100 ? "…" : ""),
           applicants_url: `${process.env.FRONTEND_URL}/dashboard/employer?tab=applicants&jobId=${jobId}`,
         };
-        
-        // Send email in background – don't await
-        sendTemplatedEmail(
-          employer_email,
-          'new-applicant',
-          replacements,
-          `New applicant for ${title}`
-        ).catch(err => console.error('Failed to send new applicant notification:', err));
+
+        // Send email in background using template
+        addEmailJob({
+          to: employer_email,
+          subject: `New applicant for ${title}`,
+          template: "new-applicant",
+          templateData: replacements,
+        });
       }
     } catch (notifyError) {
-      console.error('Error sending applicant notification:', notifyError.message);
+      console.error(
+        "Error sending applicant notification:",
+        notifyError.message,
+      );
     }
 
     // Send confirmation email to the job seeker (non-blocking)
@@ -99,10 +103,11 @@ const applyForJob = async (req, res) => {
 
       if (jobDetails.length > 0) {
         const job = jobDetails[0];
-        const salaryRange = job.salary_min && job.salary_max
-          ? `$${job.salary_min} - $${job.salary_max}`
-          : 'Not specified';
-        
+        const salaryRange =
+          job.salary_min && job.salary_max
+            ? `$${job.salary_min} - $${job.salary_max}`
+            : "Not specified";
+
         const replacements = {
           user_name: user.name,
           job_title: job.title,
@@ -113,24 +118,24 @@ const applyForJob = async (req, res) => {
           dashboard_url: `${process.env.FRONTEND_URL}/dashboard/seeker`,
         };
 
-        // Send confirmation email in background – don't await
-        sendTemplatedEmail(
-          user.email,
-          'application-confirmation',
-          replacements,
-          'Application Received'
-        ).catch(err => console.error('Application confirmation email failed:', err));
+        // Send email in background using template
+        addEmailJob({
+          to: user.email,
+          subject: "Application Received",
+          template: "application-confirmation",
+          templateData: replacements,
+        });
       }
     } catch (confirmError) {
-      console.error('Error sending confirmation email:', confirmError.message);
+      console.error("Error sending confirmation email:", confirmError.message);
     }
 
     res
       .status(201)
-      .json({ success: true, message: 'Application submitted successfully' });
+      .json({ success: true, message: "Application submitted successfully" });
   } catch (error) {
-    console.error('Apply error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Apply error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -138,10 +143,10 @@ const applyForJob = async (req, res) => {
 const getMyApplications = async (req, res) => {
   try {
     const { user } = req;
-    
+
     // Only job seekers can view their own applications
-    if (user.role !== 'job_seeker') {
-      return res.status(403).json({ success: false, message: 'Access denied' });
+    if (user.role !== "job_seeker") {
+      return res.status(403).json({ success: false, message: "Access denied" });
     }
 
     // Fetch applications with job and company details
@@ -162,7 +167,7 @@ const getMyApplications = async (req, res) => {
 
     res.json({ success: true, data: applications });
   } catch (error) {
-    console.error('getMyApplications error:', error);
+    console.error("getMyApplications error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -173,10 +178,10 @@ const getEmployerApplications = async (req, res) => {
     const { user } = req;
 
     // Check if user is an employer
-    if (user.role !== 'employer') {
+    if (user.role !== "employer") {
       return res.status(403).json({
         success: false,
-        message: 'Only employers can view these applications',
+        message: "Only employers can view these applications",
       });
     }
 
@@ -208,10 +213,10 @@ const getEmployerApplications = async (req, res) => {
       data: applications,
     });
   } catch (error) {
-    console.error('Get employer applications error:', error);
+    console.error("Get employer applications error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch applications',
+      message: "Failed to fetch applications",
       error: error.message,
     });
   }
@@ -226,18 +231,18 @@ const updateApplicationStatus = async (req, res) => {
 
     // List of allowed statuses
     const allowedStatuses = [
-      'pending',
-      'reviewed',
-      'shortlisted',
-      'rejected',
-      'hired',
+      "pending",
+      "reviewed",
+      "shortlisted",
+      "rejected",
+      "hired",
     ];
 
     // Validate status
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid application status',
+        message: "Invalid application status",
       });
     }
 
@@ -253,15 +258,15 @@ const updateApplicationStatus = async (req, res) => {
     if (apps.length === 0)
       return res
         .status(404)
-        .json({ success: false, message: 'Application not found' });
-    if (apps[0].company_id !== user.company_id && user.role !== 'admin') {
+        .json({ success: false, message: "Application not found" });
+    if (apps[0].company_id !== user.company_id && user.role !== "admin") {
       return res
         .status(403)
-        .json({ success: false, message: 'Not authorized' });
+        .json({ success: false, message: "Not authorized" });
     }
 
     // Update the status
-    await pool.query('UPDATE applications SET status = ? WHERE id = ?', [
+    await pool.query("UPDATE applications SET status = ? WHERE id = ?", [
       status,
       id,
     ]);
@@ -289,18 +294,19 @@ const updateApplicationStatus = async (req, res) => {
       if (application.length > 0) {
         // Map status to color and message
         const statusColorMap = {
-          pending: '#f59e0b',
-          reviewed: '#3b82f6',
-          shortlisted: '#8b5cf6',
-          rejected: '#ef4444',
-          hired: '#10b981',
+          pending: "#f59e0b",
+          reviewed: "#3b82f6",
+          shortlisted: "#8b5cf6",
+          rejected: "#ef4444",
+          hired: "#10b981",
         };
         const statusMessageMap = {
-          pending: 'Your application is pending review.',
-          reviewed: 'Your application has been reviewed.',
-          shortlisted: 'Congratulations! You have been shortlisted.',
-          rejected: 'We regret to inform you that your application was not selected.',
-          hired: 'Welcome aboard! You have been hired.',
+          pending: "Your application is pending review.",
+          reviewed: "Your application has been reviewed.",
+          shortlisted: "Congratulations! You have been shortlisted.",
+          rejected:
+            "We regret to inform you that your application was not selected.",
+          hired: "Welcome aboard! You have been hired.",
         };
 
         // Prepare email template replacements
@@ -309,27 +315,29 @@ const updateApplicationStatus = async (req, res) => {
           job_title: application[0].job_title,
           company_name: application[0].company_name,
           new_status: status.toUpperCase(),
-          status_color: statusColorMap[status] || '#2563eb',
-          status_message: statusMessageMap[status] || 'Your application status has been updated.',
+          status_color: statusColorMap[status] || "#2563eb",
+          status_message:
+            statusMessageMap[status] ||
+            "Your application status has been updated.",
           dashboard_url: `${process.env.FRONTEND_URL}/dashboard/seeker`,
         };
 
         // Send email in background using template
-        sendTemplatedEmail(
-          application[0].email,
-          'status-change',
-          replacements,
-          `Application Status: ${status}`
-        ).catch(err => console.error('Status email failed:', err));
+        addEmailJob({
+          to: application[0].email,
+          subject: `Application Status: ${status}`,
+          template: 'status-change',
+          templateData: replacements
+        });
       }
     } catch (emailError) {
-      console.error('Error sending status email:', emailError.message);
+      console.error("Error sending status email:", emailError.message);
     }
 
-    res.json({ success: true, message: 'Status updated' });
+    res.json({ success: true, message: "Status updated" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -338,32 +346,32 @@ const withdrawApplication = async (req, res) => {
   try {
     const { id } = req.params;
     const { user } = req;
-    
+
     // Find the application
     const [apps] = await pool.query(
-      'SELECT user_id FROM applications WHERE id = ?',
+      "SELECT user_id FROM applications WHERE id = ?",
       [id],
     );
 
     if (apps.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: 'Application not found' });
+        .json({ success: false, message: "Application not found" });
     }
 
     // Check if user owns the application
-    if (apps[0].user_id !== user.id && user.role !== 'admin') {
+    if (apps[0].user_id !== user.id && user.role !== "admin") {
       return res
         .status(403)
-        .json({ success: false, message: 'Not authorized' });
+        .json({ success: false, message: "Not authorized" });
     }
-    
+
     // Delete the application
-    await pool.query('DELETE FROM applications WHERE id = ?', [id]);
-    res.json({ success: true, message: 'Application withdrawn' });
+    await pool.query("DELETE FROM applications WHERE id = ?", [id]);
+    res.json({ success: true, message: "Application withdrawn" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

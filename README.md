@@ -17,6 +17,12 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
 - [Environment Variables](#environment-variables)
 - [API Endpoints](#api-endpoints)
   - [Authentication Routes](#authentication-routes)
+  - [Job Routes](#job-routes)
+  - [Application Routes](#application-routes)
+  - [Saved Jobs Routes](#saved-jobs-routes)
+  - [Saved Searches Routes](#saved-searches-routes)
+  - [Company Routes](#company-routes)
+  - [Admin Routes](#admin-routes)
 - [Components Implemented](#components-implemented)
   - [Navbar Component](#navbar-component)
   - [Footer Component](#footer-component)
@@ -45,6 +51,7 @@ SmartHire is a modern full-stack job portal web application connecting job seeke
 - [Contributing](#contributing)
 - [Future Improvements](#future-improvements)
 - [License](#license)
+- [Goal](#goal)
 
 ## Project Overview
 SmartHire enables seamless interaction between job seekers, employers, and admins.
@@ -95,6 +102,12 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - CORS configured for frontend
 - Helmet.js for security headers
 - Morgan for request logging
+
+### Saved Searches Feature
+- Job seekers can create, read, update, and delete saved search criteria.
+- Table **`saved_searches`** stores search name, keyword, location, job type, salary range, alert frequency, and active status.
+- Secured API endpoints (JWT‑protected) – users can only manage their own saved searches.
+- Integrated with the job alert system: when a new job is posted, matching saved searches trigger email notifications to the respective job seekers.
 
 ### Email Service Features
 - **Welcome email** sent automatically after user registration.
@@ -450,6 +463,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - **React Hot Toast 2.4.1** Toast notifications
 - **CSS3** - Custom styling with CSS variables
 - **Google Fonts Icons** - Icon system
+- **Recharts** - Charting library for admin dashboard
 
 ### Server
 - Node.js 18.x
@@ -459,6 +473,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - express-rate-limit for rate limiting
 - CORS, Helmet, Morgan
 - MySQL2
+- Nodemailer for email sending
 
 ### Database
 - MySQL 8.0 (via XAMPP)
@@ -574,6 +589,7 @@ SmartHire/
 │   │   │   ├── jobController.js
 │   │   │   ├── notificationController.js
 │   │   │   ├── savedJobsController.js
+│   │   │   ├── savedSearchController.js
 │   │   │   └── userController.js
 │   │   ├── email-templates/
 │   │   │   ├── account-verification.html
@@ -593,6 +609,7 @@ SmartHire/
 │   │   │   ├── jobRoutes.js
 │   │   │   ├── notificationRoutes.js
 │   │   │   ├── savedJobsRoutesjs
+│   │   │   ├── savedSearchRoutes.js
 │   │   │   └── userRoutes.js
 │   │   └── utils/
 │   │       └── generateToken.js
@@ -604,6 +621,8 @@ SmartHire/
 │   ├── scripts/
 │   │   ├── setup-db.js
 │   │   └── test-email.js          # Test email script
+│   │   └── test-email-templates.js
+│   │   └── test-saved-searches.js
 │   ├── .env
 │   ├── .gitignore
 │   ├── package.json
@@ -724,7 +743,7 @@ JWT_EXPIRE=24h
 
 FRONTEND_URL=`http://localhost:5173`
 
-Email configuration – use your own SMTP credentials
+# Email configuration – use your own SMTP credentials
 
 SMTP_HOST=smtp.resend.com
 SMTP_PORT=465
@@ -735,15 +754,16 @@ ADMIN_EMAIL=your-email@example.com   # for test script only
 
 ## API Endpoints
 
-### Authentication Routes (/api/path)
-| Method | Endpoint  | Description                                  | Access  |
-| ------ | --------- | -------------------------------------------- | ------- |
-| POST   | /register | Register a new user (job_seeker or employer) | Public  |
-| POST   | /login    | Login user, returns JWT token                | Public  |
-| GET    | /profile  | Get current user profile (requires JWT)      | Private |
+### Authentication Routes (/api/auth)
+| Method | Endpoint    | Description                                  | Access  |
+| ------ | ----------- | -------------------------------------------- | ------- |
+| POST   | `/register` | Register a new user (job_seeker or employer) | Public  |
+| POST   | `/login`    | Login user, returns JWT token                | Public  |
+| GET    | `/profile`  | Get current user profile (requires JWT)      | Private |
 
 ### Register (Job Seeker)
 **POST** `/api/auth/register`
+Content-Type: application/json
 {
   "name": "John Doe",
   "email": "john@example.com",
@@ -753,6 +773,7 @@ ADMIN_EMAIL=your-email@example.com   # for test script only
 
 ### Register (Employer)
 **POST** `/api/auth/register`
+Content-Type: application/json
 {
   "name": "Jane Smith",
   "email": "company@example.com",
@@ -763,6 +784,7 @@ ADMIN_EMAIL=your-email@example.com   # for test script only
 
 ### Login
 **POST** `/api/auth/login`
+Content-Type: application/json
 {
   "email": "john@example.com",
   "password": "password123"
@@ -825,13 +847,6 @@ ADMIN_EMAIL=your-email@example.com   # for test script only
 
 ## API Endpoints
 
-**Authentication Routes (/api/path)**
-| Method | Endpoint    | Description                                  | Access  |
-| ------ | ----------- | -------------------------------------------- | ------- |
-| POST   | `/register` | Register a new user (job_seeker or employer) | Public  |
-| POST   | `/login`    | Login user, returns JWT token                | Public  |
-| GET    | `/profile`  | Get current user profile (requires JWT)      | Private |
-
 **Job Routes (/api/jobs)**
 | Method | Endpoint            | Description                                | Access         |
 | ------ | ------------------- | ------------------------------------------ | -------------- |
@@ -858,6 +873,28 @@ ADMIN_EMAIL=your-email@example.com   # for test script only
 | GET    | `/saved-jobs`        | Fetch saved jobs | Job Seeker |
 | POST   | `/saved-jobs`        | Save a job       | Job Seeker |
 | DELETE | `/saved-jobs/:jobId` | Remove saved job | Job Seeker |
+
+**Saved Searches Routes (`/api/saved-searches`)**
+| Method | Endpoint            | Description                     | Access     |
+| ------ | ------------------- | ------------------------------- | ---------- |
+| GET    | /saved-searches     | Get all saved searches for user | Job Seeker |
+| POST   | /saved-searches     | Create a new saved search       | Job Seeker |
+| PUT    | /saved-searches/:id | Update a saved search           | Job Seeker |
+| DELETE | /saved-searches/:id | Delete a saved search           | Job Seeker |
+
+**Create saved search**
+**POST** `/api/saved-searches`
+**Authorization:** `Bearer <token>`
+**Content-Type:** `application/json`
+
+{
+  "name": "Remote React Jobs",
+  "keyword": "React",
+  "location": "Remote",
+  "job_type": "full-time",
+  "salary_min": 80000,
+  "alert_frequency": "daily"
+}
 
 **Company Routes (/api/companies)**
 | Method | Endpoint         | Description                  | Access |
@@ -1308,6 +1345,10 @@ client/src/pages/dashboard/jobseeker/
 - `DELETE /api/applications/:id` – withdraw application
 - `GET /api/saved-jobs` – fetch saved jobs
 - `DELETE /api/saved-jobs/:jobId` – remove saved job
+- `GET /api/saved-searches` – fetch saved searches
+- `POST /api/saved-searches` – create saved search
+- `PUT /api/saved-searches/:id` – update saved search
+- `DELETE /api/saved-searches/:id` – delete saved search
 - `PUT /api/users/profile` – update profile
 - `POST /api/users/resume` – upload resume
 - GET `/api/jobs/recommended` – fetch recommended jobs
@@ -1572,7 +1613,7 @@ This project is for educational purposes.
 
 ## Goal
 
-SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
+SmartHire Sprint 1-2 progress - Currently In Progress:
 
 **Completed So Far:**
 
@@ -1592,6 +1633,7 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Complete Admin Dashboard with users, jobs, companies, filters, pagination, and analytics charts using live backend APIs
 - Email service integration – automated welcome emails and application status updates using Nodemailer + Resend
 - Five fully responsive HTML email templates (application confirmation, status change, new job alert, new applicant, account verification)
+- Saved searches CRUD API with JWT‑protected endpoints, integrated with job alert system
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -1606,9 +1648,10 @@ SmartHire Sprint 1 progress (Week 1-4) - Currently In Progress:
 - Job CRUD APIs
 - Application APIs
 - Saved Jobs APIs
+- Saved Searches APIs
 - Company APIs
 - Admin APIs
 - Dashboard analytics APIs
 - Backend-driven filtering, sorting, and pagination
 
-**Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes. Full backend integration will be completed by Sprint 2.
+**Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes.

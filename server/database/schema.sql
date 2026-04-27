@@ -257,5 +257,45 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     INDEX idx_status (status)
 );
 
+-- 19. SAVED SEARCHES TABLE
+CREATE TABLE IF NOT EXISTS saved_searches (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  keyword VARCHAR(255),
+  location VARCHAR(255),
+  job_type VARCHAR(50),
+  salary_min DECIMAL(10,2) DEFAULT NULL,
+  salary_max DECIMAL(10,2) DEFAULT NULL,
+  is_active TINYINT(1) DEFAULT 1,
+  alert_frequency ENUM('daily','weekly','instant') DEFAULT 'instant',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 20. MESSAGES TABLE
+CREATE TABLE IF NOT EXISTS messages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    sender_id INT NOT NULL,
+    receiver_id INT NOT NULL,
+    subject VARCHAR(255),
+    message TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_sender_id (sender_id),
+    INDEX idx_receiver_id (receiver_id),
+    INDEX idx_is_read (is_read)
+);
+-- 21. STATISTICS TABLE
+CREATE TABLE IF NOT EXISTS statistics (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    total_users INT DEFAULT 0,
+    total_jobs INT DEFAULT 0,
+    total_applications INT DEFAULT 0,
+    total_messages INT DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 SELECT 'Database schema created successfully' AS Status;
 SELECT COUNT(*) AS total_tables FROM information_schema.tables WHERE table_schema = 'smart_hire';

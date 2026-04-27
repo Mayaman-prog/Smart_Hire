@@ -1,5 +1,3 @@
--- Smart Hire Seed Data - Complete Version
-
 USE smart_hire;
 
 -- 1. INSERT COMPANIES (3 companies)
@@ -148,6 +146,12 @@ INSERT INTO contact_messages (name, email, subject, message, status) VALUES
 ('John Seeker', 'john@example.com', 'Question about application', 'I applied for a job but have not heard back.', 'unread'),
 ('TechCorp HR', 'hr@techcorp.com', 'Partnership Inquiry', 'We would like to partner with you.', 'read');
 
+-- 17. INSERT SAVED SEARCHES (matches the new saved_searches table)
+INSERT INTO saved_searches (user_id, name, keyword, location, job_type, salary_min, salary_max, alert_frequency) VALUES
+(1, 'Remote React', 'React', 'Remote', 'full-time', 80000, 130000, 'daily'),
+(1, 'Senior Python', 'Python', 'London', 'full-time', 90000, 150000, 'instant'),
+(2, 'Data Analyst', 'SQL', 'New York', 'full-time', 70000, 95000, 'weekly');
+
 -- Verify all data
 SELECT 'Companies' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM companies;
 SELECT 'Job Categories' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM job_categories;
@@ -165,5 +169,6 @@ SELECT 'Shortlisted Candidates' AS Table_Name; SELECT COUNT(*) AS Record_Count F
 SELECT 'Job Required Skills' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM job_required_skills;
 SELECT 'Activity Logs' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM activity_logs;
 SELECT 'Contact Messages' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM contact_messages;
+SELECT 'Saved Searches' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM saved_searches;
 
 SELECT 'All seed data inserted successfully' AS Status;

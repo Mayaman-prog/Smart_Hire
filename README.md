@@ -115,6 +115,23 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Secured API endpoints (JWT‑protected) – users can only manage their own saved searches.
 - Integrated with the job alert system: when a new job is posted, matching saved searches trigger email notifications to the respective job seekers.
 
+### Background Email Queue
+All transactional emails are now **queued and processed asynchronously** using Bull and Redis.  
+Email sending no longer blocks API responses – the server just enqueues a job and returns immediately.
+
+| Component    | Technology / File        | Purpose                                                        |
+| ------------ | ------------------------ | -------------------------------------------------------------- |
+| Queue        | Bull + Redis             | Holds email jobs and processes them in the background          |
+| Worker       | `workers/emailWorker.js` | Standalone Node.js process that picks up jobs and sends emails |
+| Job logging  | `email_logs` table       | Stores job lifecycle (queued, processing, sent, failed)        |
+| Queue helper | `addEmailJob(data)`      | Enqueues a job and inserts an initial log entry                |
+
+
+**Key benefits:**
+- API endpoints return instantly – email delivery does not delay the response.
+- All email sending is retryable and logged.
+- Worker runs independently from the Express server (no shared memory).
+
 ### Email Service Features
 - **Welcome email** sent automatically after user registration.
 - **Application status update email** sent to job seekers when an employer changes the status of their application.
@@ -472,14 +489,16 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - **Recharts** - Charting library for admin dashboard
 
 ### Server
-- Node.js 18.x
-- Express.js 4.18.2
-- JWT Authentication (jsonwebtoken)
-- bcryptjs for password hashing
-- express-rate-limit for rate limiting
-- CORS, Helmet, Morgan
-- MySQL2
-- Nodemailer for email sending
+- **Node.js 18.x**
+- **Express.js 4.18.2**
+- **JWT Authentication** (jsonwebtoken)
+- **bcryptjs** for password hashing
+- **express-rate-limit** for rate limiting
+- **CORS, Helmet, Morgan**
+- **MySQL2**
+- **Nodemailer** for email sending
+- **Bull** (background job queue)
+- **Redis** (message broker for Bull)
 
 ### Database
 - MySQL 8.0 (via XAMPP)
@@ -487,10 +506,11 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 ## Prerequisites
 
 Make sure you have the following installed:
-- Node.js (v18 or higher)
-- MySQL (v8 or higher)
-- Git
-- XAMPP (for MySQL)
+- **Node.js** (v18 or higher)
+- **MySQL** (v8 or higher)
+- **Git**
+- **XAMPP** (for MySQL)
+- **Redis** (for the email queue)
 
 ## Project Structure
 SmartHire/
@@ -617,6 +637,10 @@ SmartHire/
 │   │   │   ├── savedJobsRoutesjs
 │   │   │   ├── savedSearchRoutes.js
 │   │   │   └── userRoutes.js
+│   │   ├── queues/
+│   │   │   └── emailQueue.js        # Bull queue & processor
+│   │   ├── services/
+│   │   │   └── emailService.js      # Template rendering & sending
 │   │   └── utils/
 │   │       └── generateToken.js
 │   ├── upload/
@@ -626,14 +650,17 @@ SmartHire/
 │   │   └── seed.sql
 │   ├── scripts/
 │   │   ├── setup-db.js
-│   │   └── test-email.js          # Test email script
-│   │   └── test-email-templates.js
-│   │   └── test-saved-searches.js
+│   │   ├── test-email.js          # Test email script
+│   │   ├── test-email-templates.js
+│   │   ├── test-saved-searches.js
+│   │   └── test-email-queue-response-time.js
 │   ├── .env
 │   ├── .gitignore
 │   ├── package.json
 │   └── server.js
 │
+├── Worker/
+|   ├── emailWorker.js
 ├── docs/
 ├── ExampleCodeFiles/                # Reference code examples
 |   ├── ComponentTestPage
@@ -1642,6 +1669,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Email service integration – automated welcome emails and application status updates using Nodemailer + Resend
 - Five fully responsive HTML email templates (application confirmation, status change, new job alert, new applicant, account verification)
 - Saved searches CRUD API with JWT‑protected endpoints, integrated with job alert system
+- Background email queue (Bull + Redis) – all emails now sent asynchronously; `email_logs` audit table; standalone worker process
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data

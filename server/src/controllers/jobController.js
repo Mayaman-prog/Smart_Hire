@@ -1,5 +1,5 @@
 const { pool } = require("../config/database");
-const { sendTemplatedEmail } = require('../services/emailService');
+const { addEmailJob } = require("../queues/emailQueue");
 
 // Helper function to get users with saved searches matching the job
 const getUsersWithMatchingSavedSearches = async (job) => {
@@ -22,11 +22,11 @@ const getUsersWithMatchingSavedSearches = async (job) => {
         AND (ss.min_salary IS NULL OR ? >= ss.min_salary)
       LIMIT 100
       `,
-      [job.location, job.job_type, job.salary_min || 0]
+      [job.location, job.job_type, job.salary_min || 0],
     );
     return users;
   } catch (error) {
-    console.error('Error fetching matching users:', error);
+    console.error("Error fetching matching users:", error);
     return [];
   }
 };
@@ -133,7 +133,7 @@ const getJobs = async (req, res) => {
     if (String(similar) === "true" && jobId) {
       const [baseJobs] = await pool.query(
         "SELECT id, company_id, job_type FROM jobs WHERE id = ? AND is_active = 1",
-        [jobId]
+        [jobId],
       );
 
       if (!baseJobs.length) {
@@ -156,10 +156,14 @@ const getJobs = async (req, res) => {
         ORDER BY j.created_at DESC
         LIMIT 6
         `,
-        [jobId, baseJob.company_id, baseJob.job_type]
+        [jobId, baseJob.company_id, baseJob.job_type],
       );
 
-      return res.json({ success: true, data: similarJobs, total: similarJobs.length });
+      return res.json({
+        success: true,
+        data: similarJobs,
+        total: similarJobs.length,
+      });
     }
 
     const filters = {
@@ -174,7 +178,8 @@ const getJobs = async (req, res) => {
     const { whereClause, values } = buildJobsWhereClause(filters);
 
     let orderBy = "j.created_at DESC";
-    if (sort === "salary_high") orderBy = "j.salary_max DESC, j.created_at DESC";
+    if (sort === "salary_high")
+      orderBy = "j.salary_max DESC, j.created_at DESC";
     if (sort === "salary_low") orderBy = "j.salary_min ASC, j.created_at DESC";
 
     const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
@@ -188,7 +193,7 @@ const getJobs = async (req, res) => {
       LEFT JOIN companies c ON j.company_id = c.id
       ${whereClause}
       `,
-      values
+      values,
     );
 
     const [jobs] = await pool.query(
@@ -203,7 +208,7 @@ const getJobs = async (req, res) => {
       ORDER BY ${orderBy}
       LIMIT ? OFFSET ?
       `,
-      [...values, parsedLimit, offset]
+      [...values, parsedLimit, offset],
     );
 
     res.json({
@@ -307,7 +312,7 @@ const getJobById = async (req, res) => {
       WHERE j.id = ?
       LIMIT 1
       `,
-      [jobId]
+      [jobId],
     );
 
     if (!jobs.length) {
@@ -429,32 +434,38 @@ const createJob = async (req, res) => {
     // Send job alerts to users with matching saved searches (non-blocking)
     try {
       const matchingUsers = await getUsersWithMatchingSavedSearches(newJob[0]);
-      
+
       for (const user of matchingUsers) {
-        const salary_range = 
-          newJob[0].salary_min && newJob[0].salary_max 
-            ? `$${newJob[0].salary_min} - $${newJob[0].salary_max}` 
-            : 'Not specified';
-        
+        const salary_range =
+          newJob[0].salary_min && newJob[0].salary_max
+            ? `$${newJob[0].salary_min} - $${newJob[0].salary_max}`
+            : "Not specified";
+
         const replacements = {
           user_name: user.name,
-          saved_search_name: user.saved_search_name || 'Your saved search',
+          saved_search_name: user.saved_search_name || "Your saved search",
           job_title: newJob[0].title,
           company_name: newJob[0].company_name,
           job_location: newJob[0].location,
           job_type: newJob[0].job_type,
           salary_range: salary_range,
-          job_summary: newJob[0].description.substring(0, 150) + (newJob[0].description.length > 150 ? '…' : ''),
+          job_summary:
+            newJob[0].description.substring(0, 150) +
+            (newJob[0].description.length > 150 ? "…" : ""),
           job_url: `${process.env.FRONTEND_URL}/jobs/${newJob[0].id}`,
           manage_alerts_url: `${process.env.FRONTEND_URL}/dashboard/seeker?tab=alerts`,
         };
-        
-        // Send email in background – don't await
-        sendTemplatedEmail(user.email, 'new-job-alert', replacements, 'New Job Match!')
-          .catch(err => console.error(`Failed to send job alert to ${user.email}:`, err));
+
+        // Send email in background using template
+        addEmailJob({
+          to: user.email,
+          subject: "New Job Match!",
+          template: "new-job-alert",
+          templateData: replacements,
+        });
       }
     } catch (alertError) {
-      console.error('Error sending job alerts:', alertError.message);
+      console.error("Error sending job alerts:", alertError.message);
     }
     res.status(201).json({
       success: true,

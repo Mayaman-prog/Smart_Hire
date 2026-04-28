@@ -51,6 +51,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [ProtectedRoute Component](#protectedroute-component)
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
+  - [SaveSearchModal Component](#savesearchmodal-component)
 - [Routing System](#routing-system)
 - [Validation Utilities](#validation-utilities)
 - [Database Schema](#database-schema)
@@ -97,6 +98,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - JWT token storage in localStorage/sessionStorage
 - Success and error toast notifications
 - Social login buttons (Google & LinkedIn - UI ready)
+- Save this search button on jobs listing page to store current search filters with a name and alert frequency
 
 ### Backend Features
 - JWT authentication (register, login, profile)
@@ -223,6 +225,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - URL query params sync (filters persist after page refresh)
 - CSS variables for consistent theming
 - Backend-driven filtering, sorting, and pagination
+- Save this search" button next to the search bar that opens a modal to save current filters (name pre‑filled with date, frequency Daily/Weekly), calls `POST /api/saved-searches`, and shows success/error toasts
 
 #### JobDetailsPage
 
@@ -548,8 +551,11 @@ SmartHire/
 │   │   │   │   └── CompanyCard/
 │   │   │   │       ├── CompanyCard.jsx
 │   │   │   │       └── CompanyCard.css
-│   │   │   └── auth/
-│   │   │       └── ProtectedRoute.jsx
+│   │   │   ├── auth/
+│   │   │   │   └── ProtectedRoute.jsx
+│   │   │   └── SaveSearchModal/
+│   │   │       ├── SaveSearchModal.jsx
+│   │   │       └── SaveSearchModal.css
 │   │   ├── pages/
 │   │   │   ├── HomePage/
 │   │   │   │   ├── HomePage.jsx
@@ -1013,6 +1019,12 @@ client/src/pages/JobsPage/
 - Slide-in filter drawer
 - Full-width job cards
 - Stacked search bar
+
+**Save Search Feature:**
+- "Save this search" button next to the search bar (on the same row on desktop, stacks on mobile)
+- Opens a modal with a pre‑filled name (Search on YYYY-MM-DD) and alert frequency (Daily/Weekly)
+- On submit, sends a `POST /api/saved-searches` request with the current filters
+- Shows a success toast on save, or an error toast if the maximum (10) saved searches has been reached
 
 #### JobDetailsPage Component
 **Location:** `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`
@@ -1599,21 +1611,23 @@ client/src/pages/NotFoundPage/
 | Apply button not working                  | Check authentication status and user role                               |
 | Similar jobs not showing                  | Verify similar jobs backend query                                       |
 | Company search not working                | Ensure companies endpoint returns valid data                            |
-| Company cards not showing                 | Check CompanyCard component import                                      |
+| Company cards not showing                 | Check `CompanyCard` component import                                    |
 | Company details not showing               | Verify company ID in URL and companies endpoint                         |
-| Database connection error                 | Start MySQL in XAMPP and check `.env` configuration                     |
+| Database connection error                 | Start MySQL and check `.env` configuration                              |
 | Protected route redirecting               | Check AuthContext and token storage                                     |
 | 404 page not showing                      | Ensure `*` route is last in Routes                                      |
 | Login not working                         | Ensure correct test credentials are used                                |
 | Toast notifications not showing           | Verify `react-hot-toast` is installed and `<Toaster />` is in `App.jsx` |
-| 500 Internal Server Error                 | Check server terminal for detailed error; verify database tables exist  |
+| 500 Internal Server Error                 | Check server logs; verify database tables exist                         |
 | JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (minimum 32 characters)                      |
 | Rate limit exceeded                       | Wait 15 minutes or restart server                                       |
-| Apply button stays enabled after applying | Verify application status is returned correctly from backend            |
-| Saved jobs not appearing in dashboard     | Verify `saved_jobs` routes and API response shape                       |
-| Charts not loading                        | Verify Recharts is installed and `/api/admin/stats/overview` works      |
-| Email not sending                         | Check SMTP credentials in `.env`; run `node scripts/test-email.js`      |
-| Email configuration error                 | Verify `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` are correct   |
+| Apply button stays enabled after applying | Verify application status from backend                                  |
+| Saved jobs not appearing in dashboard     | Verify `saved_jobs` API and response shape                              |
+| Charts not loading                        | Verify Recharts and `/api/admin/stats/overview` endpoint                |
+| Email not sending                         | Check SMTP config; run `node scripts/test-email.js`                     |
+| Email configuration error                 | Verify SMTP credentials in `.env`                                       |
+| Save search modal not opening             | Check `SaveSearchModal` import and button state handling                |
+| Saved search limit not enforced           | Add backend validation in controller (max 10 per user)                  |
 
 ## Contributing
 **Create a new branch:**
@@ -1641,10 +1655,11 @@ client/src/pages/NotFoundPage/
 - Smart matching score between candidate and job
 - Interview scheduling system
 - Mobile native apps (React Native)
+- Enforce max 10 saved searches per user on the backend
 
 ## License
 
-This project is for educational purposes.
+SmartHire is a college project created for learning full‑stack web development. The code is open‑sourced under the [MIT License](LICENSE) (or “MIT”) – you’re welcome to study, reuse, or build upon it, but please attribute the original work to this repository.
 
 ## Goal
 
@@ -1657,6 +1672,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Responsive Footer with newsletter and social links
 - Complete Homepage with hero section, search bar, featured jobs, and "How It Works"
 - Complete Jobs Page with debounced search, URL query sync, filters, pagination, clear filters, sorting, and backend integration
+- Save this search" button on JobsPage with modal (pre‑filled name, frequency selector, API integration, toast notifications)
 - Complete Job Details Page with apply flow, duplicate prevention, save flow, similar jobs, and live backend integration
 - Complete Companies Page with search, responsive grid, and company cards
 - Complete Company Details Page with tabs, open positions, and about section

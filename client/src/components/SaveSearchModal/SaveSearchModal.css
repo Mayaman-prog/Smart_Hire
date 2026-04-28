@@ -1,0 +1,97 @@
+/* The dark background layer that appears behind the modal popup */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* The white box that contains the modal form */
+.modal-content {
+  background: var(--white);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 440px;
+  box-shadow: var(--shadow-xl);
+}
+
+/* The title heading inside the modal */
+.modal-content h3 {
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: var(--font-xl);
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+/* Wrapper for each form field (label + input) */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+/* The text label above each form field */
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--gray-color);
+}
+
+/* The dropdown select box for choosing alert frequency */
+.form-group select {
+  width: 100%;
+  padding: 0.6rem var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--light-gray);
+  color: var(--dark-color);
+  font-size: var(--font-md);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Style when user clicks in the dropdown */
+.form-group select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Container for the Cancel and Save buttons at the bottom */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+/* Adjust styles for small screens (phones and tablets) */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-width: none;
+    margin: 0 var(--spacing-md);
+    padding: var(--spacing-lg);
+  }
+
+  .modal-content h3 {
+    font-size: var(--font-lg);
+  }
+
+  .form-group select {
+    font-size: var(--font-sm);
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}

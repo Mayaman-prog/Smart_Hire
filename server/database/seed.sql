@@ -35,6 +35,9 @@ INSERT INTO locations (city, state, country) VALUES
 ('London', 'London', 'UK'),
 ('Remote', NULL, 'Remote');
 
+-- Add Austin if not already present
+INSERT IGNORE INTO locations (city, state, country) VALUES ('Austin', 'TX', 'USA');
+
 -- 5. INSERT SKILLS
 INSERT INTO skills (name, category) VALUES
 ('JavaScript', 'Programming'),
@@ -58,32 +61,24 @@ INSERT INTO users (name, email, password_hash, role, is_active) VALUES
 UPDATE users SET company_id = 1 WHERE email = 'hr@techcorp.com';
 UPDATE users SET company_id = 2 WHERE email = 'careers@dataworks.com';
 
--- 7. INSERT JOBS (5 jobs)
-INSERT INTO jobs (title, description, requirements, salary_min, salary_max, location, job_type, experience_level, company_id, posted_by, is_featured) VALUES
-('Senior Full Stack Developer', 
- 'Looking for an experienced Full Stack Developer to join our team.',
- '5+ years React, Node.js, SQL experience',
- 120000, 180000, 'San Francisco, CA', 'full-time', 'senior', 1, 3, TRUE),
-
-('Frontend Developer',
- 'Join our frontend team to build amazing UIs.',
- '3+ years React, Tailwind CSS experience',
- 80000, 110000, 'Remote', 'remote', 'mid', 1, 3, FALSE),
-
-('Data Analyst',
- 'Help us make data-driven decisions.',
- 'SQL, Python, data visualization experience',
- 70000, 95000, 'New York, NY', 'full-time', 'entry', 2, 4, FALSE),
-
-('Machine Learning Engineer',
- 'Build cutting-edge ML solutions.',
- 'TensorFlow/PyTorch, 3+ years experience',
- 150000, 200000, 'New York, NY', 'full-time', 'senior', 2, 4, TRUE),
-
-('UI/UX Designer',
- 'Creative designer for our digital agency.',
- 'Figma, Adobe Creative Suite, portfolio required',
- 65000, 85000, 'London, UK', 'contract', 'mid', 3, 5, FALSE);
+-- 7. INSERT JOBS (15 jobs across different categories, types, and locations)
+INSERT INTO jobs (title, description, requirements, salary_min, salary_max, location, job_type, experience_level, category_id, job_type_id, location_id, company_id, posted_by, is_active, is_featured, deadline)
+VALUES
+('Senior Full Stack Developer', 'Lead development of web applications', '5+ years React/Node, AWS experience', 120000, 180000, 'San Francisco, CA', 'full-time', 'senior', 1, 1, 1, 1, 3, 1, 1, '2026-06-30'),
+('Frontend Developer', 'Build user interfaces with React', '3+ years React, CSS, responsive design', 80000, 110000, 'Remote', 'full-time', 'mid', 1, 1, 6, 1, 3, 1, 0, '2026-06-30'),
+('Backend Developer', 'Develop REST APIs and microservices', 'Node.js, Express, MySQL, Redis', 90000, 130000, 'New York, NY', 'full-time', 'mid', 1, 1, 2, 2, 4, 1, 0, '2026-06-30'),
+('Data Analyst', 'Analyze data and create reports', 'SQL, Python, Tableau', 70000, 95000, 'New York, NY', 'full-time', 'entry', 2, 1, 2, 2, 4, 1, 0, '2026-06-30'),
+('Machine Learning Engineer', 'Build predictive models', 'Python, TensorFlow, PyTorch', 150000, 200000, 'New York, NY', 'full-time', 'senior', 2, 1, 2, 2, 4, 1, 1, '2026-06-30'),
+('DevOps Engineer', 'Manage CI/CD pipelines and cloud infra', 'AWS, Docker, Kubernetes', 110000, 150000, 'San Francisco, CA', 'full-time', 'senior', 1, 1, 1, 1, 3, 1, 0, '2026-06-30'),
+('UX Designer', 'Design user experiences and wireframes', 'Figma, user research', 75000, 105000, 'Remote', 'full-time', 'mid', 3, 1, 6, 1, 3, 1, 0, '2026-06-30'),
+('QA Engineer', 'Manual and automated testing', 'Selenium, JIRA, test plans', 65000, 90000, 'Austin, TX', 'full-time', 'mid', 1, 1, (SELECT id FROM locations WHERE city = 'Austin' AND state = 'TX'), 3, 5, 1, 0, '2026-06-30'),
+('Product Manager', 'Define product roadmap and features', 'Agile, JIRA, stakeholder management', 100000, 140000, 'Austin, TX', 'full-time', 'senior', 4, 1, (SELECT id FROM locations WHERE city = 'Austin' AND state = 'TX'), 3, 5, 1, 0, '2026-06-30'),
+('iOS Developer', 'Build iOS apps with Swift', 'Swift, UIKit, Core Data', 95000, 125000, 'Remote', 'full-time', 'mid', 1, 1, 6, 1, 3, 1, 0, '2026-06-30'),
+('Android Developer', 'Build Android apps with Kotlin', 'Kotlin, Jetpack Compose', 95000, 125000, 'Remote', 'full-time', 'mid', 1, 1, 6, 1, 3, 1, 0, '2026-06-30'),
+('Cybersecurity Analyst', 'Monitor and protect systems', 'SIEM, incident response, CISSP', 100000, 135000, 'Austin, TX', 'full-time', 'mid', 5, 1, (SELECT id FROM locations WHERE city = 'Austin' AND state = 'TX'), 3, 5, 1, 0, '2026-06-30'),
+('Technical Writer', 'Write documentation and guides', 'Markdown, API docs, Git', 60000, 85000, 'Remote', 'contract', 'entry', 6, 3, 6, 3, 5, 1, 0, '2026-06-30'),
+('Data Engineer', 'Build data pipelines and ETL', 'Python, Spark, SQL, Airflow', 110000, 145000, 'San Francisco, CA', 'full-time', 'mid', 2, 1, 1, 1, 3, 1, 0, '2026-06-30'),
+('Cloud Architect', 'Design cloud solutions', 'AWS/GCP, Terraform, microservices', 140000, 190000, 'New York, NY', 'contract', 'senior', 1, 3, 2, 2, 4, 1, 1, '2026-06-30');
 
 -- 8. INSERT JOB SEEKER SKILLS
 INSERT INTO job_seeker_skills (user_id, skill_id, proficiency_level, years_of_experience) VALUES

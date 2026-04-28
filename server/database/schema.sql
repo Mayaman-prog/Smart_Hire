@@ -305,13 +305,15 @@ CREATE TABLE email_logs (
   recipient VARCHAR(255) NOT NULL,
   subject VARCHAR(255),
   template VARCHAR(100),
+  user_id INT,
   status ENUM('queued','processing','sent','failed') DEFAULT 'queued',
   error_message TEXT,
   attempts INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_job_id (job_id),
-  INDEX idx_status (status)
+  INDEX idx_status (status),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 SELECT 'Database schema created successfully' AS Status;

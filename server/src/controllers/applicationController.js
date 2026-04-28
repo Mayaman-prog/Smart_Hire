@@ -36,7 +36,7 @@ const applyForJob = async (req, res) => {
 
     // Send notification to employer about new applicant (non-blocking)
     try {
-      // Fetch job, company, and employer info
+      // Employer notification – get job and employer details for email template
       const [jobInfo] = await pool.query(
         `
         SELECT 
@@ -55,49 +55,31 @@ const applyForJob = async (req, res) => {
 
       if (jobInfo.length > 0) {
         const { title, company_name, employer_email } = jobInfo[0];
-        const replacements = {
-          company_name: company_name,
-          job_title: title,
-          applicant_name: user.name,
-          applicant_email: user.email,
-          applied_date: new Date().toLocaleDateString(),
-          cover_letter_preview:
-            (cover_letter || "").substring(0, 100) +
-            ((cover_letter?.length || 0) > 100 ? "…" : ""),
-          applicants_url: `${process.env.FRONTEND_URL}/dashboard/employer?tab=applicants&jobId=${jobId}`,
-        };
-
-        // Send email in background using template
-        addEmailJob({
+        await addEmailJob({
+          userId: user.id,
           to: employer_email,
           subject: `New applicant for ${title}`,
           template: "new-applicant",
-          templateData: replacements,
+          templateData: {
+            company_name,
+            job_title: title,
+            applicant_name: user.name,
+            applicant_email: user.email,
+            applied_date: new Date().toLocaleDateString(),
+            cover_letter_preview:
+              (cover_letter || "").substring(0, 100) +
+              ((cover_letter?.length || 0) > 100 ? "…" : ""),
+            applicants_url: `${process.env.FRONTEND_URL}/dashboard/employer?tab=applicants&jobId=${jobId}`,
+          },
         });
       }
-    } catch (notifyError) {
-      console.error(
-        "Error sending applicant notification:",
-        notifyError.message,
-      );
-    }
 
-    // Send confirmation email to the job seeker (non-blocking)
-    try {
-      // Fetch job and company details for the email template
+      // Job seeker confirmation email with job details using template (non-blocking)
       const [jobDetails] = await pool.query(
-        `
-        SELECT 
-          j.title,
-          j.location,
-          j.job_type,
-          j.salary_min,
-          j.salary_max,
-          c.name AS company_name
-        FROM jobs j
-        JOIN companies c ON j.company_id = c.id
-        WHERE j.id = ?
-        `,
+        `SELECT j.title, j.location, j.job_type, j.salary_min, j.salary_max, c.name AS company_name
+         FROM jobs j
+         JOIN companies c ON j.company_id = c.id
+         WHERE j.id = ?`,
         [jobId],
       );
 
@@ -108,28 +90,34 @@ const applyForJob = async (req, res) => {
             ? `$${job.salary_min} - $${job.salary_max}`
             : "Not specified";
 
-        const replacements = {
-          user_name: user.name,
-          job_title: job.title,
-          company_name: job.company_name,
-          job_location: job.location,
-          job_type: job.job_type,
-          salary_range: salaryRange,
-          dashboard_url: `${process.env.FRONTEND_URL}/dashboard/seeker`,
-        };
-
-        // Send email in background using template
-        addEmailJob({
+        await addEmailJob({
+          userId: user.id,
           to: user.email,
           subject: "Application Received",
           template: "application-confirmation",
-          templateData: replacements,
+          templateData: {
+            user_name: user.name,
+            job_title: job.title,
+            company_name: job.company_name,
+            job_location: job.location,
+            job_type: job.job_type,
+            salary_range: salaryRange,
+            dashboard_url: `${process.env.FRONTEND_URL}/dashboard/seeker`,
+          },
         });
       }
-    } catch (confirmError) {
-      console.error("Error sending confirmation email:", confirmError.message);
+    } catch (emailError) {
+      // Rate limit? Return 429 immediately
+      if (emailError.statusCode === 429) {
+        return res
+          .status(429)
+          .json({ success: false, message: emailError.message });
+      }
+      // Otherwise log and continue (the application itself was saved)
+      console.error("Failed to enqueue application emails:", emailError);
     }
 
+    // Application was saved successfully
     res
       .status(201)
       .json({ success: true, message: "Application submitted successfully" });
@@ -322,15 +310,21 @@ const updateApplicationStatus = async (req, res) => {
           dashboard_url: `${process.env.FRONTEND_URL}/dashboard/seeker`,
         };
 
-        // Send email in background using template
+        // Enqueue email job with rate limit and retry logic and log the job in the database with userId for tracking and auditing purposes and handle potential rate limit errors gracefully and log any unexpected errors without crashing the status update process and ensure that the status update succeeds even if the email job fails to enqueue (since email sending is a secondary concern and should not block status updates) and provide clear feedback in the response if the email job fails due to rate limiting or other issues, while still returning a successful status update response to the client
         addEmailJob({
+          userId: user.id,
           to: application[0].email,
           subject: `Application Status: ${status}`,
-          template: 'status-change',
-          templateData: replacements
+          template: "status-change",
+          templateData: replacements,
         });
       }
     } catch (emailError) {
+      if (emailError.statusCode === 429) {
+        return res
+          .status(429)
+          .json({ success: false, message: emailError.message });
+      }
       console.error("Error sending status email:", emailError.message);
     }
 

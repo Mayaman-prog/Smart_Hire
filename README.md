@@ -134,6 +134,24 @@ Email sending no longer blocks API responses – the server just enqueues a job 
 - All email sending is retryable and logged.
 - Worker runs independently from the Express server (no shared memory).
 
+### Email Rate Limiting & Retry Logic
+To avoid spam and improve reliability, the email queue has built‑in rate limiting and automatic retries.
+
+- **Rate limiting (per user):**  
+  Tracks the number of emails triggered by a user within a 60‑second window using Redis.  
+  If a user exceeds 10 emails in that window, the request is rejected with a **429 Too Many Requests** response and the message *“Too many emails. Limit is 10 per minute.”*  
+  The limit resets automatically after 60 seconds.
+
+- **Retry & dead‑letter handling:**  
+  When an email delivery fails, Bull automatically retries the job up to **3 times** with a custom backoff:
+  - 1st retry after **1 minute**
+  - 2nd retry after **5 minutes**
+  - 3rd retry after **15 minutes**  
+  If all attempts fail, the job is marked as permanently **failed**, and an alert email is sent to the administrator.
+
+- **Logging:**  
+  Every attempt is recorded in the `email_logs` table (`user_id`, `status`, `attempts`, `error_message`), so the full lifecycle of each email can be audited.
+
 ### Email Service Features
 - **Welcome email** sent automatically after user registration.
 - **Application status update email** sent to job seekers when an employer changes the status of their application.
@@ -1602,32 +1620,33 @@ client/src/pages/NotFoundPage/
 | CSS not applying                          | Check import paths in component files                                   |
 | JobCard not showing                       | Verify API response shape and component props                           |
 | Footer not sticky                         | Ensure layout uses `min-height: 100vh` and `flex-direction: column`     |
-| Form validation not working               | Check `validators.js` path in imports                                   |
+| Form validation not working               | Check `validators.js` import path                                       |
 | HomePage featured jobs not showing        | Ensure featured jobs exist in database                                  |
 | Search redirect not working               | Check AuthContext and route guards                                      |
 | Icons not showing                         | Ensure Google Fonts link is added in `index.html`                       |
-| Filters not working                       | Check URL query params, backend filters, and state management           |
-| Mobile filter drawer not showing          | Verify CSS media queries are working                                    |
+| Filters not working                       | Check URL query params, backend filters, and state                      |
+| Mobile filter drawer not showing          | Verify CSS media queries                                                |
 | Apply button not working                  | Check authentication status and user role                               |
-| Similar jobs not showing                  | Verify similar jobs backend query                                       |
+| Similar jobs not showing                  | Verify backend query for similar jobs                                   |
 | Company search not working                | Ensure companies endpoint returns valid data                            |
 | Company cards not showing                 | Check `CompanyCard` component import                                    |
-| Company details not showing               | Verify company ID in URL and companies endpoint                         |
-| Database connection error                 | Start MySQL and check `.env` configuration                              |
+| Company details not showing               | Verify company ID in URL and API response                               |
+| Database connection error                 | Start MySQL and check `.env` config                                     |
 | Protected route redirecting               | Check AuthContext and token storage                                     |
 | 404 page not showing                      | Ensure `*` route is last in Routes                                      |
-| Login not working                         | Ensure correct test credentials are used                                |
-| Toast notifications not showing           | Verify `react-hot-toast` is installed and `<Toaster />` is in `App.jsx` |
-| 500 Internal Server Error                 | Check server logs; verify database tables exist                         |
-| JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (minimum 32 characters)                      |
+| Login not working                         | Verify correct test credentials                                         |
+| Toast notifications not showing           | Ensure `react-hot-toast` is installed and `<Toaster />` is in `App.jsx` |
+| 500 Internal Server Error                 | Check server logs and database tables                                   |
+| JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (min 32 characters)                          |
 | Rate limit exceeded                       | Wait 15 minutes or restart server                                       |
 | Apply button stays enabled after applying | Verify application status from backend                                  |
-| Saved jobs not appearing in dashboard     | Verify `saved_jobs` API and response shape                              |
-| Charts not loading                        | Verify Recharts and `/api/admin/stats/overview` endpoint                |
+| Saved jobs not appearing in dashboard     | Verify `saved_jobs` API and response                                    |
+| Charts not loading                        | Check Recharts and `/api/admin/stats/overview` endpoint                 |
 | Email not sending                         | Check SMTP config; run `node scripts/test-email.js`                     |
 | Email configuration error                 | Verify SMTP credentials in `.env`                                       |
-| Save search modal not opening             | Check `SaveSearchModal` import and button state handling                |
-| Saved search limit not enforced           | Add backend validation in controller (max 10 per user)                  |
+| Save search modal not opening             | Check `SaveSearchModal` import and state handling                       |
+| Saved search limit not enforced           | Add backend validation (max 10 per user)                                |
+| 429 Too Many Requests (email)             | Wait 60 seconds before retrying                                         |
 
 ## Contributing
 **Create a new branch:**
@@ -1686,6 +1705,8 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Five fully responsive HTML email templates (application confirmation, status change, new job alert, new applicant, account verification)
 - Saved searches CRUD API with JWT‑protected endpoints, integrated with job alert system
 - Background email queue (Bull + Redis) – all emails now sent asynchronously; `email_logs` audit table; standalone worker process
+- Email rate limiting (10/60s per user) with 429 rejection
+- Automatic retry with exponential backoff (1min, 5min, 15min) and admin alert after final failure
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data

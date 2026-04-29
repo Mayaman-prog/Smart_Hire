@@ -18,6 +18,7 @@ const adminRoutes = require('./src/routes/adminRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
 const savedSearchRoutes = require('./src/routes/savedSearchRoutes');
+const startDailyJobAlert = require('./src/cron/dailyJobAlert');
 
 dotenv.config();
 
@@ -37,6 +38,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files (for resumes)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+startDailyJobAlert();
 
 // API ROUTES
 app.get('/api', (req, res) => {

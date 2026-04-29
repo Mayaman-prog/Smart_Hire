@@ -1,5 +1,5 @@
-// Import database connection pool for querying saved searches
 const { pool } = require('../config/database');
+const { v4: uuidv4 } = require('uuid');
 
 /**
  * @desc    Get all saved searches for the logged-in user
@@ -10,8 +10,6 @@ const { pool } = require('../config/database');
  */
 const getSavedSearches = async (req, res) => {
   try {
-    // Query database for all saved searches belonging to the authenticated user
-    // Sort by creation date in descending order (newest first)
     const [rows] = await pool.query(
       'SELECT * FROM saved_searches WHERE user_id = ? ORDER BY created_at DESC',
       [req.user.id]
@@ -32,33 +30,31 @@ const getSavedSearches = async (req, res) => {
  */
 const createSavedSearch = async (req, res) => {
   try {
-    // Destructure search criteria from request body
+    const userId = req.user.id;
     const { name, keyword, location, job_type, salary_min, salary_max, alert_frequency } = req.body;
 
-    // Validate that search name is provided and not empty
     if (!name || !name.trim()) {
       return res.status(400).json({ success: false, message: 'Search name is required' });
     }
 
-    // Insert new saved search into database with user ID and provided criteria
-    // Default alert_frequency to 'instant' if not specified
-    // Optional fields are set to null if not provided
+    const token = uuidv4();
+
     const [result] = await pool.query(
-      `INSERT INTO saved_searches (user_id, name, keyword, location, job_type, salary_min, salary_max, alert_frequency)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO saved_searches (user_id, name, keyword, location, job_type, salary_min, salary_max, alert_frequency, unsubscribe_token)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        req.user.id,
+        userId,
         name.trim(),
         keyword || null,
         location || null,
         job_type || null,
         salary_min || null,
         salary_max || null,
-        alert_frequency || 'instant'
+        alert_frequency || 'instant',
+        token
       ]
     );
 
-    // Retrieve and return the newly created search with its generated ID
     const [newSearch] = await pool.query('SELECT * FROM saved_searches WHERE id = ?', [result.insertId]);
     res.status(201).json({ success: true, data: newSearch[0] });
   } catch (error) {
@@ -79,19 +75,15 @@ const updateSavedSearch = async (req, res) => {
     const { id } = req.params;
     const { name, keyword, location, job_type, salary_min, salary_max, alert_frequency, is_active } = req.body;
 
-    // Validate name if provided - ensure it's not empty string
     if (name !== undefined && (!name || !name.trim())) {
       return res.status(400).json({ success: false, message: 'Search name cannot be empty' });
     }
 
-    // Verify that the saved search exists and belongs to the authenticated user (ownership check)
     const [existing] = await pool.query('SELECT * FROM saved_searches WHERE id = ? AND user_id = ?', [id, req.user.id]);
     if (!existing.length) {
       return res.status(404).json({ success: false, message: 'Saved search not found' });
     }
 
-    // Build dynamic update object containing only the fields that were provided
-    // This allows for partial updates without overwriting unspecified fields
     const updates = {};
     if (name !== undefined) updates.name = name.trim();
     if (keyword !== undefined) updates.keyword = keyword;
@@ -102,20 +94,16 @@ const updateSavedSearch = async (req, res) => {
     if (alert_frequency !== undefined) updates.alert_frequency = alert_frequency;
     if (is_active !== undefined) updates.is_active = is_active;
 
-    // Ensure at least one field was provided to update
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ success: false, message: 'No fields to update' });
     }
 
-    // Dynamically build SET clause for SQL UPDATE query based on provided fields
     const setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
     const values = Object.values(updates);
     values.push(id);
 
-    // Execute the dynamic UPDATE query with only provided fields
     await pool.query(`UPDATE saved_searches SET ${setClause} WHERE id = ?`, values);
 
-    // Retrieve and return the updated search record
     const [updated] = await pool.query('SELECT * FROM saved_searches WHERE id = ?', [id]);
     res.json({ success: true, data: updated[0] });
   } catch (error) {
@@ -135,13 +123,11 @@ const deleteSavedSearch = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Verify ownership - ensure the saved search exists and belongs to the authenticated user
     const [existing] = await pool.query('SELECT * FROM saved_searches WHERE id = ? AND user_id = ?', [id, req.user.id]);
     if (!existing.length) {
       return res.status(404).json({ success: false, message: 'Saved search not found' });
     }
 
-    // Delete the saved search from the database
     await pool.query('DELETE FROM saved_searches WHERE id = ?', [id]);
     res.json({ success: true, message: 'Saved search deleted' });
   } catch (error) {
@@ -150,10 +136,44 @@ const deleteSavedSearch = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Unsubscribe (deactivate) a saved search via unique token
+ * @route   GET /api/saved-searches/unsubscribe/:token
+ * @access  Public (token-based)
+ */
+const unsubscribe = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const [rows] = await pool.query(
+      'SELECT * FROM saved_searches WHERE unsubscribe_token = ?',
+      [token]
+    );
+    if (!rows.length) {
+      return res.status(404).send('<h2>Invalid unsubscribe link.</h2>');
+    }
+
+    await pool.query('UPDATE saved_searches SET is_active = 0 WHERE id = ?', [rows[0].id]);
+
+    res.send(`
+      <html>
+        <head><title>Unsubscribed</title></head>
+        <body style="font-family:sans-serif; padding:2rem; text-align:center;">
+          <h2>You've been unsubscribed</h2>
+          <p>You will no longer receive job alerts for "${rows[0].name}".</p>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('unsubscribe error:', error);
+    res.status(500).send('Something went wrong.');
+  }
+};
+
 // Export all controller functions for use in routes
 module.exports = {
   getSavedSearches,
   createSavedSearch,
   updateSavedSearch,
-  deleteSavedSearch
+  deleteSavedSearch,
+  unsubscribe
 };

@@ -52,7 +52,8 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
   - [SaveSearchModal Component]
-  - [ResumeUpload Component](#resumeupload-component)(#savesearchmodal-component)
+  - [ResumeUpload Component](#resumeupload-component)
+  - [Daily Job Alert Cron](#daily-job-alert-cron)(#savesearchmodal-component)
 - [Routing System](#routing-system)
 - [Validation Utilities](#validation-utilities)
 - [Database Schema](#database-schema)
@@ -186,6 +187,14 @@ Five responsive HTML email templates are used for different notifications. All t
 
 
 All emails are sent asynchronously; failures are logged but do not break the main functionality.
+
+### Daily Job Alert Cron Job (Backend)
+- Node‑cron job scheduled **every day at 8 AM**.
+- Scans all **active** saved searches with `alert_frequency = 'daily'`.
+- Queries jobs created since the **last run** that match each search's criteria (keyword, location, job type, salary range).
+- Builds a **digest email** with up to 20 matching jobs and sends it via the background email queue.
+- Each email includes an **unsubscribe link** (unique token per saved search) that deactivates the search permanently.
+- Stores the **last‑run timestamp** in the `cron_state` table to avoid duplicate alerts.
 
 ### Resume Upload Feature (Frontend)
 - **Drag‑and‑drop zone** on the Profile tab of the Job Seeker Dashboard.
@@ -676,6 +685,8 @@ SmartHire/
 │   │   │   └── emailQueue.js        # Bull queue & processor
 │   │   ├── services/
 │   │   │   └── emailService.js      # Template rendering & sending
+│   │   ├── cron/
+│   │   │   └── dailyJobAlert.js     # Scheduled job for daily alert emails
 │   │   └── utils/
 │   │       └── generateToken.js
 │   ├── upload/
@@ -943,12 +954,13 @@ Content-Type: application/json
 | DELETE | `/saved-jobs/:jobId` | Remove saved job | Job Seeker |
 
 **Saved Searches Routes (`/api/saved-searches`)**
-| Method | Endpoint            | Description                     | Access     |
-| ------ | ------------------- | ------------------------------- | ---------- |
-| GET    | /saved-searches     | Get all saved searches for user | Job Seeker |
-| POST   | /saved-searches     | Create a new saved search       | Job Seeker |
-| PUT    | /saved-searches/:id | Update a saved search           | Job Seeker |
-| DELETE | /saved-searches/:id | Delete a saved search           | Job Seeker |
+| Method | Endpoint                           | Description                     | Access     |
+| ------ | ---------------------------------- | ------------------------------- | ---------- |
+| GET    | /saved-searches                    | Get all saved searches for user | Job Seeker |
+| POST   | /saved-searches                    | Create a new saved search       | Job Seeker |
+| PUT    | /saved-searches/:id                | Update a saved search           | Job Seeker |
+| DELETE | /saved-searches/:id                | Delete a saved search           | Job Seeker |
+| GET    | /saved-searches/unsubscribe/:token | Deactivate search by token      | Public     |
 
 **Create saved search**
 **POST** `/api/saved-searches`
@@ -1568,6 +1580,15 @@ client/src/pages/NotFoundPage/
 
 - Modal for saving search filters with name and alert frequency
 
+## Daily Job Alert Cron Job
+**Location:** `server/src/cron/dailyJobAlert.js`
+
+- Runs every day at 08:00 using `node-cron`.
+- Fetches all active saved searches with `alert_frequency = 'daily'`.
+- Queries the `jobs` table for new matches since the last run.
+- Builds an HTML digest email and enqueues it via the Bull email queue.
+- Emails include an unsubscribe link (`/api/saved-searches/unsubscribe/:token`) that deactivates the search.
+
 ## ResumeUpload Component
 **Location:** `client/src/components/common/ResumeUpload/ResumeUpload.jsx`
 
@@ -1618,65 +1639,75 @@ client/src/pages/NotFoundPage/
 
 ###  Database Schema
 #### Tables Created
-| Table                      | Description                                   | Records |
-|---------------------------|-----------------------------------------------|---------|
-| **companies**              | Company profiles                              | 3       |
-| **users**                  | User accounts (job seekers, employers, admin) | 5       |
-| **jobs**                   | Job postings                                  | 5       |
-| **applications**           | Job applications                              | 5       |
-| **saved_jobs**             | Jobs saved by users                           | 3       |
-| **saved_searches**         | Saved job search criteria with alerts         | 3       |
-| **notifications**          | User notifications                            | 3       |
-| **job_categories**         | Job categories                                | 8       |
-| **job_types**              | Job types                                     | 6       |
-| **locations**              | Location master                               | 6       |
-| **skills**                 | Skills master                                 | 8       |
-| **job_seeker_skills**      | User skills mapping                           | 6       |
-| **job_required_skills**    | Job requirements mapping                      | 7       |
-| **resumes**                | Stored resumes                                | 2       |
-| **shortlisted_candidates** | Shortlisted candidates                        | 2       |
-| **activity_logs**          | System activity tracking                      | 4       |
-| **contact_messages**       | Contact form submissions                      | 2       |
+| Table                      | Description                                        | Records (seed) |
+| -------------------------- | -------------------------------------------------- | -------------- |
+| **roles**                  | User roles (job_seeker, employer, admin)           | 3              |
+| **companies**              | Company profiles                                   | 3              |
+| **users**                  | User accounts (all roles)                          | 5              |
+| **job_seekers**            | Extended job seeker information                    | 0              |
+| **employers**              | Extended employer information (links to companies) | 0              |
+| **job_categories**         | Job categories                                     | 8              |
+| **job_types**              | Job types (full-time, part-time, etc.)             | 6              |
+| **locations**              | Location master data                               | 7              |
+| **skills**                 | Skills master list                                 | 8              |
+| **jobs**                   | Job postings (FK to companies, categories, etc.)   | 15             |
+| **applications**           | Job applications                                   | 5              |
+| **resumes**                | Stored resume files (audit log)                    | 2              |
+| **saved_jobs**             | Jobs saved/bookmarked by job seekers               | 3              |
+| **shortlisted_candidates** | Employer-shortlisted candidates                    | 2              |
+| **notifications**          | User notifications                                 | 3              |
+| **job_seeker_skills**      | Skills associated with job seekers                 | 6              |
+| **job_required_skills**    | Skills required for each job                       | 7              |
+| **activity_logs**          | System activity audit trail                        | 4              |
+| **contact_messages**       | Contact form submissions                           | 2              |
+| **saved_searches**         | Saved job search criteria with alerts              | 3              |
+| **messages**               | Internal messaging between users                   | 0              |
+| **statistics**             | Aggregated platform statistics                     | 0              |
+| **email_logs**             | Email queue delivery logs                          | 0              |
+| **cron_state**             | Tracks last-run timestamps for scheduled jobs      | 1              |
 
 
 ## Troubleshooting
 
-| Issue                                     | Solution                                                                |
-| ----------------------------------------- | ----------------------------------------------------------------------- |
-| Navbar items squished                     | Restart Vite: `rm -rf node_modules/.vite && npm run dev`                |
-| CSS not applying                          | Check import paths in component files                                   |
-| JobCard not showing                       | Verify API response shape and component props                           |
-| Footer not sticky                         | Use `min-height: 100vh` and `flex-direction: column` in layout          |
-| Form validation not working               | Check `validators.js` import path                                       |
-| HomePage featured jobs not showing        | Ensure featured jobs exist in database                                  |
-| Search redirect not working               | Check AuthContext and route guards                                      |
-| Icons not showing                         | Add Google Fonts link in `index.html`                                   |
-| Filters not working                       | Check URL query params, backend filters, and state                      |
-| Mobile filter drawer not showing          | Verify CSS media queries                                                |
-| Apply button not working                  | Check authentication status and user role                               |
-| Similar jobs not showing                  | Verify backend query for similar jobs                                   |
-| Company search not working                | Ensure companies endpoint returns valid data                            |
-| Company cards not showing                 | Check `CompanyCard` component import                                    |
-| Company details not showing               | Verify company ID in URL and API response                               |
-| Database connection error                 | Start MySQL and verify `.env` configuration                             |
-| Protected route redirecting               | Check AuthContext and token storage                                     |
-| 404 page not showing                      | Ensure `*` route is last in Routes                                      |
-| Login not working                         | Verify correct test credentials                                         |
-| Toast notifications not showing           | Ensure `react-hot-toast` is installed and `<Toaster />` is in `App.jsx` |
-| 500 Internal Server Error                 | Check server logs and database tables                                   |
-| JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (min 32 characters)                          |
-| Rate limit exceeded                       | Wait 15 minutes or restart server                                       |
-| Apply button stays enabled after applying | Verify application status from backend                                  |
-| Saved jobs not appearing in dashboard     | Verify `saved_jobs` API and response                                    |
-| Charts not loading                        | Check Recharts and `/api/admin/stats/overview` endpoint                 |
-| Email not sending                         | Check SMTP config; run `node scripts/test-email.js`                     |
-| Save search modal not opening             | Check `SaveSearchModal` import and state handling                       |
-| Saved search limit not enforced           | Add backend validation (max 10 per user)                                |
-| 429 Too Many Requests (email)             | Wait 60 seconds before retrying                                         |
-| Resume upload not appearing               | Ensure `ResumeUpload` component is imported and `resumeUrl` is set      |
-| Drag-and-drop not working                 | Verify file type/size constraints and event handlers                    |
-| Progress bar not showing                  | Check `USE_MOCK=true` flag or API integration                           |
-| Delete resume fails                       | Verify backend endpoint or test with mock enabled                       |
+| Issue                                     | Solution                                                                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Navbar items squished                     | Restart Vite: `rm -rf node_modules/.vite && npm run dev`                                                      |
+| CSS not applying                          | Check import paths in component files                                                                         |
+| JobCard not showing                       | Verify API response shape and component props                                                                 |
+| Footer not sticky                         | Use `min-height: 100vh` and `flex-direction: column` in layout                                                |
+| Form validation not working               | Check `validators.js` import path                                                                             |
+| HomePage featured jobs not showing        | Ensure featured jobs exist in database                                                                        |
+| Search redirect not working               | Check AuthContext and route guards                                                                            |
+| Icons not showing                         | Add Google Fonts link in `index.html`                                                                         |
+| Filters not working                       | Check URL query params, backend filters, and state                                                            |
+| Mobile filter drawer not showing          | Verify CSS media queries                                                                                      |
+| Apply button not working                  | Check authentication status and user role                                                                     |
+| Similar jobs not showing                  | Verify backend query for similar jobs                                                                         |
+| Company search not working                | Ensure companies endpoint returns valid data                                                                  |
+| Company cards not showing                 | Check `CompanyCard` component import                                                                          |
+| Company details not showing               | Verify company ID in URL and API response                                                                     |
+| Database connection error                 | Start MySQL and verify `.env` configuration                                                                   |
+| Protected route redirecting               | Check AuthContext and token storage                                                                           |
+| 404 page not showing                      | Ensure `*` route is last in Routes                                                                            |
+| Login not working                         | Verify correct test credentials                                                                               |
+| Toast notifications not showing           | Ensure `react-hot-toast` is installed and `<Toaster />` is in `App.jsx`                                       |
+| 500 Internal Server Error                 | Check server logs and database tables                                                                         |
+| JWT_SECRET missing                        | Add `JWT_SECRET` to `.env` (min 32 characters)                                                                |
+| Rate limit exceeded                       | Wait 15 minutes or restart server                                                                             |
+| Apply button stays enabled after applying | Verify application status from backend                                                                        |
+| Saved jobs not appearing in dashboard     | Verify `saved_jobs` API and response                                                                          |
+| Charts not loading                        | Check Recharts and `/api/admin/stats/overview` endpoint                                                       |
+| Email not sending                         | Check SMTP config; run `node scripts/test-email.js`                                                           |
+| Save search modal not opening             | Check `SaveSearchModal` import and state handling                                                             |
+| Saved search limit not enforced           | Add backend validation (max 10 per user)                                                                      |
+| 429 Too Many Requests (email)             | Wait 60 seconds before retrying                                                                               |
+| Resume upload not appearing               | Ensure `ResumeUpload` component is imported and `resumeUrl` is set                                            |
+| Drag-and-drop not working                 | Verify file type/size constraints and event handlers                                                          |
+| Progress bar not showing                  | Check `USE_MOCK=true` flag or API integration                                                                 |
+| Delete resume fails                       | Verify backend endpoint or test with mock enabled                                                             |
+| Cron job not running                      | Ensure `startDailyJobAlert()` is called in `server.js` and Redis is online                                    |
+| Unsubscribe link shows "Invalid"          | Run `UPDATE saved_searches SET unsubscribe_token = UUID() WHERE unsubscribe_token IS NULL` to backfill tokens |
+| Daily alert email not received            | Check `cron_state.last_run` timestamp; ensure a matching job exists and `alert_frequency = 'daily'`           |
 
 ## Contributing
 **Create a new branch:**
@@ -1697,7 +1728,6 @@ client/src/pages/NotFoundPage/
 - Email verification
 - Password reset functionality
 - Chat between employers and job seekers
-- Resume upload functionality
 - Job application tracking with timeline
 - Dark mode support
 - AI-powered job recommendations
@@ -1737,6 +1767,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Background email queue (Bull + Redis) – all emails now sent asynchronously; `email_logs` audit table; standalone worker process
 - Email rate limiting (10/60s per user) with 429 rejection
 - Automatic retry with exponential backoff (1min, 5min, 15min) and admin alert after final failure
+- Daily job alert cron job (node-cron) – scans active saved searches at 8 AM, sends digest emails for new matching jobs with unsubscribe links
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard, Toast, Footer, Navbar, ResumeUpload
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data

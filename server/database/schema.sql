@@ -1,3 +1,12 @@
+CREATE DATABASE IF NOT EXISTS smart_hire;
+USE smart_hire;
+
+-- Roles table
+CREATE TABLE IF NOT EXISTS roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
 -- 1. COMPANIES TABLE
 CREATE TABLE IF NOT EXISTS companies (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -21,6 +30,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('job_seeker', 'employer', 'admin') DEFAULT 'job_seeker',
     company_id INT NULL,
+    resume_url VARCHAR(500) NULL,
     is_active BOOLEAN DEFAULT TRUE,
     last_login TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -269,6 +279,8 @@ CREATE TABLE IF NOT EXISTS saved_searches (
   salary_max DECIMAL(10,2) DEFAULT NULL,
   is_active TINYINT(1) DEFAULT 1,
   alert_frequency ENUM('daily','weekly','instant') DEFAULT 'instant',
+  unsubscribe_token VARCHAR(36) NULL UNIQUE,
+  last_alert_at DATETIME NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -314,6 +326,13 @@ CREATE TABLE email_logs (
   INDEX idx_job_id (job_id),
   INDEX idx_status (status),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 23. CRON STATE TABLE
+CREATE TABLE IF NOT EXISTS cron_state (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_name VARCHAR(50) NOT NULL UNIQUE,
+    last_run DATETIME NOT NULL
 );
 
 SELECT 'Database schema created successfully' AS Status;

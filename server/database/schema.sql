@@ -335,5 +335,18 @@ CREATE TABLE IF NOT EXISTS cron_state (
     last_run DATETIME NOT NULL
 );
 
+-- 24. JOB REPORTS TABLE
+CREATE TABLE IF NOT EXISTS job_reports (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_id INT NOT NULL,
+    user_id INT NOT NULL,
+    reason ENUM('spam','fraud','inappropriate','duplicate','other') NOT NULL,
+    description TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_report (job_id, user_id)
+);
+
 SELECT 'Database schema created successfully' AS Status;
 SELECT COUNT(*) AS total_tables FROM information_schema.tables WHERE table_schema = 'smart_hire';

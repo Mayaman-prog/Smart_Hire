@@ -29,6 +29,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [Saved Searches Routes](#saved-searches-routes)
   - [Company Routes](#company-routes)
   - [Admin Routes](#admin-routes)
+  - [Reports Routes](#reports-routes)
 - [Components Implemented](#components-implemented)
   - [Navbar Component](#navbar-component)
   - [Footer Component](#footer-component)
@@ -113,6 +114,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - CORS configured for frontend
 - Helmet.js for security headers
 - Morgan for request logging
+- Job reporting with Redis rate limiting (5 reports per user per 24h)
 
 ### Saved Searches Feature
 - Job seekers can create, read, update, and delete saved search criteria.
@@ -130,7 +132,6 @@ Email sending no longer blocks API responses – the server just enqueues a job 
 | Worker       | `workers/emailWorker.js` | Standalone Node.js process that picks up jobs and sends emails |
 | Job logging  | `email_logs` table       | Stores job lifecycle (queued, processing, sent, failed)        |
 | Queue helper | `addEmailJob(data)`      | Enqueues a job and inserts an initial log entry                |
-
 
 **Key benefits:**
 - API endpoints return instantly – email delivery does not delay the response.
@@ -699,7 +700,8 @@ SmartHire/
 │   │   ├── test-email.js          # Test email script
 │   │   ├── test-email-templates.js
 │   │   ├── test-saved-searches.js
-│   │   └── test-email-queue-response-time.js
+│   │   ├── test-email-queue-response-time.js
+│   │   └── test-reports.js         # Test script for report endpoint
 │   ├── .env
 │   ├── .gitignore
 │   ├── package.json
@@ -991,6 +993,26 @@ Content-Type: application/json
 | DELETE | `/admin/jobs/:id`         | Delete job                | Admin  |
 | GET    | `/admin/companies`        | Fetch all companies       | Admin  |
 | GET    | `/admin/stats/overview`   | Fetch dashboard analytics | Admin  |
+
+**Reports Routes (/api/reports)**
+| Method  | Endpoint   | Description               | Access         |
+| ------- | ---------- | ------------------------- | -------------- |
+| POST    | `/reports` | Submit a report for a job | Authenticated  |
+
+**Create report**
+POST /api/reports
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "jobId": 22,
+  "reason": "spam",
+  "description": "This job looks suspicious."
+}
+
+**Valid reasons:** `spam, fraud, inappropriate, duplicate, other`
+**Rate limit:** 5 reports per user per 24 hours
+**Duplicate check:** One report per user per job
 
 ## Components Implemented
 
@@ -1665,6 +1687,7 @@ client/src/pages/NotFoundPage/
 | **statistics**             | Aggregated platform statistics                     | 0              |
 | **email_logs**             | Email queue delivery logs                          | 0              |
 | **cron_state**             | Tracks last-run timestamps for scheduled jobs      | 1              |
+| **job_reports**            | User reports on jobs (spam, fraud, etc.)           | 0              |
 
 
 ## Troubleshooting
@@ -1708,6 +1731,8 @@ client/src/pages/NotFoundPage/
 | Cron job not running                      | Ensure `startDailyJobAlert()` is called in `server.js` and Redis is online                                    |
 | Unsubscribe link shows "Invalid"          | Run `UPDATE saved_searches SET unsubscribe_token = UUID() WHERE unsubscribe_token IS NULL` to backfill tokens |
 | Daily alert email not received            | Check `cron_state.last_run` timestamp; ensure a matching job exists and `alert_frequency = 'daily'`           |
+| Report not submitting                     | Check that `jobId` exists, user is logged in, and Redis is running                                            |
+| Rate limit hit on reports                 | Wait 24 hours or run `redis-cli DEL report_limit:<user_id>` to reset                                          |
 
 ## Contributing
 **Create a new branch:**
@@ -1768,6 +1793,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Email rate limiting (10/60s per user) with 429 rejection
 - Automatic retry with exponential backoff (1min, 5min, 15min) and admin alert after final failure
 - Daily job alert cron job (node-cron) – scans active saved searches at 8 AM, sends digest emails for new matching jobs with unsubscribe links
+- Job reports table and API (POST /api/reports) with Redis rate limiting and duplicate detection
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard, Toast, Footer, Navbar, ResumeUpload
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data

@@ -141,11 +141,14 @@ INSERT INTO contact_messages (name, email, subject, message, status) VALUES
 ('John Seeker', 'john@example.com', 'Question about application', 'I applied for a job but have not heard back.', 'unread'),
 ('TechCorp HR', 'hr@techcorp.com', 'Partnership Inquiry', 'We would like to partner with you.', 'read');
 
--- 17. INSERT SAVED SEARCHES (matches the new saved_searches table)
-INSERT INTO saved_searches (user_id, name, keyword, location, job_type, salary_min, salary_max, alert_frequency) VALUES
-(1, 'Remote React', 'React', 'Remote', 'full-time', 80000, 130000, 'daily'),
-(1, 'Senior Python', 'Python', 'London', 'full-time', 90000, 150000, 'instant'),
-(2, 'Data Analyst', 'SQL', 'New York', 'full-time', 70000, 95000, 'weekly');
+-- 17. INSERT SAVED SEARCHES (updated with tokens)
+INSERT INTO saved_searches (user_id, name, keyword, location, job_type, salary_min, salary_max, alert_frequency, unsubscribe_token) VALUES
+(1, 'Remote React', 'React', 'Remote', 'full-time', 80000, 130000, 'daily', UUID()),
+(1, 'Senior Python', 'Python', 'London', 'full-time', 90000, 150000, 'instant', UUID()),
+(2, 'Data Analyst', 'SQL', 'New York', 'full-time', 70000, 95000, 'weekly', UUID());
+
+-- Insert default cron state
+INSERT IGNORE INTO cron_state (job_name, last_run) VALUES ('daily_job_alert', NOW());
 
 -- Verify all data
 SELECT 'Companies' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM companies;

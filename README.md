@@ -51,7 +51,8 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [ProtectedRoute Component](#protectedroute-component)
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
-  - [SaveSearchModal Component](#savesearchmodal-component)
+  - [SaveSearchModal Component]
+  - [ResumeUpload Component](#resumeupload-component)(#savesearchmodal-component)
 - [Routing System](#routing-system)
 - [Validation Utilities](#validation-utilities)
 - [Database Schema](#database-schema)
@@ -99,6 +100,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Success and error toast notifications
 - Social login buttons (Google & LinkedIn - UI ready)
 - Save this search button on jobs listing page to store current search filters with a name and alert frequency
+- Drag-and-drop resume upload on profile with progress indicator, file validation, and delete functionality
 
 ### Backend Features
 - JWT authentication (register, login, profile)
@@ -185,9 +187,15 @@ Five responsive HTML email templates are used for different notifications. All t
 
 All emails are sent asynchronously; failures are logged but do not break the main functionality.
 
-### Component Features
+### Resume Upload Feature (Frontend)
+- **Drag‑and‑drop zone** on the Profile tab of the Job Seeker Dashboard.
+- Accepts `.pdf`, `.doc`, `.docx` files with a maximum size of **5 MB**.
+- Client‑side validation with toast error messages.
+- Real‑time progress bar during upload simulation (ready for backend integration).
+- **Delete Resume** button that removes the file and clears the URL.
+- Dynamic **Profile Strength** update when a resume is uploaded or deleted.
 
-#### Navbar
+### Navbar
 
 **Features:**
 - Role-based navigation (Job Seeker, Employer, Admin, Guest)
@@ -196,7 +204,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Mobile hamburger menu with slide-out drawer
 - CSS modules styling with responsive breakpoints
 
-#### Footer
+### Footer
 
 **Features:**
 - Responsive layout (4 columns desktop, 2 columns tablet, 1 column mobile)
@@ -208,7 +216,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Sticky to bottom using flexbox
 - Dark theme background with white text
 
-#### HomePage
+### HomePage
 
 **Features:**
 - Hero section with gradient background and wave effect
@@ -223,7 +231,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - CSS variables for consistent theming
 - Google Material Icons throughout
 
-#### JobsPage
+### JobsPage
 
 **Features:**
 - Complete job listing page with search and filters
@@ -245,7 +253,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Backend-driven filtering, sorting, and pagination
 - Save this search" button next to the search bar that opens a modal to save current filters (name pre‑filled with date, frequency Daily/Weekly), calls `POST /api/saved-searches`, and shows success/error toasts
 
-#### JobDetailsPage
+### JobDetailsPage
 
 **Features:**
 - Dynamic job details fetching using URL parameters (useParams)
@@ -268,7 +276,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - CSS variables for consistent theming
 - Google Material Icons throughout
 
-#### CompaniesPage
+### CompaniesPage
 
 **Features:**
 - Company directory page displaying all registered companies
@@ -285,7 +293,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - CSS variables for consistent theming
 - Google Material Icons throughout
 
-#### CompaniesDetailsPage
+### CompaniesDetailsPage
 
 **Features:**
 - Dynamic company details using useParams
@@ -299,7 +307,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Map placeholder
 - Loading skeleton and 404 error state
 
-#### JobCard
+### JobCard
 
 **Features:**
 - Displays job title, company name, and company logo (initials fallback)
@@ -311,7 +319,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Click navigation to job details page (`/jobs/${id}`)
 - Hover effects: scale transform (1.02), shadow increase, border color change
 
-#### CompanyCard
+### CompanyCard
 
 **Features:**
 - Company logo with initials fallback
@@ -320,7 +328,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Hover effects: scale transform (1.02), shadow increase, border color change
 - Click navigation to company details page (`/companies/${id}`)
 
-#### Button
+### Button
 
 **Features:**
 - 5 variants: primary, secondary, danger, outline, ghost
@@ -329,7 +337,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Full width option
 - Smooth transitions and focus rings
 
-#### Input
+### Input
 
 **Features:**
 - Supported types: text, email, password, number, textarea, select
@@ -357,7 +365,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - "Show less" button to collapse
 - Responsive wrapping
 
-#### LoginPage
+### LoginPage
 
 **Features:**
 - Email field with validation (required, valid email format)
@@ -378,7 +386,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Gradient background with animation
 - Terms of Service and Privacy Policy links
 
-#### RegisterPage
+### RegisterPage
 
 **Features:**
 - Full name field with validation (required, min 2 characters, letters/spaces/hyphens/apostrophes only)
@@ -399,7 +407,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Gradient background with animation
 - Terms of Service and Privacy Policy links
 
-#### JobSeekerDashboard
+### JobSeekerDashboard
 
 **Features:**
 - Sidebar navigation with tabs: Overview, Applied Jobs, Saved Jobs, Profile
@@ -415,12 +423,12 @@ All emails are sent asynchronously; failures are logged but do not break the mai
   - Display saved jobs with Apply Now and Remove buttons
 - Profile tab:
   - Edit profile form (name, email, password change with current password verification)
-  - Resume upload (PDF, DOC, DOCX)
+  - Drag‑and‑drop resume upload with real‑time progress bar, client‑side validation (PDF, DOC, DOCX, max 5 MB), delete functionality, and dynamic profile strength update
 - Fully integrated with backend APIs for applications, saved jobs, profile updates, recommended jobs, and notifications
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
 
-#### EmployerDashboard
+### EmployerDashboard
 
 **Features:**
 - Sidebar navigation with tabs: Overview, Post a Job, My Jobs, Applicants
@@ -448,7 +456,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
 
-#### AdminDashboard
+### AdminDashboard
 
 **Features:**
 - Sidebar navigation with tabs: Overview, User Management, Company Verifications, Job Moderation, Settings
@@ -560,6 +568,9 @@ SmartHire/
 │   │   │   │   ├── Toast
 │   │   │   │   │   ├── Toast.jsx
 │   │   │   │   │   └── Toast.css
+│   │   │   │   ├── ResumeUpload/
+│   │   │   │   │   ├── ResumeUpload.jsx
+│   │   │   │   │   └── ResumeUpload.css
 │   │   │   │   └── ScrollToTop.jsx
 │   │   │   ├── jobs/
 │   │   │   │   └── JobCard/
@@ -1552,10 +1563,27 @@ client/src/pages/NotFoundPage/
 
 **Purpose:** 404 page displayed when user navigates to non-existent route.
 
-## Routing System
+## SaveSearchModal Component
+**Location:** `client/src/components/SaveSearchModal/SaveSearchModal.jsx`
+
+- Modal for saving search filters with name and alert frequency
+
+## ResumeUpload Component
+**Location:** `client/src/components/common/ResumeUpload/ResumeUpload.jsx`
+
+- Drag‑and‑drop zone and click‑to‑browse file input
+- Client‑side validation: file type (.pdf, .doc, .docx) and size (max 5 MB) with toast error messages
+- Real‑time upload progress bar (simulated until backend integration)
+- Success/error toast notifications via the existing toast system
+- Delete Resume button with confirmation dialog
+- Keyboard accessible (Enter/Space on dropzone triggers file picker)
+- Responsive design with media queries for mobile, tablet, and desktop
+- Seamless integration with JobSeekerDashboard Profile tab and dynamic profile strength update
+
+### Routing System
 **Location:** `client/src/App.jsx`
 
-### Routes Configured:
+#### Routes Configured:
 | Route                   | Component          | Access          |
 | ----------------------- | ------------------ | --------------- |
 | **/**                   | HomePage           | Public          |
@@ -1575,7 +1603,6 @@ client/src/pages/NotFoundPage/
 - Scroll restoration on route change
 - 404 page for unknown routes
 - Browser back/forward button support
-
 
 ## Validation Utilities
 **Location:** `client/src/utils/validators.js`
@@ -1619,11 +1646,11 @@ client/src/pages/NotFoundPage/
 | Navbar items squished                     | Restart Vite: `rm -rf node_modules/.vite && npm run dev`                |
 | CSS not applying                          | Check import paths in component files                                   |
 | JobCard not showing                       | Verify API response shape and component props                           |
-| Footer not sticky                         | Ensure layout uses `min-height: 100vh` and `flex-direction: column`     |
+| Footer not sticky                         | Use `min-height: 100vh` and `flex-direction: column` in layout          |
 | Form validation not working               | Check `validators.js` import path                                       |
 | HomePage featured jobs not showing        | Ensure featured jobs exist in database                                  |
 | Search redirect not working               | Check AuthContext and route guards                                      |
-| Icons not showing                         | Ensure Google Fonts link is added in `index.html`                       |
+| Icons not showing                         | Add Google Fonts link in `index.html`                                   |
 | Filters not working                       | Check URL query params, backend filters, and state                      |
 | Mobile filter drawer not showing          | Verify CSS media queries                                                |
 | Apply button not working                  | Check authentication status and user role                               |
@@ -1631,7 +1658,7 @@ client/src/pages/NotFoundPage/
 | Company search not working                | Ensure companies endpoint returns valid data                            |
 | Company cards not showing                 | Check `CompanyCard` component import                                    |
 | Company details not showing               | Verify company ID in URL and API response                               |
-| Database connection error                 | Start MySQL and check `.env` config                                     |
+| Database connection error                 | Start MySQL and verify `.env` configuration                             |
 | Protected route redirecting               | Check AuthContext and token storage                                     |
 | 404 page not showing                      | Ensure `*` route is last in Routes                                      |
 | Login not working                         | Verify correct test credentials                                         |
@@ -1643,10 +1670,13 @@ client/src/pages/NotFoundPage/
 | Saved jobs not appearing in dashboard     | Verify `saved_jobs` API and response                                    |
 | Charts not loading                        | Check Recharts and `/api/admin/stats/overview` endpoint                 |
 | Email not sending                         | Check SMTP config; run `node scripts/test-email.js`                     |
-| Email configuration error                 | Verify SMTP credentials in `.env`                                       |
 | Save search modal not opening             | Check `SaveSearchModal` import and state handling                       |
 | Saved search limit not enforced           | Add backend validation (max 10 per user)                                |
 | 429 Too Many Requests (email)             | Wait 60 seconds before retrying                                         |
+| Resume upload not appearing               | Ensure `ResumeUpload` component is imported and `resumeUrl` is set      |
+| Drag-and-drop not working                 | Verify file type/size constraints and event handlers                    |
+| Progress bar not showing                  | Check `USE_MOCK=true` flag or API integration                           |
+| Delete resume fails                       | Verify backend endpoint or test with mock enabled                       |
 
 ## Contributing
 **Create a new branch:**
@@ -1698,7 +1728,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Complete Login Page with email/password validation, remember me, and role-based redirects
 - Complete Register Page with full name, email, password, confirm password, role dropdown, conditional company name, and validation
 - Complete Backend JWT Authentication (register, login, profile) with bcrypt, express-validator, and rate limiting
-- Complete Job Seeker Dashboard with overview, applied jobs, saved jobs, profile edit, resume upload, and notifications using live backend APIs
+- Complete Job Seeker Dashboard with overview, applied jobs, saved jobs, profile edit, drag‑and‑drop resume upload with progress bar and delete, and notifications using live backend APIs
 - Complete Employer Dashboard with overview, job creation, edit/delete, activate/deactivate, and applicant management using live backend APIs
 - Complete Admin Dashboard with users, jobs, companies, filters, pagination, and analytics charts using live backend APIs
 - Email service integration – automated welcome emails and application status updates using Nodemailer + Resend
@@ -1707,7 +1737,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Background email queue (Bull + Redis) – all emails now sent asynchronously; `email_logs` audit table; standalone worker process
 - Email rate limiting (10/60s per user) with 429 rejection
 - Automatic retry with exponential backoff (1min, 5min, 15min) and admin alert after final failure
-- Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard
+- Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard, Toast, Footer, Navbar, ResumeUpload
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
 - Authentication context with JWT structure

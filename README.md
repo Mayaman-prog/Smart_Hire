@@ -189,25 +189,21 @@ Five responsive HTML email templates are used for different notifications. All t
 
 All emails are sent asynchronously; failures are logged but do not break the main functionality.
 
-### Daily Job Alert Cron Job
+### Daily Job Alert Cron Job (Backend)
+- Node‑cron job scheduled **every day at 8 AM**.
+- Scans all **active** saved searches with `alert_frequency = 'daily'`.
+- Queries jobs created since the **last run** that match each search's criteria (keyword, location, job type, salary range).
+- Builds a **digest email** with up to 20 matching jobs and sends it via the background email queue.
+- Each email includes an **unsubscribe link** (unique token per saved search) that deactivates the search permanently.
+- Stores the **last‑run timestamp** in the `cron_state` table to avoid duplicate alerts.
 
-**Features:**
-- Node‑cron job scheduled every day at 8 AM.
-- Scans all active saved searches with alert_frequency = 'daily'.
-- Queries jobs created since the last run that match each search's criteria (keyword, location, job type, salary range).
-- Builds a digest email with up to 20 matching jobs and sends it via the background email queue.
-- Each email includes an unsubscribe link (unique token per saved search) that deactivates the search permanently.
-- Stores the *ast‑run timestamp in the cron_state table to avoid duplicate alerts.
-
-### Resume Upload 
-
-**Features:**
-- Drag‑and‑drop zone on the Profile tab of the Job Seeker Dashboard.
-- Accepts .pdf, .doc, .docx files with a maximum size of 5 MB.
+### Resume Upload Feature (Frontend)
+- **Drag‑and‑drop zone** on the Profile tab of the Job Seeker Dashboard.
+- Accepts `.pdf`, `.doc`, `.docx` files with a maximum size of **5 MB**.
 - Client‑side validation with toast error messages.
 - Real‑time progress bar during upload simulation (ready for backend integration).
-- Delete Resume button that removes the file and clears the URL.
-- Dynamic Profile Strength update when a resume is uploaded or deleted.
+- **Delete Resume** button that removes the file and clears the URL.
+- Dynamic **Profile Strength** update when a resume is uploaded or deleted.
 
 ### Navbar
 
@@ -283,7 +279,6 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Hide apply button if employer is viewing their own job
 - Save Job button with heart icon toggle
 - Share button that copies current job URL to clipboard with toast notification
-- Report Job button (flag icon) – opens a modal to report the job (Spam, Fraud, Inappropriate, Duplicate, Other). Rate‑limited to 5 reports per user per 24 h; duplicates prevented.
 - Similar Jobs section displaying related jobs based on job type
 - Loading skeleton animation while fetching data
 - Error state with 404 page for invalid job IDs

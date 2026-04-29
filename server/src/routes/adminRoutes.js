@@ -1,6 +1,5 @@
 const express = require('express');
 const { protect } = require('../middleware/authMiddleware');
-const { getAdminStats } = require('../controllers/adminController');
 const {
   getAllUsers,
   banUser,
@@ -13,7 +12,16 @@ const {
   featureJob,
   unfeatureJob,
   deleteJob,
+  getAdminStats,
 } = require('../controllers/adminController');
+
+// Analytics controller
+const {
+  getOverview,
+  getTimeline,
+  getPopular,
+  getRetention,
+} = require('../controllers/analyticsController');
 
 const router = express.Router();
 
@@ -43,7 +51,10 @@ router.put('/jobs/:id/feature', featureJob);
 router.put('/jobs/:id/unfeature', unfeatureJob);
 router.delete('/jobs/:id', deleteJob);
 
-// Stats
-router.get('/stats/overview', getAdminStats);
+// Analytics
+router.get('/analytics/overview',   getOverview);
+router.get('/analytics/timeline',   getTimeline);
+router.get('/analytics/popular',    getPopular);
+router.get('/analytics/retention',  getRetention);
 
 module.exports = router;

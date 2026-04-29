@@ -115,6 +115,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Helmet.js for security headers
 - Morgan for request logging
 - Job reporting with Redis rate limiting (5 reports per user per 24h)
+- Admin analytics API endpoints (overview, timeline, popular, retention)
 
 ### Saved Searches Feature
 - Job seekers can create, read, update, and delete saved search criteria.
@@ -706,7 +707,8 @@ SmartHire/
 │   │   ├── test-email-templates.js
 │   │   ├── test-saved-searches.js
 │   │   ├── test-email-queue-response-time.js
-│   │   └── test-reports.js         # Test script for report endpoint
+│   │   ├── test-reports.js
+│   │   └── test-analytics.js
 │   ├── .env
 │   ├── .gitignore
 │   ├── package.json
@@ -990,14 +992,26 @@ Content-Type: application/json
 | GET    | `/companies/:id` | Fetch single company details | Public |
 
 **Admin Routes (/api/admin)**
-| Method | Endpoint                  | Description               | Access |
-| ------ | ------------------------- | ------------------------- | ------ |
-| GET    | `/admin/users`            | Fetch all users           | Admin  |
-| PATCH  | `/admin/users/:id/toggle` | Toggle user active status | Admin  |
-| GET    | `/admin/jobs`             | Fetch all jobs            | Admin  |
-| DELETE | `/admin/jobs/:id`         | Delete job                | Admin  |
-| GET    | `/admin/companies`        | Fetch all companies       | Admin  |
-| GET    | `/admin/stats/overview`   | Fetch dashboard analytics | Admin  |
+| Method | Endpoint                     | Description                                          | Access |
+| ------ | ---------------------------- | ---------------------------------------------------- | ------ |
+| GET    | `/admin/users`               | Fetch all users                                      | Admin  |
+| PATCH  | `/admin/users/:id/toggle`    | Toggle user active status                            | Admin  |
+| GET    | `/admin/jobs`                | Fetch all jobs                                       | Admin  |
+| DELETE | `/admin/jobs/:id`            | Delete job                                           | Admin  |
+| GET    | `/admin/companies`           | Fetch all companies                                  | Admin  |
+| GET    | `/admin/stats/overview`      | Fetch dashboard analytics                            | Admin  |
+| GET    | `/admin/analytics/overview`  | Fetch overview totals (users, jobs, etc.)            | Admin  |
+| GET    | `/admin/analytics/timeline`  | Daily counts (users, jobs, applications) last N days | Admin  |
+| GET    | `/admin/analytics/popular`   | Top job types, locations, categories                 | Admin  |
+| GET    | `/admin/analytics/retention` | Retention data and weekly cohorts                    | Admin  |
+
+#### Analytics Endpoints (Admin‑only)
+These endpoints are part of the admin routes (`/api/admin/analytics/…`). They require a valid admin JWT token.
+
+- **overview** – returns total users, jobs, active jobs, applications, companies, and verified companies.
+- **timeline** – accepts `?days=7` (or any number) and returns daily new users, jobs, and applications.
+- **popular** – returns top 10 active job types, locations, and categories.
+- **retention** – returns active/inactive users and weekly new‑user cohorts for the last 12 weeks.
 
 **Reports Routes (/api/reports)**
 | Method  | Endpoint   | Description               | Access         |
@@ -1796,8 +1810,10 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Saved searches CRUD API with JWT‑protected endpoints, integrated with job alert system
 - Background email queue (Bull + Redis) – all emails now sent asynchronously; `email_logs` audit table; standalone worker process
 - Email rate limiting (10/60s per user) with 429 rejection
+- Admin analytics API endpoints (overview, timeline, popular, retention) with efficient SQL aggregation
 - Automatic retry with exponential backoff (1min, 5min, 15min) and admin alert after final failure
 - Daily job alert cron job (node-cron) – scans active saved searches at 8 AM, sends digest emails for new matching jobs with unsubscribe links
+- Admin analytics API endpoints (overview, timeline, popular, retention) with efficient SQL aggregation
 - Job reports table and API (POST /api/reports) with Redis rate limiting and duplicate detection
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard, Toast, Footer, Navbar, ResumeUpload
 - Complete routing system with protected routes and 404 page

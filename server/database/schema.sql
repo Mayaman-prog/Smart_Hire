@@ -337,15 +337,19 @@ CREATE TABLE IF NOT EXISTS cron_state (
 
 -- 24. JOB REPORTS TABLE
 CREATE TABLE IF NOT EXISTS job_reports (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    job_id INT NOT NULL,
-    user_id INT NOT NULL,
-    reason ENUM('spam','fraud','inappropriate','duplicate','other') NOT NULL,
-    description TEXT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_report (job_id, user_id)
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  reporter_id INT NOT NULL,
+  job_id INT NOT NULL,
+  reason ENUM('spam', 'fraud', 'inappropriate', 'duplicate', 'other') NOT NULL,
+  description TEXT,
+  status ENUM('pending', 'approved', 'removed', 'dismissed') DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  resolved_at TIMESTAMP NULL,
+  resolved_by INT NULL,
+  resolution_notes TEXT,
+  FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+  FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 SELECT 'Database schema created successfully' AS Status;

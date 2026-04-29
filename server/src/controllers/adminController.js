@@ -1,7 +1,6 @@
 const { pool } = require('../config/database');
 
 // USER MANAGEMENT
-
 const getAllUsers = async (req, res) => {
   try {
     const [users] = await pool.query(`
@@ -49,8 +48,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// =COMPANY MANAGEMENT
-
+// COMPANY MANAGEMENT
 const getAllCompanies = async (req, res) => {
   try {
     const [companies] = await pool.query(`
@@ -92,7 +90,6 @@ const deleteCompany = async (req, res) => {
 };
 
 // JOB MODERATION
-
 const getAllJobs = async (req, res) => {
   try {
     const [jobs] = await pool.query(`
@@ -175,6 +172,128 @@ const getAdminStats = async (req, res) => {
       success: false,
       message: 'Failed to fetch admin stats'
     });
+  }
+};
+
+/**
+ * GET /admin/analytics/kpi
+ * Returns KPI cards: total users, active jobs, applications, pending reports
+ * with percentage change vs previous week
+ */
+const getKPIs = async (req, res) => {
+  try {
+    // Current totals
+    const [[current]] = await pool.query(`
+      SELECT
+        (SELECT COUNT(*) FROM users WHERE role = 'jobseeker') AS totalUsers,
+        (SELECT COUNT(*) FROM jobs WHERE status = 'active') AS totalJobs,
+        (SELECT COUNT(*) FROM applications) AS totalApps,
+        (SELECT COUNT(*) FROM job_reports WHERE status = 'pending') AS totalReports
+    `);
+
+    // Totals from 7 days ago (anything created before 7 days ago)
+    const [[previous]] = await pool.query(`
+      SELECT
+        (SELECT COUNT(*) FROM users WHERE role = 'jobseeker' AND created_at < NOW() - INTERVAL 7 DAY) AS prevUsers,
+        (SELECT COUNT(*) FROM jobs WHERE status = 'active' AND created_at < NOW() - INTERVAL 7 DAY) AS prevJobs,
+        (SELECT COUNT(*) FROM applications WHERE created_at < NOW() - INTERVAL 7 DAY) AS prevApps,
+        (SELECT COUNT(*) FROM job_reports WHERE status = 'pending' AND created_at < NOW() - INTERVAL 7 DAY) AS prevReports
+    `);
+
+    const kpi = [
+      {
+        label: 'Total Users',
+        value: current.totalUsers,
+        change: previous.prevUsers > 0 
+          ? ((current.totalUsers - previous.prevUsers) / previous.prevUsers * 100).toFixed(1)
+          : 0
+      },
+      {
+        label: 'Active Jobs',
+        value: current.totalJobs,
+        change: previous.prevJobs > 0 
+          ? ((current.totalJobs - previous.prevJobs) / previous.prevJobs * 100).toFixed(1)
+          : 0
+      },
+      {
+        label: 'Applications',
+        value: current.totalApps,
+        change: previous.prevApps > 0 
+          ? ((current.totalApps - previous.prevApps) / previous.prevApps * 100).toFixed(1)
+          : 0
+      },
+      {
+        label: 'Pending Reports',
+        value: current.totalReports,
+        change: previous.prevReports > 0 
+          ? ((current.totalReports - previous.prevReports) / previous.prevReports * 100).toFixed(1)
+          : 0
+      }
+    ];
+
+    res.json({ success: true, data: { kpi } });
+  } catch (error) {
+    console.error('KPI error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch KPI data' });
+  }
+};
+
+/** 
+ * GET /admin/analytics/timeline?days=30
+ * Returns daily counts for users and jobs over the last N days
+ */
+const getTimeline = async (req, res) => {
+  const days = parseInt(req.query.days) || 7;
+  try {
+    const [rows] = await pool.query(`
+      SELECT
+        DATE(created_at) as date,
+        COUNT(CASE WHEN role = 'jobseeker' THEN 1 END) as users,
+        COUNT(CASE WHEN table_name = 'jobs' THEN 1 END) as jobs
+      FROM (
+        SELECT created_at, 'users' as table_name, role FROM users
+        UNION ALL
+        SELECT created_at, 'jobs' as table_name, NULL FROM jobs
+      ) combined
+      WHERE created_at >= NOW() - INTERVAL ? DAY
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
+    `, [days]);
+
+    const dates = rows.map(r => r.date);
+    const users = rows.map(r => r.users);
+    const jobs = rows.map(r => r.jobs);
+
+    res.json({ success: true, data: { dates, users, jobs } });
+  } catch (error) {
+    console.error('Timeline error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch timeline data' });
+  }
+};
+
+/**
+ * GET /admin/analytics/popular?type=job_types
+ * Returns top job types with counts for pie chart
+ */
+const getPopular = async (req, res) => {
+  const type = req.query.type || 'job_types';
+  try {
+    if (type === 'job_types') {
+      const [rows] = await pool.query(`
+        SELECT job_type as name, COUNT(*) as count
+        FROM jobs
+        WHERE status = 'active'
+        GROUP BY job_type
+        ORDER BY count DESC
+        LIMIT 10
+      `);
+      return res.json({ success: true, data: { jobTypes: rows } });
+    }
+
+    res.status(400).json({ success: false, message: 'Unsupported popular type' });
+  } catch (error) {
+    console.error('Popular error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch popular data' });
   }
 };
 

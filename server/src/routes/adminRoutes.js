@@ -21,6 +21,7 @@ const {
   getTimeline,
   getPopular,
   getRetention,
+  getKPIs,
 } = require('../controllers/analyticsController');
 
 const router = express.Router();
@@ -56,5 +57,6 @@ router.get('/analytics/overview',   getOverview);
 router.get('/analytics/timeline',   getTimeline);
 router.get('/analytics/popular',    getPopular);
 router.get('/analytics/retention',  getRetention);
+router.get('/analytics/kpi',        getKPIs);
 
 module.exports = router;

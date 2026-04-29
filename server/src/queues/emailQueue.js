@@ -1,10 +1,7 @@
 const Bull = require('bull');
-const Redis = require('ioredis');
 const { pool } = require('../config/database');
 const { sendTemplatedEmail } = require('../services/emailService');
-
-// Redis client for rate limiting – reuse Bull’s Redis connection values for consistency
-const redis = new Redis({ host: '127.0.0.1', port: 6379 });
+const redis = require('../config/redis');
 
 const RATE_LIMIT = 10;           // max emails per window
 const RATE_LIMIT_WINDOW = 60;    // 60 seconds

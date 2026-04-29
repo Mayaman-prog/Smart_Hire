@@ -115,16 +115,16 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Helmet.js for security headers
 - Morgan for request logging
 - Job reporting with Redis rate limiting (5 reports per user per 24h)
-- Admin analytics API endpoints (overview, timeline, popular, retention)
+- Admin analytics API endpoints (overview, timeline, popular, retention, KPI)
 
 ### Saved Searches Feature
 - Job seekers can create, read, update, and delete saved search criteria.
-- Table **`saved_searches`** stores search name, keyword, location, job type, salary range, alert frequency, and active status.
+- Table `saved_searches` stores search name, keyword, location, job type, salary range, alert frequency, and active status.
 - Secured API endpoints (JWT‑protected) – users can only manage their own saved searches.
 - Integrated with the job alert system: when a new job is posted, matching saved searches trigger email notifications to the respective job seekers.
 
 ### Background Email Queue
-All transactional emails are now **queued and processed asynchronously** using Bull and Redis.  
+All transactional emails are now queued and processed asynchronously using Bull and Redis.  
 Email sending no longer blocks API responses – the server just enqueues a job and returns immediately.
 
 | Component    | Technology / File        | Purpose                                                        |
@@ -477,6 +477,10 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 **Features:**
 - Sidebar navigation with tabs: Overview, User Management, Company Verifications, Job Moderation, Settings
 - Overview dashboard with:
+  - KPI cards displaying Total Users, Active Jobs, Applications, Pending Reports – each with percent change vs previous week (e.g., +12.5%).
+  - Line chart showing user growth over the last 30 days (new users per day).
+  - Bar chart showing jobs posted per day over the last 30 days.
+  - Pie chart displaying job type distribution (Full‑time, Part‑time, Remote, Contract, Internship).
   - Stats cards: System Health, Monthly Recurring Revenue
   - Ecosystem Growth chart (User Registrations vs Job Postings)
   - Action Required card (pending company verifications)
@@ -531,7 +535,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - **React Hot Toast 2.4.1** Toast notifications
 - **CSS3** - Custom styling with CSS variables
 - **Google Fonts Icons** - Icon system
-- **Recharts** - Charting library for admin dashboard
+- **Recharts** - Charting library for admin dashboard (line, bar, pie charts)
 
 ### Server
 - **Node.js 18.x**
@@ -708,6 +712,7 @@ SmartHire/
 │   │   ├── test-saved-searches.js
 │   │   ├── test-email-queue-response-time.js
 │   │   ├── test-reports.js
+│   │   ├── test-KPI.js
 │   │   └── test-analytics.js
 │   ├── .env
 │   ├── .gitignore
@@ -992,18 +997,19 @@ Content-Type: application/json
 | GET    | `/companies/:id` | Fetch single company details | Public |
 
 **Admin Routes (/api/admin)**
-| Method | Endpoint                     | Description                                          | Access |
-| ------ | ---------------------------- | ---------------------------------------------------- | ------ |
-| GET    | `/admin/users`               | Fetch all users                                      | Admin  |
-| PATCH  | `/admin/users/:id/toggle`    | Toggle user active status                            | Admin  |
-| GET    | `/admin/jobs`                | Fetch all jobs                                       | Admin  |
-| DELETE | `/admin/jobs/:id`            | Delete job                                           | Admin  |
-| GET    | `/admin/companies`           | Fetch all companies                                  | Admin  |
-| GET    | `/admin/stats/overview`      | Fetch dashboard analytics                            | Admin  |
-| GET    | `/admin/analytics/overview`  | Fetch overview totals (users, jobs, etc.)            | Admin  |
-| GET    | `/admin/analytics/timeline`  | Daily counts (users, jobs, applications) last N days | Admin  |
-| GET    | `/admin/analytics/popular`   | Top job types, locations, categories                 | Admin  |
-| GET    | `/admin/analytics/retention` | Retention data and weekly cohorts                    | Admin  |
+| Method | Endpoint                     | Description                                                                             | Access |
+| ------ | ---------------------------- | --------------------------------------------------------------------------------------- | ------ |
+| GET    | `/admin/users`               | Fetch all users                                                                         | Admin  |
+| PATCH  | `/admin/users/:id/toggle`    | Toggle user active status                                                               | Admin  |
+| GET    | `/admin/jobs`                | Fetch all jobs                                                                          | Admin  |
+| DELETE | `/admin/jobs/:id`            | Delete job                                                                              | Admin  |
+| GET    | `/admin/companies`           | Fetch all companies                                                                     | Admin  |
+| GET    | `/admin/stats/overview`      | Fetch dashboard analytics                                                               | Admin  |
+| GET    | `/admin/analytics/overview`  | Fetch overview totals (users, jobs, etc.)                                               | Admin  |
+| GET    | `/admin/analytics/timeline`  | Daily counts (users, jobs, applications) last N days                                    | Admin  |
+| GET    | `/admin/analytics/popular`   | Top job types, locations, categories                                                    | Admin  |
+| GET    | `/admin/analytics/retention` | Retention data and weekly cohorts                                                       | Admin  |
+| GET    | `/admin/analytics/kpi`       | KPI cards with percent change (Total Users, Active Jobs, Applications, Pending Reports) | Admin  |
 
 #### Analytics Endpoints (Admin‑only)
 These endpoints are part of the admin routes (`/api/admin/analytics/…`). They require a valid admin JWT token.
@@ -1012,6 +1018,7 @@ These endpoints are part of the admin routes (`/api/admin/analytics/…`). They 
 - **timeline** – accepts `?days=7` (or any number) and returns daily new users, jobs, and applications.
 - **popular** – returns top 10 active job types, locations, and categories.
 - **retention** – returns active/inactive users and weekly new‑user cohorts for the last 12 weeks.
+- **kpi** – returns an array of 4 KPI objects: `{ label, value, change }` where `change` is percentage vs previous week.
 
 **Reports Routes (/api/reports)**
 | Method  | Endpoint   | Description               | Access         |
@@ -1573,6 +1580,9 @@ client/src/pages/dashboard/admin/
 - DELETE `/api/admin/jobs/:id` – delete job
 - GET `/api/admin/companies` – fetch all companies
 - GET `/api/admin/stats/overview` – fetch dashboard analytics
+- GET `/admin/analytics/kpi` – KPI cards
+- GET `/admin/analytics/timeline?days=30` – line/bar chart data
+- GET `/admin/analytics/popular?type=job_types` – pie chart data
 
 **Responsive Breakpoints:**
 | Screen Size               | Layout                                     |
@@ -1778,7 +1788,6 @@ client/src/pages/NotFoundPage/
 - Smart matching score between candidate and job
 - Interview scheduling system
 - Mobile native apps (React Native)
-- Enforce max 10 saved searches per user on the backend
 
 ## License
 
@@ -1821,7 +1830,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Authentication context with JWT structure
 - CSS variables for consistent theming
 - Google Material Icons integration
-- Admin analytics charts using Recharts
+- Admin analytics charts using Recharts (line, bar, pie)
 
 **Frontend–Backend Integration Completed:**
 

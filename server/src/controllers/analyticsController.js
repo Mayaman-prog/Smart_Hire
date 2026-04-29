@@ -1,4 +1,4 @@
-const { pool } = require('../config/database');
+const { pool } = require("../config/database");
 
 /**
  * @desc    Get overview totals (users, jobs, applications, companies)
@@ -7,12 +7,24 @@ const { pool } = require('../config/database');
  */
 exports.getOverview = async (req, res) => {
   try {
-    const [[{ totalUsers }]] = await pool.query('SELECT COUNT(*) AS totalUsers FROM users');
-    const [[{ totalJobs }]] = await pool.query('SELECT COUNT(*) AS totalJobs FROM jobs');
-    const [[{ activeJobs }]] = await pool.query('SELECT COUNT(*) AS activeJobs FROM jobs WHERE is_active = 1');
-    const [[{ totalApplications }]] = await pool.query('SELECT COUNT(*) AS totalApplications FROM applications');
-    const [[{ totalCompanies }]] = await pool.query('SELECT COUNT(*) AS totalCompanies FROM companies');
-    const [[{ verifiedCompanies }]] = await pool.query('SELECT COUNT(*) AS verifiedCompanies FROM companies WHERE is_verified = 1');
+    const [[{ totalUsers }]] = await pool.query(
+      "SELECT COUNT(*) AS totalUsers FROM users",
+    );
+    const [[{ totalJobs }]] = await pool.query(
+      "SELECT COUNT(*) AS totalJobs FROM jobs",
+    );
+    const [[{ activeJobs }]] = await pool.query(
+      "SELECT COUNT(*) AS activeJobs FROM jobs WHERE is_active = 1",
+    );
+    const [[{ totalApplications }]] = await pool.query(
+      "SELECT COUNT(*) AS totalApplications FROM applications",
+    );
+    const [[{ totalCompanies }]] = await pool.query(
+      "SELECT COUNT(*) AS totalCompanies FROM companies",
+    );
+    const [[{ verifiedCompanies }]] = await pool.query(
+      "SELECT COUNT(*) AS verifiedCompanies FROM companies WHERE is_verified = 1",
+    );
 
     res.json({
       success: true,
@@ -22,12 +34,12 @@ exports.getOverview = async (req, res) => {
         activeJobs,
         totalApplications,
         totalCompanies,
-        verifiedCompanies
-      }
+        verifiedCompanies,
+      },
     });
   } catch (error) {
-    console.error('Analytics overview error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Analytics overview error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -38,7 +50,7 @@ exports.getOverview = async (req, res) => {
  */
 exports.getTimeline = async (req, res) => {
   try {
-    const days = parseInt(req.query.days) || 30; // default last 30 days
+    const days = parseInt(req.query.days) || 30;
 
     const [users] = await pool.query(
       `SELECT DATE(created_at) AS date, COUNT(*) AS count
@@ -46,7 +58,7 @@ exports.getTimeline = async (req, res) => {
        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
        GROUP BY DATE(created_at)
        ORDER BY date ASC`,
-      [days]
+      [days],
     );
 
     const [jobs] = await pool.query(
@@ -55,7 +67,7 @@ exports.getTimeline = async (req, res) => {
        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
        GROUP BY DATE(created_at)
        ORDER BY date ASC`,
-      [days]
+      [days],
     );
 
     const [applications] = await pool.query(
@@ -64,7 +76,7 @@ exports.getTimeline = async (req, res) => {
        WHERE applied_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
        GROUP BY DATE(applied_at)
        ORDER BY date ASC`,
-      [days]
+      [days],
     );
 
     res.json({
@@ -72,12 +84,12 @@ exports.getTimeline = async (req, res) => {
       data: {
         users,
         jobs,
-        applications
-      }
+        applications,
+      },
     });
   } catch (error) {
-    console.error('Analytics timeline error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Analytics timeline error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -94,7 +106,7 @@ exports.getPopular = async (req, res) => {
        WHERE is_active = 1
        GROUP BY job_type
        ORDER BY count DESC
-       LIMIT 10`
+       LIMIT 10`,
     );
 
     const [locations] = await pool.query(
@@ -103,7 +115,7 @@ exports.getPopular = async (req, res) => {
        WHERE is_active = 1 AND location IS NOT NULL
        GROUP BY location
        ORDER BY count DESC
-       LIMIT 10`
+       LIMIT 10`,
     );
 
     const [categories] = await pool.query(
@@ -113,7 +125,7 @@ exports.getPopular = async (req, res) => {
        WHERE j.is_active = 1
        GROUP BY jc.name
        ORDER BY count DESC
-       LIMIT 10`
+       LIMIT 10`,
     );
 
     res.json({
@@ -121,12 +133,12 @@ exports.getPopular = async (req, res) => {
       data: {
         jobTypes,
         locations,
-        categories
-      }
+        categories,
+      },
     });
   } catch (error) {
-    console.error('Analytics popular error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Analytics popular error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -137,24 +149,21 @@ exports.getPopular = async (req, res) => {
  */
 exports.getRetention = async (req, res) => {
   try {
-    // Active users: users who logged in or performed any action in the last 30 days
     const [[{ activeUsers }]] = await pool.query(
       `SELECT COUNT(DISTINCT user_id) AS activeUsers
        FROM activity_logs
-       WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`
+       WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`,
     );
 
-    // Inactive users: registered but no activity in last 30 days
     const [[{ inactiveUsers }]] = await pool.query(
       `SELECT COUNT(*) AS inactiveUsers
        FROM users
        WHERE id NOT IN (
          SELECT DISTINCT user_id FROM activity_logs
          WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-       )`
+       )`,
     );
 
-    // New users per week for last 12 weeks (cohort approximation)
     const [weeklyCohorts] = await pool.query(
       `SELECT
          YEARWEEK(created_at, 1) AS week,
@@ -163,7 +172,7 @@ exports.getRetention = async (req, res) => {
        FROM users
        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
        GROUP BY YEARWEEK(created_at, 1)
-       ORDER BY week ASC`
+       ORDER BY week ASC`,
     );
 
     res.json({
@@ -171,11 +180,95 @@ exports.getRetention = async (req, res) => {
       data: {
         activeUsers,
         inactiveUsers,
-        weeklyCohorts
-      }
+        weeklyCohorts,
+      },
     });
   } catch (error) {
-    console.error('Analytics retention error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Analytics retention error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+/**
+ * @desc    Get KPI data for admin dashboard (4 cards with percent change)
+ * @route   GET /api/admin/analytics/kpi
+ * @access  Admin
+ */
+exports.getKPIs = async (req, res) => {
+  try {
+    // Current totals
+    const [[current]] = await pool.query(`
+      SELECT
+        (SELECT COUNT(*) FROM users WHERE role = 'job_seeker') AS totalUsers,
+        (SELECT COUNT(*) FROM jobs WHERE is_active = 1) AS totalJobs,
+        (SELECT COUNT(*) FROM applications) AS totalApps,
+        (SELECT COUNT(*) FROM job_reports WHERE status = 'pending') AS totalReports
+    `);
+
+    // Totals from 7 days ago (created before 7 days ago)
+    const [[previous]] = await pool.query(`
+      SELECT
+        (SELECT COUNT(*) FROM users WHERE role = 'job_seeker' AND created_at < NOW() - INTERVAL 7 DAY) AS prevUsers,
+        (SELECT COUNT(*) FROM jobs WHERE is_active = 1 AND created_at < NOW() - INTERVAL 7 DAY) AS prevJobs,
+        (SELECT COUNT(*) FROM applications WHERE applied_at < NOW() - INTERVAL 7 DAY) AS prevApps,
+        (SELECT COUNT(*) FROM job_reports WHERE status = 'pending' AND created_at < NOW() - INTERVAL 7 DAY) AS prevReports
+    `);
+
+    const kpi = [
+      {
+        label: "Total Users",
+        value: current.totalUsers,
+        change:
+          previous.prevUsers > 0
+            ? (
+                ((current.totalUsers - previous.prevUsers) /
+                  previous.prevUsers) *
+                100
+              ).toFixed(1)
+            : 0,
+      },
+      {
+        label: "Active Jobs",
+        value: current.totalJobs,
+        change:
+          previous.prevJobs > 0
+            ? (
+                ((current.totalJobs - previous.prevJobs) / previous.prevJobs) *
+                100
+              ).toFixed(1)
+            : 0,
+      },
+      {
+        label: "Applications",
+        value: current.totalApps,
+        change:
+          previous.prevApps > 0
+            ? (
+                ((current.totalApps - previous.prevApps) / previous.prevApps) *
+                100
+              ).toFixed(1)
+            : 0,
+      },
+      {
+        label: "Pending Reports",
+        value: current.totalReports,
+        change:
+          previous.prevReports > 0
+            ? (
+                ((current.totalReports - previous.prevReports) /
+                  previous.prevReports) *
+                100
+              ).toFixed(1)
+            : 0,
+      },
+    ];
+
+    res.json({
+      success: true,
+      data: { kpi },
+    });
+  } catch (error) {
+    console.error("Analytics KPI error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

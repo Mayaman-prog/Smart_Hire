@@ -1,26 +1,16 @@
-// React hooks for state management and lifecycle
 import React, { useState, useEffect } from "react";
-
-// Custom context hook for authentication state and user data
 import { useAuth } from "../../../contexts/AuthContext";
-
-// Router hook for navigation between pages
 import { useNavigate } from "react-router-dom";
-
-// API service functions for different features
 import {
-  applicationAPI,      // Handle job application operations
-  savedJobsAPI,        // Manage saved job bookmarks
-  userAPI,             // User profile and authentication operations
-  jobAPI,              // Fetch job listings and recommendations
-  notificationAPI,     // Retrieve user notifications
-  savedSearchAPI,      // Manage saved job searches
+  applicationAPI,
+  savedJobsAPI,
+  userAPI,
+  jobAPI,
+  notificationAPI,
+  savedSearchAPI,
 } from "../../../services/api";
-
-// Toast notification library for user feedback
 import toast from "react-hot-toast";
-
-// Component-specific styles
+import ResumeUpload from "../../../components/common/ResumeUpload/ResumeUpload";
 import "./JobSeekerDashboard.css";
 
 /**
@@ -33,34 +23,20 @@ import "./JobSeekerDashboard.css";
  * - Profile settings and resume upload
  */
 const JobSeekerDashboard = () => {
-  // Router and Auth Hooks
   const navigate = useNavigate();
   const { user, logout, loading: authLoading, isAuthenticated } = useAuth();
 
-  // UI State
-  // Track which dashboard tab is currently active
   const [activeTab, setActiveTab] = useState("overview");
-  // Overall loading state for initial data fetch
   const [loading, setLoading] = useState(true);
 
-  // Dashboard Data State
-  // Store user's job applications
   const [applications, setApplications] = useState([]);
-  // Store user's bookmarked jobs
   const [savedJobs, setSavedJobs] = useState([]);
-  // Store user's saved job searches
   const [savedSearches, setSavedSearches] = useState([]);
-  // Recommended jobs based on user profile
   const [recommendedJobs, setRecommendedJobs] = useState([]);
-  // User notifications and activity updates
   const [notifications, setNotifications] = useState([]);
 
-  // Saved Searches Form State
-  // Toggle visibility of the saved search creation form
   const [showSearchForm, setShowSearchForm] = useState(false);
-  // Store the currently edited search (null if creating new)
   const [editingSearch, setEditingSearch] = useState(null);
-  // Form data for creating/updating saved searches
   const [searchForm, setSearchForm] = useState({
     name: "",
     keyword: "",
@@ -70,19 +46,12 @@ const JobSeekerDashboard = () => {
     salary_max: "",
     alert_frequency: "instant",
   });
-  // Loading state for saved search operations
   const [searchLoading, setSearchLoading] = useState(false);
 
-  // Action Loading States
-  // Track which application is being withdrawn
   const [withdrawing, setWithdrawing] = useState(null);
-  // Track which saved job is being removed
   const [removingSaved, setRemovingSaved] = useState(null);
-  // Loading state for profile update
   const [updatingProfile, setUpdatingProfile] = useState(false);
 
-  // Profile Form State
-  // Store user profile information for editing
   const [profile, setProfile] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -91,8 +60,23 @@ const JobSeekerDashboard = () => {
     confirmPassword: "",
   });
 
-  // Effects
-  // Sync profile form with authenticated user data when it changes
+  // State to hold the current resume URL for display and updates
+  const [resumeUrl, setResumeUrl] = useState(user?.resume_url || null);
+
+  useEffect(() => {
+    setResumeUrl(user?.resume_url || null);
+  }, [user]);
+
+  // Calculate profile strength based on completeness of profile and activity
+  const calculateProfileStrength = () => {
+    let score = 0;
+    if (user?.name) score += 20;
+    if (user?.email) score += 20;
+    if (resumeUrl) score += 30;
+    if (applications.length > 0) score += 15;
+    return score;
+  };
+
   useEffect(() => {
     setProfile((prev) => ({
       ...prev,
@@ -101,36 +85,29 @@ const JobSeekerDashboard = () => {
     }));
   }, [user]);
 
-  // Fetch all dashboard data on component mount and user authentication
   useEffect(() => {
-    // Skip if still loading auth or user is not authenticated or is not a job seeker
     if (authLoading || !isAuthenticated || user?.role !== "job_seeker") return;
 
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // Fetch all data in parallel for better performance
         const [appsRes, savedRes, notifRes, searchRes] = await Promise.all([
           applicationAPI.getMyApplications(),
           savedJobsAPI.getSavedJobs(),
           notificationAPI.getNotifications(),
-          // Saved searches API might fail on first setup, provide fallback
           savedSearchAPI
             .getSavedSearches()
             .catch(() => ({ data: { data: [] } })),
         ]);
 
-        // Try to fetch AI-recommended jobs, with fallbacks
         let recommendedRes = { data: { data: [] } };
         try {
-          // First try dedicated recommendations endpoint
           recommendedRes = await jobAPI.getRecommendedJobs();
         } catch {
           try {
-            // Fallback: fetch top jobs if recommendations unavailable
             recommendedRes = await jobAPI.getJobs({ limit: 6 });
           } catch {
-            // If all fails, use empty array
+            // If even fetching general jobs fails, we'll just show an empty list
           }
         }
 
@@ -162,8 +139,9 @@ const JobSeekerDashboard = () => {
     return `$${Number(min).toLocaleString()} - $${Number(max).toLocaleString()}`;
   };
 
+  // Handle resume upload success by updating the resume URL in state
   const stats = {
-    profileStrength: 85,
+    profileStrength: calculateProfileStrength(),
     applied: applications.length,
     reviewed: applications.filter((a) => a.status === "reviewed").length,
     shortlisted: applications.filter((a) => a.status === "shortlisted").length,
@@ -229,19 +207,6 @@ const JobSeekerDashboard = () => {
       toast.error(err.response?.data?.message || "Update failed");
     } finally {
       setUpdatingProfile(false);
-    }
-  };
-
-  const handleResumeUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("resume", file);
-    try {
-      await userAPI.uploadResume(formData);
-      toast.success("Resume uploaded successfully");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Upload failed");
     }
   };
 
@@ -704,9 +669,7 @@ const JobSeekerDashboard = () => {
                             {search.keyword && (
                               <span className="tag">{search.keyword}</span>
                             )}
-                            {search.location && (
-                              <span>{search.location}</span>
-                            )}
+                            {search.location && <span>{search.location}</span>}
                             <span>{search.job_type}</span>
                             {search.salary_min && (
                               <span>
@@ -803,14 +766,11 @@ const JobSeekerDashboard = () => {
                     }
                   />
                 </div>
-                <div className="form-group">
-                  <label>Resume (PDF, DOC, DOCX)</label>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleResumeUpload}
-                  />
-                </div>
+                <ResumeUpload
+                  currentResumeUrl={resumeUrl}
+                  onUploadSuccess={(newUrl) => setResumeUrl(newUrl)}
+                  onDeleteSuccess={() => setResumeUrl(null)}
+                />
                 <button type="submit" disabled={updatingProfile}>
                   {updatingProfile ? "Updating..." : "Update Profile"}
                 </button>

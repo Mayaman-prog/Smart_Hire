@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { jobAPI, applicationAPI, savedJobsAPI } from "../../services/api";
+import api, { jobAPI, applicationAPI, savedJobsAPI } from "../../services/api";
 import JobCard from "../../components/jobs/JobCard/JobCard";
 import toast from "react-hot-toast";
 import "./JobDetailsPage.css";
@@ -18,6 +18,11 @@ const JobDetailsPage = () => {
   const [hasApplied, setHasApplied] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("spam");
+  const [reportDescription, setReportDescription] = useState("");
+  const [reporting, setReporting] = useState(false);
+  const [alreadyReported, setAlreadyReported] = useState(false);
   const [error, setError] = useState(null);
 
   const getRelativeDate = (date) => {
@@ -76,7 +81,7 @@ const JobDetailsPage = () => {
         const jobData = jobRes.data?.data;
         setJob(jobData);
 
-        const similarRes = await jobAPI.getJobs({ similar: true, jobId: id });
+        const similarRes = await jobAPI.getJobs({ similar: true, jobId: Number(id) });
         setSimilarJobs((similarRes.data?.data || []).slice(0, 3));
 
         if (isAuthenticated && user?.role === "job_seeker") {
@@ -193,6 +198,26 @@ const JobDetailsPage = () => {
     }
   };
 
+  const handleReportSubmit = async (e) => {
+    e.preventDefault();
+    setReporting(true);
+    try {
+      await api.post("/reports", {
+        jobId: Number(id),
+        reason: reportReason,
+        description: reportDescription.trim() || undefined,
+      });
+      toast.success("Report submitted. Thank you for helping us improve.");
+      setAlreadyReported(true);
+      setShowReportModal(false);
+    } catch (error) {
+      const msg = error.response?.data?.message || "Failed to submit report.";
+      toast.error(msg);
+    } finally {
+      setReporting(false);
+    }
+  };
+
   const isOwnEmployerJob =
     isAuthenticated &&
     user?.role === "employer" &&
@@ -268,6 +293,35 @@ const JobDetailsPage = () => {
               <span className="material-symbols-outlined">share</span>
               Share
             </button>
+            {isAuthenticated ? (
+              <button
+                className={`report-btn ${alreadyReported ? "reported" : ""}`}
+                onClick={() => setShowReportModal(true)}
+                disabled={alreadyReported}
+                type="button"
+                title={
+                  alreadyReported
+                    ? "You have already reported this job"
+                    : "Report this job"
+                }
+              >
+                <span className="material-symbols-outlined">flag</span>
+                {alreadyReported ? " Reported" : " Report"}
+              </button>
+            ) : (
+              <button
+                className="report-btn"
+                onClick={() => {
+                  sessionStorage.setItem("redirectAfterLogin", `/jobs/${id}`);
+                  toast.error("Please login to report jobs");
+                  navigate("/login");
+                }}
+                type="button"
+              >
+                <span className="material-symbols-outlined">flag</span>
+                Report
+              </button>
+            )}
           </div>
         </div>
 
@@ -394,6 +448,63 @@ const JobDetailsPage = () => {
           </section>
         )}
       </div>
+      {/* Report Job Modal */}
+      {showReportModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowReportModal(false)}
+        >
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Report Job</h3>
+            <form onSubmit={handleReportSubmit}>
+              <div className="form-group">
+                <label htmlFor="report-reason">Reason *</label>
+                <select
+                  id="report-reason"
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  required
+                >
+                  <option value="spam">Spam</option>
+                  <option value="fraud">Fraud</option>
+                  <option value="inappropriate">Inappropriate</option>
+                  <option value="duplicate">Duplicate</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="report-description">
+                  Additional details (optional)
+                </label>
+                <textarea
+                  id="report-description"
+                  rows={4}
+                  value={reportDescription}
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  placeholder="Provide more context..."
+                  maxLength={500}
+                />
+              </div>
+              <div className="form-actions">
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={reporting}
+                >
+                  {reporting ? "Submitting..." : "Submit Report"}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowReportModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

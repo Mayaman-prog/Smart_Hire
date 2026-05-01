@@ -16,5 +16,6 @@ dist/
 # OS files
 .DS_Store
 
-# Uploaded files (if any)
-server/uploads
+# Ignore uploaded resume files
+server/uploads/resumes/
+*.pdf

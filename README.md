@@ -13,6 +13,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
 - [Features](#features)
   - [Core Features](#core-features)
   - [Backend Features](#backend-features)
+    - [Cover Letters (B13)](#cover-letters-b13)
     - [Resume Parsing & CRUD](#resume-parsing--crud)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
@@ -36,6 +37,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [Application Routes](#application-routes)
   - [Saved Jobs Routes](#saved-jobs-routes)
   - [Saved Searches Routes](#saved-searches-routes)
+  - [Cover Letters Routes](#cover-letters-routes)
   - [Company Routes](#company-routes)
   - [Admin Routes](#admin-routes)
   - [Reports Routes](#reports-routes)
@@ -113,6 +115,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Save this search button on jobs listing page to store current search filters with a name and alert frequency
 - Drag-and-drop resume upload on profile with progress indicator, file validation, and delete functionality
 - Automatic resume parsing (PDF/DOCX) and auto‑filling of profile fields extracted data is stored in the `parsed_data` column of the `resumes` table and can be retrieved to pre‑fill the user's profile form.
+- Cover Letters – Create, edit, delete, and set default cover letter templates (B13). The default cover letter is automatically selected when applying to a job.
 
 ### Backend Features
 - JWT authentication (register, login, profile)
@@ -126,6 +129,19 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Morgan for request logging
 - Job reporting with Redis rate limiting (5 reports per user per 24h)
 - Admin analytics API endpoints (overview, timeline, popular, retention, KPI)
+
+#### Cover Letters (B13)
+- **Table:** `cover_letters` (user_id, name, content, is_default, timestamps)
+- **CRUD Endpoints** (JWT‑protected):
+  - `GET /api/cover-letters` – Get all cover letters for the authenticated user.
+  - `POST /api/cover-letters` – Create a new cover letter (name and content required).
+  - `PUT /api/cover-letters/:id` – Update name and/or content (owner only).
+  - `DELETE /api/cover-letters/:id` – Delete a cover letter (owner only).
+  - `PUT /api/cover-letters/:id/default` – Set a cover letter as default (unsets others for the same user).
+- **Business Rules:**
+  - The first cover letter created is automatically set as default.
+  - If the default cover letter is deleted, the most recently updated one becomes the new default.
+  - The default cover letter is automatically selected when a job seeker applies to a job (frontend integration pending).
 
 #### Resume Parsing & CRUD
 - **Parsing Libraries:** `pdf-parse-fork` (PDF) and `mammoth` (DOCX) extract structured text from uploaded resumes.
@@ -470,6 +486,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
   - Edit profile form (name, email, password change with current password verification)
   - Drag‑and‑drop resume upload with real‑time progress bar, client‑side validation (PDF, DOC, DOCX, max 5 MB), delete functionality, and dynamic profile strength update
   - Auto‑fill profile fields from the parsed resume data after upload, the system extracts full name, email, phone, skills, work experience, and education, and pre‑populates the form for the user to review and save.
+  - **Cover Letters** – A new section to manage cover letter templates: create, edit, delete, set default. This will be integrated in the frontend in a future sprint (B14).
 - Fully integrated with backend APIs for applications, saved jobs, profile updates, recommended jobs, and notifications
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
@@ -693,12 +710,13 @@ SmartHire/
 │   ├── src/
 │   │   ├── config/
 │   │   │   ├── database.js
-│   │   │   └── email.js             # Nodemailer transporter setup
+│   │   │   └── email.js
 │   │   ├── controllers/
 │   │   │   ├── adminController.js
 │   │   │   ├── applicationController.js
 │   │   │   ├── authController.js
 │   │   │   ├── companyController.js
+│   │   │   ├── coverLetterController.js
 │   │   │   ├── employerController.js
 │   │   │   ├── jobController.js
 │   │   │   ├── notificationController.js
@@ -720,6 +738,7 @@ SmartHire/
 │   │   │   ├── applicationRoutes.js
 │   │   │   ├── authRoutes.js
 │   │   │   ├── companyRoutes.js
+│   │   │   ├── coverLetterRoutes.js
 │   │   │   ├── employerRoutes.js
 │   │   │   ├── jobRoutes.js
 │   │   │   ├── notificationRoutes.js
@@ -727,12 +746,12 @@ SmartHire/
 │   │   │   ├── savedSearchRoutes.js
 │   │   │   └── userRoutes.js
 │   │   ├── queues/
-│   │   │   └── emailQueue.js        # Bull queue & processor
+│   │   │   └── emailQueue.js
 │   │   ├── services/
-│   │   │   ├── emailService.js      # Template rendering & sending
+│   │   │   ├── emailService.js
 │   │   │   ├── resumeParser.js
 │   │   ├── cron/
-│   │   │   └── dailyJobAlert.js     # Scheduled job for daily alert emails
+│   │   │   └── dailyJobAlert.js
 │   │   └── utils/
 │   │       └── generateToken.js
 │   ├── upload/
@@ -742,7 +761,7 @@ SmartHire/
 │   │   └── seed.sql
 │   ├── scripts/
 │   │   ├── setup-db.js
-│   │   ├── test-email.js          # Test email script
+│   │   ├── test-email.js
 │   │   ├── test-email-templates.js
 │   │   ├── test-saved-searches.js
 │   │   ├── test-email-queue-response-time.js
@@ -751,7 +770,8 @@ SmartHire/
 │   │   ├── test-insert-resume.js
 │   │   ├── test-parser-fork.js
 │   │   ├── test-update-resume.js
-│   │   └── test-analytics.js
+│   │   ├── test-analytics.js
+│   │   └── test-cover-letters.js
 │   ├── .env
 │   ├── .gitignore
 │   ├── package.json
@@ -1026,6 +1046,25 @@ Content-Type: application/json
   "job_type": "full-time",
   "salary_min": 80000,
   "alert_frequency": "daily"
+}
+
+**Cover Letters Routes (/api/cover-letters)**
+| Method | Endpoint                      | Description                                             | Access     |
+| ------ | ----------------------------- | ------------------------------------------------------- | ---------- |
+| GET    | /cover-letters                | Get all cover letters for the authenticated user        | Job Seeker |
+| POST   | /cover-letters                | Create a new cover letter (name and content required)   | Job Seeker |
+| PUT    | /cover-letters/:id            | Update name and/or content (owner only)                 | Job Seeker |
+| DELETE | /cover-letters/:id            | Delete a cover letter (owner only)                      | Job Seeker |
+| PUT    | /cover-letters/:id/default    | Set a cover letter as default (unsets others)           | Job Seeker |
+
+**Create cover letter**
+**POST** `/api/cover-letters`
+**Authorization:** `Bearer <token>`
+**Content-Type:** `application/json`
+
+{
+  "name": "My Cover Letter",
+  "content": "Dear Hiring Manager,\n\nI am a passionate developer..."
 }
 
 **Company Routes (/api/companies)**
@@ -1538,6 +1577,10 @@ client/src/pages/dashboard/jobseeker/
 - GET `/api/jobs/recommended` – fetch recommended jobs
 - GET `/api/notifications` – fetch notifications
 
+**Cover Letters Integration (Backend complete – frontend pending in B14):**
+- The API endpoints for managing cover letters are fully implemented and tested.
+- The frontend will add a "Cover Letters" section in the Job Seeker Dashboard in a future sprint.
+
 **Responsive Breakpoints:**
 | Screen Size              | Layout                         |
 | ------------------------ | ------------------------------ |
@@ -1740,33 +1783,34 @@ client/src/pages/NotFoundPage/
 
 ###  Database Schema
 #### Tables Created
-| Table                  | Description                                        | Records (seed) |
-| ---------------------- | -------------------------------------------------- | -------------- |
-| roles                  | User roles (job_seeker, employer, admin)           | 3              |
-| companies              | Company profiles                                   | 3              |
-| users                  | User accounts (all roles)                          | 5              |
-| job_seekers            | Extended job seeker information                    | 0              |
-| employers              | Extended employer information (links to companies) | 0              |
-| job_categories         | Job categories                                     | 8              |
-| job_types              | Job types (full-time, part-time, etc.)             | 6              |
-| locations              | Location master data                               | 7              |
-| skills                 | Skills master list                                 | 8              |
-| jobs                   | Job postings (FK to companies, categories, etc.)   | 15             |
-| applications           | Job applications                                   | 5              |
-| resumes                | Stored resume files (audit log)                    | 2              |
-| saved_jobs             | Jobs saved/bookmarked by job seekers               | 3              |
-| shortlisted_candidates | Employer-shortlisted candidates                    | 2              |
-| notifications          | User notifications                                 | 3              |
-| job_seeker_skills      | Skills associated with job seekers                 | 6              |
-| job_required_skills    | Skills required for each job                       | 7              |
-| activity_logs          | System activity audit trail                        | 4              |
-| contact_messages       | Contact form submissions                           | 2              |
-| saved_searches         | Saved job search criteria with alerts              | 3              |
-| messages               | Internal messaging between users                   | 0              |
-| statistics             | Aggregated platform statistics                     | 0              |
-| email_logs             | Email queue delivery logs                          | 0              |
-| cron_state             | Tracks last-run timestamps for scheduled jobs      | 1              |
-| job_reports            | User reports on jobs (spam, fraud, etc.)           | 0              |
+| Table                      | Description                                        | Records (seed) |
+| -------------------------- | -------------------------------------------------- | -------------- |
+| **roles**                  | User roles (job_seeker, employer, admin)           | 3              |
+| **companies**              | Company profiles                                   | 3              |
+| **users**                  | User accounts (all roles)                          | 5              |
+| **job_seekers**            | Extended job seeker information                    | 0              |
+| **employers**              | Extended employer information (links to companies) | 0              |
+| **job_categories**         | Job categories                                     | 8              |
+| **job_types**              | Job types (full-time, part-time, etc.)             | 6              |
+| **locations**              | Location master data                               | 7              |
+| **skills**                 | Skills master list                                 | 8              |
+| **jobs**                   | Job postings (FK to companies, categories, etc.)   | 15             |
+| **applications**           | Job applications                                   | 5              |
+| **resumes**                | Stored resume files (audit log)                    | 2              |
+| **saved_jobs**             | Jobs saved/bookmarked by job seekers               | 3              |
+| **shortlisted_candidates** | Employer-shortlisted candidates                    | 2              |
+| **notifications**          | User notifications                                 | 3              |
+| **job_seeker_skills**      | Skills associated with job seekers                 | 6              |
+| **job_required_skills**    | Skills required for each job                       | 7              |
+| **activity_logs**          | System activity audit trail                        | 4              |
+| **contact_messages**       | Contact form submissions                           | 2              |
+| **saved_searches**         | Saved job search criteria with alerts              | 3              |
+| **messages**               | Internal messaging between users                   | 0              |
+| **statistics**             | Aggregated platform statistics                     | 0              |
+| **email_logs**             | Email queue delivery logs                          | 0              |
+| **cron_state**             | Tracks last-run timestamps for scheduled jobs      | 1              |
+| **job_reports**            | User reports on jobs (spam, fraud, etc.)           | 0              |
+| **cover_letters**          | Cover letter templates                             | 0              |
 
 
 ## Troubleshooting
@@ -1815,7 +1859,7 @@ client/src/pages/NotFoundPage/
 | Resume upload fails with "Unexpected end of form"             | File is corrupt, empty, or locked. Use a fresh text-based PDF (not scanned). Test with `.txt` renamed to `.pdf`. |
 | Resume upload succeeds but parsed_data is NULL                | Parser failed (likely scanned PDF). Use text-based PDF. Test with `server/scripts/test-parser-fork.js`.          |
 | Resume upload succeeds but no record appears in resumes table | DB INSERT failed. Check `req.user.id` and ensure `parsed_data` column exists.                                    |
-
+| Cover letter creation fails                                   | Check `cover_letters` table exists and `db.execute` is working. Run `test-cover-letters.js` to verify.           |
 
 ## Contributing
 **Create a new branch:**
@@ -1843,6 +1887,8 @@ client/src/pages/NotFoundPage/
 - Interview scheduling system
 - Mobile native apps (React Native)
 - Integrate with a structured resume API (e.g., Affinda) for higher‑accuracy parsing of work experience and education fields.
+- Cover Letters frontend UI – Manage cover letters in the Job Seeker Dashboard.
+- Cover Letter selection during application – Dropdown on Job Details page to select a cover letter when applying.
 
 ## License
 
@@ -1887,6 +1933,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Google Material Icons integration
 - Admin analytics charts using Recharts (line, bar, pie)
 - Resume parsing (PDF/DOCX) with full CRUD operations – extracted data stored in the `parsed_data` column of the `resumes` table for auto‑filling profile fields
+- Cover Letters CRUD API – Table, endpoints, business rules, and test script completed. (Frontend pending)
 
 **Frontend–Backend Integration Completed:**
 
@@ -1899,6 +1946,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Admin APIs (/api/admin – users, jobs, companies, toggle user status)
 - Admin Dashboard analytics APIs (/admin/analytics/kpi, /admin/analytics/timeline, /admin/analytics/popular)
 - Resume CRUD APIs (/api/users/resume – upload/parse, fetch all, fetch primary, get by ID, update metadata, delete, set as primary)
+- Cover Letters CRUD APIs (/api/cover-letters – create, get, update, delete, set default)
 - Backend-driven filtering, sorting, and pagination for all job listings
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes.

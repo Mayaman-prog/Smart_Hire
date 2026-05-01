@@ -17,9 +17,9 @@ const MOCK_USERS = {
     company_id: 1,
     password: "password123",
   },
-  "admin@example.com": {
+  "admin@smarthire.com": {
     id: 3,
-    email: "admin@example.com",
+    email: "admin@smarthire.com",
     name: "Admin User",
     role: "admin",
     password: "password123",
@@ -433,7 +433,12 @@ export const adminAPI = {
   deleteJob: (id) => api.delete(`/admin/jobs/${id}`),
 
   getCompanies: () => api.get("/admin/companies"),
-  getStatsOverview: () => api.get("/admin/stats/overview"),
+  getStatsOverview: () => api.get("/admin/analytics/overview"),
+
+  // Chart endpoints for the Admin Dashboard
+  getKPI: () => api.get("/admin/analytics/kpi"),
+  getTimeline: (days = 30) => api.get(`/admin/analytics/timeline?days=${days}`),
+  getPopular: (type = "job_types") => api.get(`/admin/analytics/popular?type=${type}`),
 };
 
 export const notificationAPI = {

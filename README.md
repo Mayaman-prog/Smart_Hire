@@ -477,32 +477,33 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 **Features:**
 - Sidebar navigation with tabs: Overview, User Management, Company Verifications, Job Moderation, Settings
 - Overview dashboard with:
-  - KPI cards displaying Total Users, Active Jobs, Applications, Pending Reports – each with percent change vs previous week (e.g., +12.5%).
-  - Line chart showing user growth over the last 30 days (new users per day).
-  - Bar chart showing jobs posted per day over the last 30 days.
-  - Pie chart displaying job type distribution (Full‑time, Part‑time, Remote, Contract, Internship).
-  - Stats cards: System Health, Monthly Recurring Revenue
-  - Ecosystem Growth chart (User Registrations vs Job Postings)
-  - Action Required card (pending company verifications)
-  - System Health metrics (server load, API latency)
-  - Critical System Events feed (real‑time platform activities)
-  - Download Reports button
+  - KPI cards displaying Total Users, Active Jobs, Applications, Pending Reports – each with percent change vs previous week (e.g., +12.5%) and color-coded badges
+  - Line chart showing user growth over the last 30 days (new users per day) with hover tooltips
+  - Bar chart showing jobs posted per day over the last 30 days with hover tooltips
+  - Pie chart displaying job type distribution (Full‑time, Part‑time, Remote, Contract, Internship)
+  - All charts built with Recharts and fully responsive (desktop, tablet, mobile)
 - User Management tab:
-  - Search, filter, pagination for users
-  - Ban/Unban user (PUT `/api/admin/users/:id/ban` / `/unban`)
+  - Search users by name or email
+  - Filter users by role (Job Seeker, Employer, Admin) and status (Active / Inactive)
+  - Pagination (6 users per page) with Previous/Next controls
+  - Ban/Unban user (PUT /api/admin/users/:id/ban / /unban)
   - Delete user (with confirmation modal)
 - Company Verifications tab:
-  - Search, pagination for companies
-  - Verify company (PUT `/api/admin/companies/:id/verify`)
+  - Search companies by name or location
+  - Pagination (6 companies per page) with Previous/Next controls
+  - Verify company (PUT /api/admin/companies/:id/verify)
   - Delete company (with confirmation modal)
 - Job Moderation tab:
-  - Search, pagination for jobs
-  - Feature/Unfeature job (PUT `/api/admin/jobs/:id/feature`)
+  - Search jobs by title, company name, or location
+  - Filter jobs by status (Active / Inactive) and job type (Full‑time, Part‑time, Remote, Contract, Internship)
+  - Pagination (6 jobs per page) with Previous/Next controls
+  - Feature/Unfeature job (PUT /api/admin/jobs/:id/feature)
   - Delete job (with confirmation modal)
-- Settings tab (placeholder)
-- Fully integrated with backend APIs
-- Loading skeletons and success/error toasts
+- Settings tab (placeholder for future features)
+- Fully integrated with live backend APIs
+- Loading skeletons and success/error toast notifications
 - Responsive design (mobile, tablet, desktop)
+
 
 ### ProtectedRoute Features
 
@@ -1580,9 +1581,9 @@ client/src/pages/dashboard/admin/
 - DELETE `/api/admin/jobs/:id` – delete job
 - GET `/api/admin/companies` – fetch all companies
 - GET `/api/admin/stats/overview` – fetch dashboard analytics
-- GET `/admin/analytics/kpi` – KPI cards
-- GET `/admin/analytics/timeline?days=30` – line/bar chart data
-- GET `/admin/analytics/popular?type=job_types` – pie chart data
+- GET `/admin/analytics/kpi` – KPI cards with percentage
+- GET `/admin/analytics/timeline?days=30` – Daily user / job counts (Line + Bar charts)
+- GET `/admin/analytics/popular?type=job_types` – Job type distribution (Pie chart)
 
 **Responsive Breakpoints:**
 | Screen Size               | Layout                                     |
@@ -1813,7 +1814,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Complete Backend JWT Authentication (register, login, profile) with bcrypt, express-validator, and rate limiting
 - Complete Job Seeker Dashboard with overview, applied jobs, saved jobs, profile edit, drag‑and‑drop resume upload with progress bar and delete, and notifications using live backend APIs
 - Complete Employer Dashboard with overview, job creation, edit/delete, activate/deactivate, and applicant management using live backend APIs
-- Complete Admin Dashboard with users, jobs, companies, filters, pagination, and analytics charts using live backend APIs
+- Complete Admin Dashboard with KPI cards (percent change), line chart (user growth), bar chart (jobs/day), and pie chart (job type distribution) using live backend data and Recharts
 - Email service integration – automated welcome emails and application status updates using Nodemailer + Resend
 - Five fully responsive HTML email templates (application confirmation, status change, new job alert, new applicant, account verification)
 - Saved searches CRUD API with JWT‑protected endpoints, integrated with job alert system
@@ -1841,7 +1842,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Saved Searches APIs
 - Company APIs
 - Admin APIs
-- Dashboard analytics APIs
+- Admin Dashboard analytics APIs (KPI, timeline, popular)
 - Backend-driven filtering, sorting, and pagination
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes.

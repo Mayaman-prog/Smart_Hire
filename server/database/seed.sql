@@ -147,6 +147,19 @@ INSERT INTO saved_searches (user_id, name, keyword, location, job_type, salary_m
 (1, 'Senior Python', 'Python', 'London', 'full-time', 90000, 150000, 'instant', UUID()),
 (2, 'Data Analyst', 'SQL', 'New York', 'full-time', 70000, 95000, 'weekly', UUID());
 
+-- 18. INSERT SAMPLE SEARCH LOGS (populate with historical search terms)
+INSERT INTO search_logs (search_term, user_id, result_count) VALUES
+('react', NULL, 5),
+('react developer', NULL, 3),
+('python', NULL, 2),
+('full stack', NULL, 4),
+('React Native', NULL, 1),
+('javascript', NULL, 6),
+('node.js', NULL, 2),
+('remote jobs', NULL, 3),
+('backend developer', NULL, 1),
+('frontend developer', NULL, 2);
+
 -- Insert default cron state
 INSERT IGNORE INTO cron_state (job_name, last_run) VALUES ('daily_job_alert', NOW());
 

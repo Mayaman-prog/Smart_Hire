@@ -15,6 +15,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [Backend Features](#backend-features)
     - [Cover Letters](#cover-letters)
     - [FULLTEXT Search](#fulltext-search)
+    - [Typo Tolerance & Autocomplete](#typo-tolerance--autocomplete)
     - [Resume Parsing & CRUD](#resume-parsing--crud)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
@@ -64,7 +65,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [ProtectedRoute Component](#protectedroute-component)
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
-  - [SaveSearchModal Component]
+  - [SaveSearchModal Component](#savesearchmodal-component)
   - [ResumeUpload Component](#resumeupload-component)
   - [Daily Job Alert Cron](#daily-job-alert-cron)(#savesearchmodal-component)
 - [Routing System](#routing-system)
@@ -96,6 +97,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Job listing with cards
 - Company directory with cards
 - Advanced job search with filters (job type, location, salary range) and FULLTEXT keyword search with relevance scoring
+- Typo tolerance and autocomplete suggestions – corrects common typos (e.g., "reac" = "React") and shows suggestions as you type.
 - Sorting options (Most recent, Salary high to low, Salary low to high)
 - Pagination for job listings
 - Loading skeleton animations
@@ -130,6 +132,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Morgan for request logging
 - Job reporting with Redis rate limiting (5 reports per user per 24h)
 - Admin analytics API endpoints (overview, timeline, popular, retention, KPI)
+- Typo tolerance and autocomplete suggestions – SOUNDEX‑based term matching and prefix suggestions from `search_logs`.
 
 #### Cover Letters
 - **Table:** `cover_letters` (user_id, name, content, is_default, timestamps)
@@ -731,6 +734,7 @@ SmartHire/
 │   │   │   ├── notificationController.js
 │   │   │   ├── resumeController.js 
 │   │   │   ├── savedJobsController.js
+│   │   │   ├── searchSuggestionController.js
 │   │   │   ├── savedSearchController.js
 │   │   │   └── userController.js
 │   │   ├── email-templates/
@@ -751,6 +755,7 @@ SmartHire/
 │   │   │   ├── employerRoutes.js
 │   │   │   ├── jobRoutes.js
 │   │   │   ├── notificationRoutes.js
+│   │   │   ├── searchSuggestionRoutes.js
 │   │   │   ├── savedJobsRoutesjs
 │   │   │   ├── savedSearchRoutes.js
 │   │   │   └── userRoutes.js
@@ -779,6 +784,7 @@ SmartHire/
 │   │   ├── test-insert-resume.js
 │   │   ├── test-parser-fork.js
 │   │   ├── test-fulltext-search.js
+│   │   ├── test-suggestions.js
 │   │   ├── test-update-resume.js
 │   │   ├── test-analytics.js
 │   │   └── test-cover-letters.js
@@ -1106,6 +1112,20 @@ These endpoints are part of the admin routes (`/api/admin/analytics/…`). They 
 - **popular** – returns top 10 active job types, locations, and categories.
 - **retention** – returns active/inactive users and weekly new‑user cohorts for the last 12 weeks.
 - **kpi** – returns an array of 4 KPI objects: `{ label, value, change }` where `change` is percentage vs previous week.
+
+#### Search Suggestions (`/api/search/suggest`)
+| Method | Endpoint          | Description                                                               | Access |
+| ------ | ----------------- | ------------------------------------------------------------------------- | ------ |
+| GET    | `/search/suggest` | Get autocomplete suggestions based on partial input (with typo tolerance) | Public |
+
+**Example request**
+GET /api/search/suggest?q=rea
+
+**Example response**
+{
+  "success": true,
+  "data": ["react", "react developer"]
+}
 
 ### Resume Routes (`/api/users/resume`)
 | Method | Endpoint              | Description                                                              | Access     |
@@ -1821,6 +1841,7 @@ client/src/pages/NotFoundPage/
 | **cron_state**             | Tracks last-run timestamps for scheduled jobs      | 1              |
 | **job_reports**            | User reports on jobs (spam, fraud, etc.)           | 0              |
 | **cover_letters**          | Cover letter templates                             | 0              |
+| **search_logs**            | Search term logs for autocomplete & typo tolerance | 0              |
 
 
 ## Troubleshooting
@@ -1872,7 +1893,7 @@ client/src/pages/NotFoundPage/
 | Cover letter creation fails                                   | Ensure `cover_letters` table exists and DB connection works                                    |
 | FULLTEXT search error                                         | Add index: `ALTER TABLE jobs ADD FULLTEXT INDEX ft_search (title, description, requirements);` |
 | SQL syntax error on search                                    | Fix controller fallback: use `sort='recent'` when search empty                                 |
-
+| Suggestions endpoint returns empty                            | Run a few job searches (/api/jobs?search=...) to populate search_logs                          |
 
 ## Contributing
 **Create a new branch:**
@@ -1948,6 +1969,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Resume parsing (PDF/DOCX) with full CRUD operations – extracted data stored in the `parsed_data` column of the `resumes` table for auto‑filling profile fields
 - Cover Letters CRUD API – Table, endpoints, business rules, and test script completed. (Frontend pending)
 - FULLTEXT search (MATCH AGAINST) with relevance scoring – efficient, fast job search
+- Typo tolerance and autocomplete suggestions (B24) – SOUNDEX matching, prefix searches, search logging
 
 **Frontend–Backend Integration Completed:**
 

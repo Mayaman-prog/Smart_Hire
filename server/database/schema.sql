@@ -366,5 +366,16 @@ CREATE TABLE IF NOT EXISTS cover_letters (
   INDEX idx_user_id (user_id)
 );
 
+-- 26. SEARCH LOGS TABLE
+CREATE TABLE IF NOT EXISTS search_logs (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  search_term VARCHAR(255) NOT NULL,
+  user_id INT NULL,
+  result_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_search_term (search_term),
+  INDEX idx_created_at (created_at)
+);
+
 SELECT 'Database schema created successfully' AS Status;
 SELECT COUNT(*) AS total_tables FROM information_schema.tables WHERE table_schema = 'smart_hire';

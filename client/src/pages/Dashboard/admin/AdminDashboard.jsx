@@ -13,24 +13,40 @@ import {
   Legend,
   BarChart,
   Bar,
-} from "recharts";
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts"; // Added PieChart, Pie, Cell
 import "./AdminDashboard.css";
 
-// Pagination size for tables
+// Colors for the Pie Chart
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+
 const PAGE_SIZE = 6;
 
 const AdminDashboard = () => {
-  const { logout } = useAuth(); // ✅ Get logout function
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Table Data
   const [users, setUsers] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Chart Data
+  const [kpiData, setKpiData] = useState([]);
+  const [timelineData, setTimelineData] = useState({
+    users: [],
+    jobs: [],
+    dates: [],
+  });
+  const [jobTypeData, setJobTypeData] = useState({ labels: [], values: [] });
+  const [chartLoading, setChartLoading] = useState(true);
+
+  // UI States
   const [togglingUserId, setTogglingUserId] = useState(null);
   const [deletingJobId, setDeletingJobId] = useState(null);
-
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [userStatusFilter, setUserStatusFilter] = useState("all");
@@ -44,31 +60,61 @@ const AdminDashboard = () => {
   const [companySearch, setCompanySearch] = useState("");
   const [companyPage, setCompanyPage] = useState(1);
 
-  const [statsOverview, setStatsOverview] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-
+  // -------------------------------------------------------------
+  // 1. Fetch Data (Living on the live endpoints)
+  // -------------------------------------------------------------
   const fetchData = async () => {
     try {
       setLoading(true);
-      setStatsLoading(true);
+      setChartLoading(true);
 
-      const [usersRes, jobsRes, compRes, statsRes] = await Promise.all([
+      // Fetch table data
+      const [usersRes, jobsRes, compRes] = await Promise.all([
         adminAPI.getUsers(),
         adminAPI.getJobs(),
         adminAPI.getCompanies(),
-        adminAPI.getStatsOverview(),
       ]);
 
       setUsers(usersRes.data?.data || []);
       setJobs(jobsRes.data?.data || []);
       setCompanies(compRes.data?.data || []);
-      setStatsOverview(statsRes.data?.data || null);
+
+      // Fetch chart data
+      const [kpiRes, timelineRes, popularRes] = await Promise.all([
+        adminAPI.getKPI(),
+        adminAPI.getTimeline(30),
+        adminAPI.getPopular("job_types"),
+      ]);
+
+      // KPI Cards
+      if (kpiRes.data?.data?.kpi) {
+        setKpiData(kpiRes.data.data.kpi);
+      }
+
+      // Line/Bar Charts
+      if (timelineRes.data?.data) {
+        const { dates, users: uCount, jobs: jCount } = timelineRes.data.data;
+        setTimelineData({
+          dates: dates || [],
+          users: uCount || [],
+          jobs: jCount || [],
+        });
+      }
+
+      // Pie Chart
+      if (popularRes.data?.data?.jobTypes) {
+        const jobTypes = popularRes.data.data.jobTypes;
+        setJobTypeData({
+          labels: jobTypes.map((item) => item.name),
+          values: jobTypes.map((item) => item.count),
+        });
+      }
     } catch (err) {
       console.error("Admin fetch error:", err);
       toast.error(err.response?.data?.message || "Failed to load admin data");
     } finally {
       setLoading(false);
-      setStatsLoading(false);
+      setChartLoading(false);
     }
   };
 
@@ -76,6 +122,9 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
+  // -------------------------------------------------------------
+  // 2. Table Actions
+  // -------------------------------------------------------------
   const toggleUser = async (id) => {
     try {
       setTogglingUserId(id);
@@ -92,7 +141,6 @@ const AdminDashboard = () => {
 
   const deleteJob = async (id) => {
     if (!window.confirm("Delete this job?")) return;
-
     try {
       setDeletingJobId(id);
       await adminAPI.deleteJob(id);
@@ -106,10 +154,12 @@ const AdminDashboard = () => {
     }
   };
 
+  // -------------------------------------------------------------
+  // 3. Table Filters & Pagination
+  // -------------------------------------------------------------
   const stats = useMemo(() => {
     const activeUsers = users.filter((u) => Number(u.is_active) === 1).length;
     const activeJobs = jobs.filter((j) => Number(j.is_active) === 1).length;
-
     return {
       totalUsers: users.length,
       activeUsers,
@@ -127,14 +177,11 @@ const AdminDashboard = () => {
         !userSearch ||
         u.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
         u.email?.toLowerCase().includes(userSearch.toLowerCase());
-
       const matchesRole = userRoleFilter === "all" || u.role === userRoleFilter;
-
       const matchesStatus =
         userStatusFilter === "all" ||
         (userStatusFilter === "active" && Number(u.is_active) === 1) ||
         (userStatusFilter === "inactive" && Number(u.is_active) !== 1);
-
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [users, userSearch, userRoleFilter, userStatusFilter]);
@@ -146,15 +193,12 @@ const AdminDashboard = () => {
         j.title?.toLowerCase().includes(jobSearch.toLowerCase()) ||
         j.company_name?.toLowerCase().includes(jobSearch.toLowerCase()) ||
         j.location?.toLowerCase().includes(jobSearch.toLowerCase());
-
       const matchesStatus =
         jobStatusFilter === "all" ||
         (jobStatusFilter === "active" && Number(j.is_active) === 1) ||
         (jobStatusFilter === "inactive" && Number(j.is_active) !== 1);
-
       const matchesType =
         jobTypeFilter === "all" || j.job_type === jobTypeFilter;
-
       return matchesSearch && matchesStatus && matchesType;
     });
   }, [jobs, jobSearch, jobStatusFilter, jobTypeFilter]);
@@ -190,23 +234,18 @@ const AdminDashboard = () => {
 
   const renderPagination = (currentPage, setPage, totalPages) => {
     if (totalPages <= 1) return null;
-
     return (
       <div className="pagination">
         <button
-          type="button"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={currentPage === 1}
         >
           Previous
         </button>
-
         <span className="pagination-info">
           Page {currentPage} of {totalPages}
         </span>
-
         <button
-          type="button"
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
         >
@@ -218,18 +257,13 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="admin-dashboard">
-        <div className="dashboard-container">
-          <main className="dashboard-main">
-            <div className="admin-dashboard-loading">
-              Loading admin dashboard...
-            </div>
-          </main>
-        </div>
-      </div>
+      <div className="admin-dashboard-loading">Loading admin dashboard...</div>
     );
   }
 
+  // -------------------------------------------------------------
+  // 4. Render
+  // -------------------------------------------------------------
   return (
     <div className="admin-dashboard">
       <div className="dashboard-container">
@@ -243,57 +277,36 @@ const AdminDashboard = () => {
           </div>
 
           <nav className="sidebar-nav">
-            <button
-              className={activeTab === "overview" ? "active" : ""}
-              onClick={() => setActiveTab("overview")}
-            >
-              <span className="material-symbols-outlined">dashboard</span>
-              Overview
-            </button>
+            {["overview", "users", "jobs", "companies"].map((tab) => {
+              // Map tab names to correct Material Symbols icons
+              const iconMap = {
+                overview: "dashboard",
+                users: "group",
+                jobs: "work",
+                companies: "apartment",
+              };
 
-            <button
-              className={activeTab === "users" ? "active" : ""}
-              onClick={() => setActiveTab("users")}
-            >
-              <span className="material-symbols-outlined">group</span>
-              Users
-            </button>
-
-            <button
-              className={activeTab === "jobs" ? "active" : ""}
-              onClick={() => setActiveTab("jobs")}
-            >
-              <span className="material-symbols-outlined">work</span>
-              Jobs
-            </button>
-
-            <button
-              className={activeTab === "companies" ? "active" : ""}
-              onClick={() => setActiveTab("companies")}
-            >
-              <span className="material-symbols-outlined">apartment</span>
-              Companies
-            </button>
+              return (
+                <button
+                  key={tab}
+                  className={activeTab === tab ? "active" : ""}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  <span className="material-symbols-outlined">
+                    {iconMap[tab]}
+                  </span>
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              );
+            })}
           </nav>
 
           <div className="sidebar-footer">
-            <button
-              className="help-btn"
-              onClick={() => toast.info("Help & Support coming soon")}
-            >
-              <span className="material-symbols-outlined">help</span>
-              Help
-            </button>
             <button className="logout-btn" onClick={logout}>
               <span className="material-symbols-outlined">logout</span>
               Logout
             </button>
             <div className="copyright">SmartHire Admin</div>
-            <div className="footer-links">
-              <span>Users</span>
-              <span>Jobs</span>
-              <span>Companies</span>
-            </div>
           </div>
         </aside>
 
@@ -309,114 +322,163 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="admin-card-grid">
-                <div className="admin-stat-card">
-                  <h3>Total Users</h3>
-                  <p>{stats.totalUsers}</p>
-                </div>
-
-                <div className="admin-stat-card">
-                  <h3>Active Users</h3>
-                  <p>{stats.activeUsers}</p>
-                </div>
-
-                <div className="admin-stat-card">
-                  <h3>Total Jobs</h3>
-                  <p>{stats.totalJobs}</p>
-                </div>
-
-                <div className="admin-stat-card">
-                  <h3>Active Jobs</h3>
-                  <p>{stats.activeJobs}</p>
-                </div>
-
-                <div className="admin-stat-card">
-                  <h3>Companies</h3>
-                  <p>{stats.totalCompanies}</p>
-                </div>
-
-                <div className="admin-stat-card">
-                  <h3>Inactive Users</h3>
-                  <p>{stats.inactiveUsers}</p>
-                </div>
+              {/* KPI CARDS - LIVE DATA */}
+              <div className="kpi-grid">
+                {kpiData.length > 0 ? (
+                  kpiData.map((item, idx) => (
+                    <div className="admin-stat-card" key={idx}>
+                      <h3>{item.label}</h3>
+                      <p>{item.value}</p>
+                      <div
+                        className={`kpi-change ${parseFloat(item.change) >= 0 ? "positive" : "negative"}`}
+                      >
+                        {parseFloat(item.change) >= 0 ? "+" : ""}
+                        {item.change}% vs last week
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="empty-state">No KPI data available</div>
+                )}
               </div>
 
+              {/* CHARTS SECTION - LIVE DATA */}
               <div className="admin-section">
                 <div className="admin-section-header">
                   <h2>Growth Analytics</h2>
-                  <span className="admin-count">Last 6 months</span>
+                  <span className="admin-count">Last 30 days</span>
                 </div>
 
-                {statsLoading ? (
+                {chartLoading ? (
                   <div className="empty-state">Loading charts...</div>
-                ) : !statsOverview?.growth?.length ? (
-                  <div className="empty-state">
-                    No chart data available yet.
-                  </div>
                 ) : (
                   <div className="charts-grid">
+                    {/* LINE CHART */}
                     <div className="chart-card">
                       <div className="chart-card-header">
                         <h3>User Growth</h3>
-                        <p>New user accounts created per month</p>
+                        <p>New users per day</p>
                       </div>
-
                       <div className="chart-wrap">
-                        <ResponsiveContainer width="100%" height={280}>
-                          <LineChart data={statsOverview.growth}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis allowDecimals={false} />
-                            <Tooltip />
-                            <Legend />
-                            <Line
-                              type="monotone"
-                              dataKey="users"
-                              stroke="#2563eb"
-                              strokeWidth={3}
-                              dot={{ r: 4 }}
-                              activeDot={{ r: 6 }}
-                              name="Users"
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
+                        {timelineData.dates.length > 0 ? (
+                          <ResponsiveContainer width="100%" height={280}>
+                            <LineChart
+                              data={timelineData.dates.map((date, i) => ({
+                                date,
+                                users: timelineData.users[i] || 0,
+                              }))}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                              <YAxis allowDecimals={false} />
+                              <Tooltip />
+                              <Legend />
+                              <Line
+                                type="monotone"
+                                dataKey="users"
+                                stroke="#3b82f6"
+                                strokeWidth={3}
+                                dot={{ r: 4 }}
+                                name="New Users"
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="empty-chart">
+                            No user data available
+                          </div>
+                        )}
                       </div>
                     </div>
 
+                    {/* BAR CHART */}
                     <div className="chart-card">
                       <div className="chart-card-header">
-                        <h3>Job Posting Growth</h3>
-                        <p>New jobs posted per month</p>
+                        <h3>Jobs Posted per Day</h3>
+                        <p>New jobs per day</p>
                       </div>
-
                       <div className="chart-wrap">
-                        <ResponsiveContainer width="100%" height={280}>
-                          <BarChart data={statsOverview.growth}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis allowDecimals={false} />
-                            <Tooltip />
-                            <Legend />
-                            <Bar
-                              dataKey="jobs"
-                              fill="#10b981"
-                              radius={[8, 8, 0, 0]}
-                              name="Jobs"
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
+                        {timelineData.dates.length > 0 ? (
+                          <ResponsiveContainer width="100%" height={280}>
+                            <BarChart
+                              data={timelineData.dates.map((date, i) => ({
+                                date,
+                                jobs: timelineData.jobs[i] || 0,
+                              }))}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                              <YAxis allowDecimals={false} />
+                              <Tooltip />
+                              <Legend />
+                              <Bar
+                                dataKey="jobs"
+                                fill="#10b981"
+                                radius={[4, 4, 0, 0]}
+                                name="Jobs"
+                              />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="empty-chart">
+                            No job data available
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* PIE CHART (NEW - SPANS FULL WIDTH) */}
+                    <div className="chart-card pie-card">
+                      <div className="chart-card-header">
+                        <h3>Job Type Distribution</h3>
+                        <p>Active jobs by type</p>
+                      </div>
+                      <div className="chart-wrap">
+                        {jobTypeData.values.length > 0 ? (
+                          <ResponsiveContainer width="100%" height={280}>
+                            <PieChart>
+                              <Pie
+                                data={jobTypeData.labels.map((label, i) => ({
+                                  name: label,
+                                  value: jobTypeData.values[i] || 0,
+                                }))}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) =>
+                                  `${name} (${(percent * 100).toFixed(0)}%)`
+                                }
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                {jobTypeData.labels.map((_, index) => (
+                                  <Cell
+                                    key={`cell-${index}`}
+                                    fill={COLORS[index % COLORS.length]}
+                                  />
+                                ))}
+                              </Pie>
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="empty-chart">
+                            No job type data available
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 )}
               </div>
 
+              {/* TABLES - KEEP UNCHANGED */}
               <div className="overview-grid">
                 <section className="admin-section overview-panel">
                   <div className="admin-section-header">
                     <h2>Recent Users</h2>
                   </div>
-
                   {users.length === 0 ? (
                     <div className="empty-state">No recent users.</div>
                   ) : (
@@ -455,7 +517,6 @@ const AdminDashboard = () => {
                   <div className="admin-section-header">
                     <h2>Recent Jobs</h2>
                   </div>
-
                   {jobs.length === 0 ? (
                     <div className="empty-state">No jobs posted yet.</div>
                   ) : (
@@ -476,11 +537,7 @@ const AdminDashboard = () => {
                               <td>{j.company_name || "—"}</td>
                               <td>
                                 <span
-                                  className={`status-badge ${
-                                    Number(j.is_active) === 1
-                                      ? "active"
-                                      : "inactive"
-                                  }`}
+                                  className={`status-badge ${Number(j.is_active) === 1 ? "active" : "inactive"}`}
                                 >
                                   {Number(j.is_active) === 1
                                     ? "Active"
@@ -503,6 +560,7 @@ const AdminDashboard = () => {
             </>
           )}
 
+          {/* ... Existing User/Jobs tabs (unchanged) ... */}
           {activeTab === "users" && (
             <section className="admin-section">
               <div className="admin-section-header">
@@ -511,7 +569,6 @@ const AdminDashboard = () => {
                   {filteredUsers.length} matched / {stats.totalUsers} total
                 </span>
               </div>
-
               <div className="table-controls admin-filters">
                 <input
                   type="text"
@@ -519,7 +576,6 @@ const AdminDashboard = () => {
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                 />
-
                 <select
                   value={userRoleFilter}
                   onChange={(e) => setUserRoleFilter(e.target.value)}
@@ -529,7 +585,6 @@ const AdminDashboard = () => {
                   <option value="employer">Employer</option>
                   <option value="admin">Admin</option>
                 </select>
-
                 <select
                   value={userStatusFilter}
                   onChange={(e) => setUserStatusFilter(e.target.value)}
@@ -539,7 +594,6 @@ const AdminDashboard = () => {
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
-
               {filteredUsers.length === 0 ? (
                 <div className="empty-state">No users found.</div>
               ) : (
@@ -566,11 +620,7 @@ const AdminDashboard = () => {
                             </td>
                             <td>
                               <span
-                                className={`status-badge ${
-                                  Number(u.is_active) === 1
-                                    ? "active"
-                                    : "inactive"
-                                }`}
+                                className={`status-badge ${Number(u.is_active) === 1 ? "active" : "inactive"}`}
                               >
                                 {Number(u.is_active) === 1
                                   ? "Active"
@@ -584,11 +634,7 @@ const AdminDashboard = () => {
                             </td>
                             <td className="actions">
                               <button
-                                className={`admin-btn ${
-                                  Number(u.is_active) === 1
-                                    ? "admin-btn-danger"
-                                    : "admin-btn-primary"
-                                }`}
+                                className={`admin-btn ${Number(u.is_active) === 1 ? "admin-btn-danger" : "admin-btn-primary"}`}
                                 onClick={() => toggleUser(u.id)}
                                 disabled={togglingUserId === u.id}
                               >
@@ -604,7 +650,6 @@ const AdminDashboard = () => {
                       </tbody>
                     </table>
                   </div>
-
                   {renderPagination(
                     userPage,
                     setUserPage,
@@ -615,6 +660,7 @@ const AdminDashboard = () => {
             </section>
           )}
 
+          {/* ... Active Jobs Tab (unchanged) ... */}
           {activeTab === "jobs" && (
             <section className="admin-section">
               <div className="admin-section-header">
@@ -623,7 +669,6 @@ const AdminDashboard = () => {
                   {filteredJobs.length} matched / {stats.totalJobs} total
                 </span>
               </div>
-
               <div className="table-controls admin-filters">
                 <input
                   type="text"
@@ -631,7 +676,6 @@ const AdminDashboard = () => {
                   value={jobSearch}
                   onChange={(e) => setJobSearch(e.target.value)}
                 />
-
                 <select
                   value={jobStatusFilter}
                   onChange={(e) => setJobStatusFilter(e.target.value)}
@@ -640,7 +684,6 @@ const AdminDashboard = () => {
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
-
                 <select
                   value={jobTypeFilter}
                   onChange={(e) => setJobTypeFilter(e.target.value)}
@@ -653,7 +696,6 @@ const AdminDashboard = () => {
                   <option value="internship">Internship</option>
                 </select>
               </div>
-
               {filteredJobs.length === 0 ? (
                 <div className="empty-state">No jobs found.</div>
               ) : (
@@ -682,11 +724,7 @@ const AdminDashboard = () => {
                             </td>
                             <td>
                               <span
-                                className={`status-badge ${
-                                  Number(j.is_active) === 1
-                                    ? "active"
-                                    : "inactive"
-                                }`}
+                                className={`status-badge ${Number(j.is_active) === 1 ? "active" : "inactive"}`}
                               >
                                 {Number(j.is_active) === 1
                                   ? "Active"
@@ -714,7 +752,6 @@ const AdminDashboard = () => {
                       </tbody>
                     </table>
                   </div>
-
                   {renderPagination(
                     jobPage,
                     setJobPage,
@@ -725,6 +762,7 @@ const AdminDashboard = () => {
             </section>
           )}
 
+          {/* ... Companies Tab (unchanged) ... */}
           {activeTab === "companies" && (
             <section className="admin-section">
               <div className="admin-section-header">
@@ -734,7 +772,6 @@ const AdminDashboard = () => {
                   total
                 </span>
               </div>
-
               <div className="table-controls admin-filters">
                 <input
                   type="text"
@@ -743,7 +780,6 @@ const AdminDashboard = () => {
                   onChange={(e) => setCompanySearch(e.target.value)}
                 />
               </div>
-
               {filteredCompanies.length === 0 ? (
                 <div className="empty-state">No companies found.</div>
               ) : (
@@ -772,7 +808,6 @@ const AdminDashboard = () => {
                       </tbody>
                     </table>
                   </div>
-
                   {renderPagination(
                     companyPage,
                     setCompanyPage,

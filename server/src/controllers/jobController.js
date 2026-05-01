@@ -1,7 +1,9 @@
 const { pool } = require("../config/database");
 const { addEmailJob } = require("../queues/emailQueue");
 
-// Helper function to get users with saved searches matching the job
+// @desc   Get all jobs with filters, pagination, sorting
+// @route  GET /api/jobs
+// @access  Public
 const getUsersWithMatchingSavedSearches = async (job) => {
   try {
     const [users] = await pool.query(
@@ -113,8 +115,9 @@ const buildJobsWhereClause = (filters = {}) => {
   };
 };
 
-// @desc    Get all jobs with filters, pagination, sorting
+// @desc    Get all jobs with filters, pagination, sorting, FULLTEXT search
 // @route   GET /api/jobs
+// @access  Public
 const getJobs = async (req, res) => {
   try {
     const {
@@ -126,10 +129,12 @@ const getJobs = async (req, res) => {
       page = 1,
       limit = 6,
       sort = "recent",
+      search = "",
       similar,
       jobId,
     } = req.query;
 
+    // If similar query, return similar jobs (unchanged)
     if (String(similar) === "true" && jobId) {
       const [baseJobs] = await pool.query(
         "SELECT id, company_id, job_type FROM jobs WHERE id = ? AND is_active = 1",
@@ -166,26 +171,94 @@ const getJobs = async (req, res) => {
       });
     }
 
-    const filters = {
-      keyword,
-      location,
-      job_type,
-      min_salary,
-      max_salary,
-      is_active: 1,
-    };
+    // ---------- Build WHERE clause ----------
+    const conditions = ["j.is_active = 1"];
+    const values = [];
 
-    const { whereClause, values } = buildJobsWhereClause(filters);
+    // FULLTEXT search (if 'search' provided and non-empty)
+    const useFulltext = search && search.trim() !== "";
 
-    let orderBy = "j.created_at DESC";
-    if (sort === "salary_high")
-      orderBy = "j.salary_max DESC, j.created_at DESC";
-    if (sort === "salary_low") orderBy = "j.salary_min ASC, j.created_at DESC";
+    if (useFulltext) {
+      conditions.push(
+        "MATCH(j.title, j.description, j.requirements) AGAINST(? IN NATURAL LANGUAGE MODE)",
+      );
+      values.push(search.trim());
+    }
+    // Legacy keyword search (if 'keyword' provided and no 'search')
+    else if (keyword && keyword.trim() !== "") {
+      conditions.push(
+        "(j.title LIKE ? OR j.description LIKE ? OR c.name LIKE ?)",
+      );
+      values.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+    }
 
+    // Location
+    if (location) {
+      conditions.push("j.location LIKE ?");
+      values.push(`%${location}%`);
+    }
+
+    // Job type
+    if (job_type) {
+      const rawTypes = String(job_type)
+        .split(",")
+        .map((t) => normalizeJobTypeForDb(t.trim()))
+        .filter(Boolean);
+
+      if (rawTypes.length > 0) {
+        const placeholders = rawTypes.map(() => "?").join(", ");
+        conditions.push(`j.job_type IN (${placeholders})`);
+        values.push(...rawTypes);
+      }
+    }
+
+    // Min salary
+    if (min_salary) {
+      conditions.push("j.salary_min IS NOT NULL AND j.salary_min >= ?");
+      values.push(Number(min_salary));
+    }
+
+    // Max salary
+    if (max_salary) {
+      conditions.push("j.salary_max IS NOT NULL AND j.salary_max <= ?");
+      values.push(Number(max_salary));
+    }
+
+    const whereClause = `WHERE ${conditions.join(" AND ")}`;
+
+    // ---------- Build SELECT fields ----------
+    let selectFields = `
+      j.id, j.title, j.description, j.requirements, j.salary_min, j.salary_max,
+      j.location, j.job_type, j.is_featured, j.created_at,
+      c.id AS company_id, c.name AS company_name, c.logo_url AS company_logo
+    `;
+
+    let relevanceSelect = "";
+    let orderBy = "";
+
+    // If FULLTEXT search is active, add relevance_score
+    if (useFulltext) {
+      relevanceSelect = `, MATCH(j.title, j.description, j.requirements) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevance_score`;
+
+      // For ORDER BY: if sort is 'relevance', order by score; otherwise use user's sort choice
+      if (sort === "relevance") {
+        orderBy = "ORDER BY relevance_score DESC";
+      } else {
+        orderBy = 'ORDER BY ' + normalizeSort(sort);
+      }
+    } else {
+      // No FULLTEXT search – use normal sorting
+      // If sort is 'relevance' but no search, fallback to 'recent'
+      const effectiveSort = sort === "relevance" ? "recent" : sort;
+      orderBy = 'ORDER BY ' + normalizeSort(effectiveSort);
+    }
+
+    // ---------- Pagination ----------
     const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
     const parsedLimit = Math.max(parseInt(limit, 10) || 6, 1);
     const offset = (parsedPage - 1) * parsedLimit;
 
+    // Total count query (without relevance_score)
     const [countRows] = await pool.query(
       `
       SELECT COUNT(*) AS total
@@ -196,20 +269,24 @@ const getJobs = async (req, res) => {
       values,
     );
 
-    const [jobs] = await pool.query(
-      `
-      SELECT
-        j.id, j.title, j.description, j.salary_min, j.salary_max,
-        j.location, j.job_type, j.is_featured, j.created_at,
-        c.id AS company_id, c.name AS company_name
+    // Main query with optional relevance_score
+    // If using FULLTEXT, we need to duplicate the search param for the SELECT
+    let queryParams = [...values];
+    if (useFulltext) {
+      queryParams.push(search.trim()); // extra param for the SELECT relevance_score
+    }
+    queryParams.push(parsedLimit, offset);
+
+    const sql = `
+      SELECT ${selectFields} ${relevanceSelect}
       FROM jobs j
       LEFT JOIN companies c ON j.company_id = c.id
       ${whereClause}
-      ORDER BY ${orderBy}
+      ${orderBy}
       LIMIT ? OFFSET ?
-      `,
-      [...values, parsedLimit, offset],
-    );
+    `;
+
+    const [jobs] = await pool.query(sql, queryParams);
 
     res.json({
       success: true,

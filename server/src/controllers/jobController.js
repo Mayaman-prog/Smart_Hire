@@ -171,7 +171,7 @@ const getJobs = async (req, res) => {
       });
     }
 
-    // ---------- Build WHERE clause ----------
+    // Build WHERE clause
     const conditions = ["j.is_active = 1"];
     const values = [];
 
@@ -226,7 +226,7 @@ const getJobs = async (req, res) => {
 
     const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
-    // ---------- Build SELECT fields ----------
+    // Build SELECT fields
     let selectFields = `
       j.id, j.title, j.description, j.requirements, j.salary_min, j.salary_max,
       j.location, j.job_type, j.is_featured, j.created_at,
@@ -253,7 +253,7 @@ const getJobs = async (req, res) => {
       orderBy = 'ORDER BY ' + normalizeSort(effectiveSort);
     }
 
-    // ---------- Pagination ----------
+    // Pagination
     const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
     const parsedLimit = Math.max(parseInt(limit, 10) || 6, 1);
     const offset = (parsedPage - 1) * parsedLimit;
@@ -682,27 +682,31 @@ const getRecommendedJobs = async (req, res) => {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    const [jobs] = await pool.query(`
-      SELECT
-        j.id,
-        j.title,
-        j.salary_min,
-        j.salary_max,
-        j.location,
-        j.job_type,
-        c.name AS company_name,
-        c.logo_url
-      FROM jobs j
-      JOIN companies c ON j.company_id = c.id
-      WHERE j.is_active = 1
-      ORDER BY j.is_featured DESC, j.created_at DESC
-      LIMIT 6
-    `);
+    const [jobs] = await pool.query(sql, queryParams);
+    if (search && search.trim() !== "") {
+      try {
+        const logSearch = async () => {
+          await pool.query(
+            "INSERT INTO search_logs (search_term, user_id, result_count) VALUES (?, ?, ?)",
+            [search.trim(), req.user?.id || null, jobs.length]
+          );
+        };
+        logSearch().catch((err) => console.error("Search log error:", err));
+      } catch (err) {
+        // ignore log errors
+      }
+    }
 
-    res.json({ success: true, data: jobs });
+    res.json({
+      success: true,
+      data: jobs,
+      total: Number(countRows[0]?.total || 0),
+      page: parsedPage,
+      limit: parsedLimit,
+    });
   } catch (error) {
-    console.error("Get recommended jobs error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("getJobs error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

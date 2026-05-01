@@ -21,6 +21,7 @@ const savedSearchRoutes = require('./src/routes/savedSearchRoutes');
 const startDailyJobAlert = require('./src/cron/dailyJobAlert');
 const reportRoutes = require('./src/routes/reportRoutes');
 const coverLetterRoutes = require('./src/routes/coverLetterRoutes');
+const searchSuggestionRoutes = require('./src/routes/searchSuggestionRoutes');
 
 dotenv.config();
 
@@ -114,6 +115,9 @@ app.use('/api/reports', reportRoutes);
 
 // Cover Letter routes
 app.use('/api/cover-letters', coverLetterRoutes);
+
+// Search Suggestion routes
+app.use('/api/search/suggest', searchSuggestionRoutes);
 
 // 404 handler - MUST be last
 app.use('*', (req, res) => {

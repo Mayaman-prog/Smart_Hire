@@ -16,7 +16,7 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts"; // Added PieChart, Pie, Cell
+} from "recharts";
 import "./AdminDashboard.css";
 
 // Colors for the Pie Chart
@@ -28,11 +28,27 @@ const AdminDashboard = () => {
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Table Data
+  // Table States
   const [users, setUsers] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // NEW REPORT STATES
+  const [reports, setReports] = useState([]);
+  const [reportStats, setReportStats] = useState(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportPage, setReportPage] = useState(1);
+  const [reportStatusFilter, setReportStatusFilter] = useState("all");
+  const [reportReasonFilter, setReportReasonFilter] = useState("all");
+  const [reportSearchTerm, setReportSearchTerm] = useState("");
+
+  // MODAL STATE
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [actionType, setActionType] = useState(null); // 'approved', 'removed', 'dismissed'
+  const [actionNotes, setActionNotes] = useState("");
+  const [processingReportId, setProcessingReportId] = useState(null);
 
   // Chart Data
   const [kpiData, setKpiData] = useState([]);
@@ -52,17 +68,17 @@ const AdminDashboard = () => {
   const [userStatusFilter, setUserStatusFilter] = useState("all");
   const [userPage, setUserPage] = useState(1);
 
+  // Job filters
   const [jobSearch, setJobSearch] = useState("");
   const [jobStatusFilter, setJobStatusFilter] = useState("all");
   const [jobTypeFilter, setJobTypeFilter] = useState("all");
   const [jobPage, setJobPage] = useState(1);
 
+  // Company filters
   const [companySearch, setCompanySearch] = useState("");
   const [companyPage, setCompanyPage] = useState(1);
 
-  // -------------------------------------------------------------
-  // 1. Fetch Data (Living on the live endpoints)
-  // -------------------------------------------------------------
+  // Fetch Data (Living on the live endpoints)
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -118,13 +134,43 @@ const AdminDashboard = () => {
     }
   };
 
+  // Fetch reports separately since it has its own filters and pagination
+  const fetchReportsData = async () => {
+    try {
+      setReportLoading(true);
+      // Build filters
+      const params = {};
+      if (reportStatusFilter !== "all") params.status = reportStatusFilter;
+      if (reportReasonFilter !== "all") params.reason = reportReasonFilter;
+      params.page = reportPage;
+
+      const [reportsRes, statsRes] = await Promise.all([
+        adminAPI.getReports(params),
+        adminAPI.getReportStats(),
+      ]);
+
+      setReports(reportsRes.data?.data || []);
+      setReportStats(statsRes.data?.data || null);
+    } catch (err) {
+      console.error("Failed to fetch reports:", err);
+      toast.error("Failed to load reports");
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
 
-  // -------------------------------------------------------------
-  // 2. Table Actions
-  // -------------------------------------------------------------
+  // Refetch reports when filters or page changes
+  useEffect(() => {
+    if (activeTab === "reports") {
+      fetchReportsData();
+    }
+  }, [activeTab, reportPage, reportStatusFilter, reportReasonFilter]);
+
+  //  Table Actions
   const toggleUser = async (id) => {
     try {
       setTogglingUserId(id);
@@ -154,9 +200,37 @@ const AdminDashboard = () => {
     }
   };
 
-  // -------------------------------------------------------------
-  // 3. Table Filters & Pagination
-  // -------------------------------------------------------------
+  // Open Report Resolution Modal
+  const openReportModal = (report, action) => {
+    setSelectedReport(report);
+    setActionType(action);
+    setActionNotes("");
+    setIsModalOpen(true);
+  };
+
+  // Confirm Report Resolution
+  const confirmReportAction = async () => {
+    if (!selectedReport) return;
+    try {
+      setProcessingReportId(selectedReport.id);
+      await adminAPI.updateReportStatus(selectedReport.id, {
+        status: actionType,
+        resolutionNote: actionNotes.trim(),
+      });
+      toast.success(
+        `Report ${actionType} successfully. Reporter will be notified.`,
+      );
+      setIsModalOpen(false);
+      fetchReportsData(); // Refresh list
+    } catch (err) {
+      console.error("Resolve report error:", err);
+      toast.error(err.response?.data?.message || "Failed to resolve report");
+    } finally {
+      setProcessingReportId(null);
+    }
+  };
+
+  // Table Filters & Pagination
   const stats = useMemo(() => {
     const activeUsers = users.filter((u) => Number(u.is_active) === 1).length;
     const activeJobs = jobs.filter((j) => Number(j.is_active) === 1).length;
@@ -261,9 +335,7 @@ const AdminDashboard = () => {
     );
   }
 
-  // -------------------------------------------------------------
-  // 4. Render
-  // -------------------------------------------------------------
+  // Render
   return (
     <div className="admin-dashboard">
       <div className="dashboard-container">
@@ -277,28 +349,31 @@ const AdminDashboard = () => {
           </div>
 
           <nav className="sidebar-nav">
-            {["overview", "users", "jobs", "companies"].map((tab) => {
-              // Map tab names to correct Material Symbols icons
-              const iconMap = {
-                overview: "dashboard",
-                users: "group",
-                jobs: "work",
-                companies: "apartment",
-              };
+            {["overview", "users", "jobs", "companies", "reports"].map(
+              (tab) => {
+                // Map tab names to correct Material Symbols icons
+                const iconMap = {
+                  overview: "dashboard",
+                  users: "group",
+                  jobs: "work",
+                  companies: "apartment",
+                  reports: "flag",
+                };
 
-              return (
-                <button
-                  key={tab}
-                  className={activeTab === tab ? "active" : ""}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  <span className="material-symbols-outlined">
-                    {iconMap[tab]}
-                  </span>
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={tab}
+                    className={activeTab === tab ? "active" : ""}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    <span className="material-symbols-outlined">
+                      {iconMap[tab]}
+                    </span>
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                );
+              },
+            )}
           </nav>
 
           <div className="sidebar-footer">
@@ -560,7 +635,7 @@ const AdminDashboard = () => {
             </>
           )}
 
-          {/* ... Existing User/Jobs tabs (unchanged) ... */}
+          {/* Existing User/Jobs tabs */}
           {activeTab === "users" && (
             <section className="admin-section">
               <div className="admin-section-header">
@@ -817,7 +892,239 @@ const AdminDashboard = () => {
               )}
             </section>
           )}
+
+          {/* Reports Tab */}
+          {activeTab === "reports" && (
+            <section className="admin-section">
+              <div className="admin-section-header">
+                <h2>Reports Queue</h2>
+                <span className="admin-count">
+                  {reportStats ? (
+                    <>
+                      Pending: <strong>{reportStats.pending}</strong> | Total:{" "}
+                      <strong>{reportStats.total}</strong>
+                    </>
+                  ) : (
+                    "Loading stats..."
+                  )}
+                </span>
+              </div>
+
+              {/* Filters */}
+              <div className="table-controls admin-filters">
+                <div
+                  className="filter-group"
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    flexWrap: "wrap",
+                    flex: 1,
+                  }}
+                >
+                  <select
+                    value={reportStatusFilter}
+                    onChange={(e) => {
+                      setReportStatusFilter(e.target.value);
+                      setReportPage(1);
+                    }}
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="removed">Removed</option>
+                    <option value="dismissed">Dismissed</option>
+                  </select>
+
+                  <select
+                    value={reportReasonFilter}
+                    onChange={(e) => {
+                      setReportReasonFilter(e.target.value);
+                      setReportPage(1);
+                    }}
+                  >
+                    <option value="all">All Reasons</option>
+                    <option value="spam">Spam</option>
+                    <option value="fraud">Fraud</option>
+                    <option value="inappropriate">Inappropriate</option>
+                    <option value="duplicate">Duplicate</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <span className="admin-count">
+                  {reports.length} reports loaded
+                </span>
+              </div>
+
+              {/* Reports Table */}
+              {reportLoading ? (
+                <div className="empty-state">Loading reports...</div>
+              ) : reports.length === 0 ? (
+                <div className="empty-state">
+                  No reports found matching your criteria.
+                </div>
+              ) : (
+                <>
+                  <div className="table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Job Title</th>
+                          <th>Reporter</th>
+                          <th>Reason</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reports.map((report) => (
+                          <tr key={report.id}>
+                            <td>#{report.id}</td>
+                            <td>
+                              <strong>{report.job_title}</strong>
+                              <div
+                                style={{
+                                  fontSize: "0.8rem",
+                                  color: "var(--gray-color)",
+                                }}
+                              >
+                                ID: {report.job_id}
+                              </div>
+                            </td>
+                            <td>{report.reporter_name || "Unknown"}</td>
+                            <td>
+                              <span className="status-badge active">
+                                {(report.reason || "Other").toUpperCase()}
+                              </span>
+                            </td>
+                            <td>
+                              <span
+                                className={`status-badge ${report.status === "pending" ? "inactive" : "active"}`}
+                              >
+                                {report.status.toUpperCase()}
+                              </span>
+                            </td>
+                            <td
+                              className="actions"
+                              style={{
+                                display: "flex",
+                                gap: "6px",
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              {report.status === "pending" && (
+                                <>
+                                  <button
+                                    className="admin-btn admin-btn-primary"
+                                    onClick={() =>
+                                      openReportModal(report, "approved")
+                                    }
+                                    disabled={processingReportId === report.id}
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    className="admin-btn admin-btn-neutral"
+                                    onClick={() =>
+                                      openReportModal(report, "dismissed")
+                                    }
+                                    disabled={processingReportId === report.id}
+                                  >
+                                    Dismiss
+                                  </button>
+                                  <button
+                                    className="admin-btn admin-btn-danger"
+                                    onClick={() =>
+                                      openReportModal(report, "removed")
+                                    }
+                                    disabled={processingReportId === report.id}
+                                  >
+                                    Remove Job
+                                  </button>
+                                </>
+                              )}
+                              {report.status !== "pending" && (
+                                <span
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    color: "var(--gray-color)",
+                                  }}
+                                >
+                                  Resolved
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {renderPagination(
+                    reportPage,
+                    setReportPage,
+                    reportStats ? Math.ceil(reportStats.total / PAGE_SIZE) : 1,
+                  )}
+                </>
+              )}
+            </section>
+          )}
         </main>
+      </div>
+
+      {/* RESOLUTION MODAL */}
+      <div
+        className={`modal-overlay ${isModalOpen ? "active" : ""}`}
+        onClick={() => setIsModalOpen(false)}
+      >
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <h3>Resolve Report</h3>
+          <p style={{ marginBottom: "16px" }}>
+            <strong>Action:</strong>{" "}
+            <span className="capitalize-text">{actionType}</span>
+            <br />
+            <strong>Job:</strong> {selectedReport?.job_title}
+          </p>
+          <div className="form-group">
+            <label htmlFor="notes">Resolution Notes (Optional)</label>
+            <textarea
+              id="notes"
+              rows="3"
+              placeholder="Add internal notes for this resolution..."
+              value={actionNotes}
+              onChange={(e) => setActionNotes(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px",
+                borderRadius: "6px",
+                border: "1px solid var(--border-color)",
+              }}
+            />
+          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              justifyContent: "flex-end",
+              marginTop: "20px",
+            }}
+          >
+            <button
+              className="admin-btn admin-btn-neutral"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className={`admin-btn ${actionType === "removed" ? "admin-btn-danger" : "admin-btn-primary"}`}
+              onClick={confirmReportAction}
+              disabled={processingReportId === selectedReport?.id}
+            >
+              {processingReportId === selectedReport?.id
+                ? "Processing..."
+                : `Confirm ${actionType}`}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

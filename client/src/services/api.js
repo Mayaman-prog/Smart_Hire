@@ -453,7 +453,14 @@ export const adminAPI = {
   // Chart endpoints for the Admin Dashboard
   getKPI: () => api.get("/admin/analytics/kpi"),
   getTimeline: (days = 30) => api.get(`/admin/analytics/timeline?days=${days}`),
-  getPopular: (type = "job_types") => api.get(`/admin/analytics/popular?type=${type}`),
+  getPopular: (type = "job_types") =>
+    api.get(`/admin/analytics/popular?type=${type}`),
+  
+  // REPORTS API
+  getReports: (params) => api.get("/admin/reports", { params }),
+  getReportStats: () => api.get("/admin/reports/stats"),
+  updateReportStatus: (id, data) =>
+    api.put(`/admin/reports/${id}/status`, data),
 };
 
 // New API for Notifications
@@ -473,8 +480,10 @@ export const coverLetterAPI = {
 
 export const getCoverLetters = () => api.get("/cover-letters");
 export const createCoverLetter = (data) => api.post("/cover-letters", data);
-export const updateCoverLetter = (id, data) => api.put(`/cover-letters/${id}`, data);
+export const updateCoverLetter = (id, data) =>
+  api.put(`/cover-letters/${id}`, data);
 export const deleteCoverLetter = (id) => api.delete(`/cover-letters/${id}`);
-export const setDefaultCoverLetter = (id) => api.put(`/cover-letters/${id}/default`);
+export const setDefaultCoverLetter = (id) =>
+  api.put(`/cover-letters/${id}/default`);
 
 export default api;

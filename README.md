@@ -373,8 +373,10 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - Hide apply button if employer is viewing their own job
 - Save Job button with heart icon toggle
 - Share button that copies current job URL to clipboard with toast notification
-- Report Job button (flag icon) – opens a modal to report the job (Spam, Fraud, Inappropriate, Duplicate, Other). Rate‑limited to 5 reports per user per 24 h; duplicates prevented.
+- Report Job button (flag icon) – opens a modal to report the job (Spam, Fraud, Inappropriate, Duplicate, Other). Rate‑limited to 5 reports per user per 24 hrs duplicates prevented.
 - Similar Jobs section displaying related jobs based on job type
+- Dynamic job details fetching using URL parameters (useParams)
+- Cover Letter Selection – When applying, a modal allows users to select from their saved cover letter templates, preview the HTML content, and edit it inline using a rich text editor before submitting the application with the final content.
 - Loading skeleton animation while fetching data
 - Error state with 404 page for invalid job IDs
 - Fully responsive design (mobile, tablet, desktop)
@@ -1982,8 +1984,6 @@ client/src/pages/NotFoundPage/
 - Interview scheduling system
 - Mobile native apps (React Native)
 - Integrate with a structured resume API (e.g., Affinda) for higher‑accuracy parsing of work experience and education fields.
-- Cover Letters frontend UI – Manage cover letters in the Job Seeker Dashboard.
-- Cover Letter selection during application – Dropdown on Job Details page to select a cover letter when applying.
 
 ## License
 
@@ -2045,6 +2045,8 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Admin Dashboard analytics APIs (/admin/analytics/kpi, /admin/analytics/timeline, /admin/analytics/popular)
 - Resume CRUD APIs (/api/users/resume – upload/parse, fetch all, fetch primary, get by ID, update metadata, delete, set as primary)
 - Cover Letters CRUD APIs (/api/cover-letters – create, get, update, delete, set default)
+- Cover Letter selection and inline edit during job application
+- Cover Letters – Full CRUD API and frontend UI in Job Seeker Dashboard (rich text editor, modal, set default, delete with confirmation), plus integrated selection and inline editing in the job application modal.
 - Backend-driven filtering, sorting, and pagination for all job listings
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes.

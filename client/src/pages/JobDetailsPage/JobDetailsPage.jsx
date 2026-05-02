@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import api, { jobAPI, applicationAPI, savedJobsAPI } from "../../services/api";
+import api, {
+  jobAPI,
+  applicationAPI,
+  savedJobsAPI,
+  getCoverLetters,
+  setDefaultCoverLetter,
+} from "../../services/api";
 import JobCard from "../../components/jobs/JobCard/JobCard";
 import toast from "react-hot-toast";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import "./JobDetailsPage.css";
 
 const JobDetailsPage = () => {
@@ -14,7 +22,6 @@ const JobDetailsPage = () => {
   const [job, setJob] = useState(null);
   const [similarJobs, setSimilarJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [applying, setApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -24,6 +31,14 @@ const JobDetailsPage = () => {
   const [reporting, setReporting] = useState(false);
   const [alreadyReported, setAlreadyReported] = useState(false);
   const [error, setError] = useState(null);
+
+  // Cover letter states
+  const [coverLetters, setCoverLetters] = useState([]);
+  const [selectedCoverId, setSelectedCoverId] = useState(null);
+  const [coverContent, setCoverContent] = useState("");
+  const [isEditingCover, setIsEditingCover] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   const getRelativeDate = (date) => {
     if (!date) return "Recently";
@@ -81,7 +96,10 @@ const JobDetailsPage = () => {
         const jobData = jobRes.data?.data;
         setJob(jobData);
 
-        const similarRes = await jobAPI.getJobs({ similar: true, jobId: Number(id) });
+        const similarRes = await jobAPI.getJobs({
+          similar: true,
+          jobId: Number(id),
+        });
         setSimilarJobs((similarRes.data?.data || []).slice(0, 3));
 
         if (isAuthenticated && user?.role === "job_seeker") {
@@ -114,6 +132,73 @@ const JobDetailsPage = () => {
     fetchData();
   }, [id, isAuthenticated, user]);
 
+  // Fetch cover letters for the apply modal
+  const fetchCoverLetters = async () => {
+    try {
+      const res = await getCoverLetters();
+      const letters = res.data?.data || res.data || [];
+      setCoverLetters(letters);
+      // Pre-select the default cover letter
+      const defaultLetter = letters.find((l) => l.is_default);
+      if (defaultLetter) {
+        setSelectedCoverId(defaultLetter.id);
+        setCoverContent(defaultLetter.content);
+      } else if (letters.length > 0) {
+        setSelectedCoverId(letters[0].id);
+        setCoverContent(letters[0].content);
+      } else {
+        setCoverContent("");
+      }
+    } catch (err) {
+      console.error("Failed to load cover letters:", err);
+      toast.error("Could not load cover letters");
+    }
+  };
+
+  // Open apply modal and load cover letters
+  const handleApplyOpen = () => {
+    setShowApplyModal(true);
+    fetchCoverLetters();
+    setIsEditingCover(false);
+  };
+
+  // Handle cover letter selection change
+  const handleCoverChange = (e) => {
+    const id = Number(e.target.value);
+    setSelectedCoverId(id);
+    const letter = coverLetters.find((l) => l.id === id);
+    setCoverContent(letter ? letter.content : "");
+    setIsEditingCover(false);
+  };
+
+  // Toggle between preview and edit mode for cover letter
+  const toggleEdit = () => {
+    setIsEditingCover(!isEditingCover);
+  };
+
+  // Submit application with selected cover letter
+  const handleApplySubmit = async () => {
+    setApplying(true);
+    try {
+      await applicationAPI.applyForJob(job.id, {
+        cover_letter: coverContent,
+      });
+      setHasApplied(true);
+      toast.success("Application submitted successfully!");
+      setShowApplyModal(false);
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setHasApplied(true);
+        toast.error("You have already applied to this job");
+      } else {
+        toast.error(err.response?.data?.message || "Failed to apply");
+      }
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  // Handle apply button click
   const handleApply = async () => {
     if (!isAuthenticated) {
       sessionStorage.setItem("redirectAfterLogin", `/jobs/${id}`);
@@ -132,22 +217,8 @@ const JobDetailsPage = () => {
       return;
     }
 
-    setApplying(true);
-
-    try {
-      await applicationAPI.applyForJob(job.id, { cover_letter: "" });
-      setHasApplied(true);
-      toast.success("Application submitted successfully!");
-    } catch (err) {
-      if (err.response?.status === 409) {
-        setHasApplied(true);
-        toast.error("You have already applied to this job");
-      } else {
-        toast.error(err.response?.data?.message || "Failed to apply");
-      }
-    } finally {
-      setApplying(false);
-    }
+    // Open modal instead of submitting immediately
+    handleApplyOpen();
   };
 
   const handleSaveJob = async () => {
@@ -238,6 +309,7 @@ const JobDetailsPage = () => {
     );
   }
 
+  // Render job details
   return (
     <div className="job-details-page">
       <div className="container">
@@ -448,6 +520,7 @@ const JobDetailsPage = () => {
           </section>
         )}
       </div>
+
       {/* Report Job Modal */}
       {showReportModal && (
         <div
@@ -502,6 +575,89 @@ const JobDetailsPage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Apply Modal */}
+      {showApplyModal && (
+        <div className="modal-overlay" onClick={() => setShowApplyModal(false)}>
+          <div
+            className="modal-content apply-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2>Apply for {job?.title}</h2>
+
+            {coverLetters.length === 0 ? (
+              <p>
+                You have no cover letters. Create one in your dashboard first.
+              </p>
+            ) : (
+              <>
+                <div className="form-group">
+                  <label>Cover Letter Template</label>
+                  <select
+                    value={selectedCoverId || ""}
+                    onChange={handleCoverChange}
+                  >
+                    {coverLetters.map((cl) => (
+                      <option key={cl.id} value={cl.id}>
+                        {cl.name} {cl.is_default ? "⭐ (Default)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="cover-letter-preview">
+                  <div className="preview-header">
+                    <h4>Preview</h4>
+                    <button
+                      type="button"
+                      className="btn-edit-toggle"
+                      onClick={toggleEdit}
+                    >
+                      {isEditingCover ? "Cancel Edit" : "Edit"}
+                    </button>
+                  </div>
+
+                  {isEditingCover ? (
+                    <ReactQuill
+                      value={coverContent}
+                      onChange={setCoverContent}
+                      theme="snow"
+                      modules={{
+                        toolbar: [
+                          ["bold", "italic", "underline", "strike"],
+                          [{ list: "ordered" }, { list: "bullet" }],
+                          ["link", "clean"],
+                        ],
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="preview-content"
+                      dangerouslySetInnerHTML={{ __html: coverContent }}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+
+            <div className="modal-actions">
+              <button
+                className="btn-primary"
+                onClick={handleApplySubmit}
+                disabled={applying || coverLetters.length === 0}
+              >
+                {applying ? "Submitting..." : "Submit Application"}
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => setShowApplyModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

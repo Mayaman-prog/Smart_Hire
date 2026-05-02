@@ -16,7 +16,8 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
     - [Cover Letters](#cover-letters)
     - [FULLTEXT Search](#fulltext-search)
     - [Typo Tolerance & Autocomplete](#typo-tolerance--autocomplete)
-    - [Resume Parsing & CRUD](#resume-parsing--crud)
+    - [Resume Parsing & CRUD](#resume-parsing-crud)
+    - [Admin Reports Queue UI](#admin-reports-queue-ui)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
   - [Email Rate Limiting & Retry Logic](#email-rate-limiting--retry-logic)
@@ -122,6 +123,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Drag-and-drop resume upload on profile with progress indicator, file validation, and delete functionality
 - Automatic resume parsing (PDF/DOCX) and auto‑filling of profile fields extracted data is stored in the `parsed_data` column of the `resumes` table and can be retrieved to pre‑fill the user's profile form.
 - Cover Letters – Create, edit, delete, and set default cover letter templates directly in the Job Seeker Dashboard using a built-in rich text editor (bold, italic, bullet points, links). The default cover letter is automatically selected when applying to a job.
+- Admin Reports Queue UI – Dedicated moderation panel with status filters, action buttons (Approve, Remove, Dismiss, Ban Employer), confirmation modal with resolution notes, and automated email notification to the reporter via background queue.
 
 ### Backend Features
 - JWT authentication (register, login, profile)
@@ -150,7 +152,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
   - If the default cover letter is deleted, the most recently updated one becomes the new default.
   - The default cover letter is automatically selected when a job seeker applies to a job (frontend integration pending).
 
-#### FULLTEXT Search (B22)
+#### FULLTEXT Search
 - **Index:** `ft_search` on `jobs(title, description, requirements)` for fast, relevant searching.
 - **Search parameter:** `?search=React` – uses `MATCH() AGAINST()` in natural language mode.
 - **Relevance scoring:** `relevance_score` column available in results when `search` is provided.
@@ -172,6 +174,21 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
   - `PUT /api/users/resume/:id/primary` – Set a specific resume as primary (unsets others).
 - **File Storage:** Uploaded resumes are stored in `uploads/resumes/` with unique filenames.
 - **Error Handling:** Graceful failure with user‑friendly error messages; malformed files are rejected.
+
+#### Admin Reports Queue UI
+- **Frontend:** Located entirely inside `AdminDashboard.jsx` (Reports tab, table, filters, action buttons, and confirmation modal) – no separate `ReportsTable.jsx` component needed.
+- **Backend:** `PUT /api/admin/reports/:id/status` – Admin‑only endpoint to resolve job reports.
+- **Workflow:**
+  - Admin Dashboard → “Reports” section with a dedicated table.
+  - Table filters: **Status** (Pending, Approved, Removed, Dismissed), **Reason** (Spam, Fraud, Inappropriate, Duplicate, Other), and **Date range**.
+  - Each row displays: Job Title, Reporter, Reason, Status, and Action buttons.
+  - Action buttons: **Approve** (keep job), **Remove** (soft‑delete job), **Dismiss** (no action), **Ban Employer** (bans the employer + removes all their active jobs).
+  - **Confirmation Modal:** Opens when an action is clicked, includes an optional `resolution_notes` text field.
+  - Upon confirmation, report status is updated in DB and job `is_active` toggled if necessary.
+- **Email Notification:** After resolution, a background email is queued via Bull + Redis to notify the reporter using the `report-resolution.html` template.
+- **Audit Logging:** All resolution actions are logged in the `audit_logs` table for compliance.
+- **Rate Limiting:** 5 reports per user per 24 hours (Redis).
+- **Duplicate Check:** One report per user per job.
 
 ### Saved Searches Feature
 - Job seekers can create, read, update, and delete saved search criteria.
@@ -593,6 +610,7 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
   - Pagination (6 jobs per page) with Previous/Next controls
   - Feature/Unfeature job (PUT /api/admin/jobs/:id/feature)
   - Delete job (with confirmation modal)
+- Reports Tab – Dedicated reports queue with filters (status, reason), action buttons (Approve, Remove, Dismiss, Ban Employer), confirmation modal with resolution notes, and email notification to reporter.
 - Settings tab (placeholder for future features)
 - Fully integrated with live backend APIs
 - Loading skeletons and success/error toast notifications
@@ -688,9 +706,6 @@ SmartHire/
 │   │   │   │   ├── ResumeUpload/
 │   │   │   │   │   ├── ResumeUpload.jsx
 │   │   │   │   │   └── ResumeUpload.css
-│   │   │   │   ├── Admin/
-│   │   │   │   │   ├── ReportsTable.jsx
-│   │   │   │   │   └── ReportsTable.css
 │   │   │   │   └── ScrollToTop.jsx
 │   │   │   ├── jobs/
 │   │   │   │   └── JobCard/
@@ -1152,6 +1167,10 @@ Content-Type: application/json
 | GET    | `/admin/reports/stats`       | Get report statistics (pending, approved, removed, dismissed)                           | Admin  |
 | GET    | `/admin/reports/:id`         | Get single report details                                                               | Admin  |
 | PUT    | `/admin/reports/:id/status`  | Update report status (approved / removed / dismissed) + notify reporter                 | Admin  |
+
+**Reports Routes (/api/reports)**
+| Method | Endpoint    | Description                | Access         |
+| POST   | `/reports`  | Submit a report for a job  | Authenticated  |
 
 #### Analytics Endpoints (Admin‑only)
 These endpoints are part of the admin routes (`/api/admin/analytics/…`). They require a valid admin JWT token.
@@ -1907,56 +1926,61 @@ client/src/pages/NotFoundPage/
 
 ## Troubleshooting
 
-| Issue                                                         | Solution                                                                                          |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Navbar items squished                                         | Restart Vite: `rm -rf node_modules/.vite && npm run dev`                                          |
-| CSS not applying                                              | Check import paths in component files                                                             |
-| JobCard not showing                                           | Verify API response shape and component props                                                     |
-| Footer not sticky                                             | Use `min-height: 100vh` and `flex-direction: column` in layout                                    |
-| Form validation not working                                   | Check `validators.js` import path                                                                 |
-| HomePage featured jobs not showing                            | Ensure featured jobs exist in database                                                            |
-| Search redirect not working                                   | Check AuthContext and route guards                                                                |
-| Icons not showing                                             | Add Google Fonts link in `index.html`                                                             |
-| Filters not working                                           | Check URL query params, backend filters, and state                                                |
-| Mobile filter drawer not showing                              | Verify CSS media queries                                                                          |
-| Apply button not working                                      | Check authentication status and user role                                                         |
-| Similar jobs not showing                                      | Verify backend query for similar jobs                                                             |
-| Company search not working                                    | Ensure companies endpoint returns valid data                                                      |
-| Company cards not showing                                     | Check `CompanyCard` component import                                                              |
-| Company details not showing                                   | Verify company ID in URL and API response                                                         |
-| Database connection error                                     | Start MySQL and verify `.env` configuration                                                       |
-| Protected route redirecting                                   | Check AuthContext and token storage                                                               |
-| 404 page not showing                                          | Ensure `*` route is last in Routes                                                                |
-| Login not working                                             | Verify correct test credentials                                                                   |
-| Toast notifications not showing                               | Ensure `react-hot-toast` installed and `<Toaster />` in `App.jsx`                                 |
-| 500 Internal Server Error                                     | Check server logs and database tables                                                             |
-| JWT_SECRET missing                                            | Add `JWT_SECRET` to `.env` (min 32 characters)                                                    |
-| Rate limit exceeded                                           | Wait 15 minutes or restart server                                                                 |
-| Apply button stays enabled after applying                     | Verify application status from backend                                                            |
-| Saved jobs not appearing in dashboard                         | Verify `saved_jobs` API and response                                                              |
-| Charts not loading                                            | Check Recharts and `/api/admin/stats/overview` endpoint                                           |
-| Email not sending                                             | Check SMTP config; run `node scripts/test-email.js`                                               |
-| Save search modal not opening                                 | Check `SaveSearchModal` import and state handling                                                 |
-| Saved search limit not enforced                               | Add backend validation (max 10 per user)                                                          |
-| 429 Too Many Requests (email)                                 | Wait 60 seconds before retrying                                                                   |
-| Resume upload not appearing                                   | Ensure `ResumeUpload` component is imported and `resumeUrl` is set                                |
-| Drag-and-drop not working                                     | Verify file type/size constraints and event handlers                                              |
-| Progress bar not showing                                      | Check `USE_MOCK=true` flag or API integration                                                     |
-| Delete resume fails                                           | Verify backend endpoint or test with mock enabled                                                 |
-| Cron job not running                                          | Ensure `startDailyJobAlert()` is called in `server.js` and Redis is running                       |
-| Unsubscribe link shows "Invalid"                              | Backfill tokens using UUID update query                                                           |
-| Daily alert email not received                                | Check `cron_state.last_run` and job existence                                                     |
-| Report not submitting                                         | Check `jobId`, authentication, and Redis status                                                   |
-| Rate limit hit on reports                                     | Wait 24h or reset Redis key                                                                       |
-| Resume upload fails with "Unexpected end of form"             | File is corrupt/empty/locked. Use fresh text-based PDF                                            |
-| Resume upload succeeds but parsed_data is NULL                | Parser failed (likely scanned PDF). Use text-based PDF                                            |
-| Resume upload succeeds but no record appears in resumes table | DB INSERT failed. Check `req.user.id` and schema                                                  |
-| Cover letter creation fails                                   | Ensure `cover_letters` table exists and DB connection works                                       |
-| FULLTEXT search error                                         | Add index: `ALTER TABLE jobs ADD FULLTEXT INDEX ft_search (title, description, requirements);`    |
-| SQL syntax error on search                                    | Fix controller fallback: use `sort='recent'` when search empty                                    |
-| Suggestions endpoint returns empty                            | Run a few job searches (`/api/jobs?search=...`) to populate `search_logs`                         |
-| Cover letter doesn't save                                     | Check name/content fields, inspect browser console (F12), ensure backend + routes are running     |
-| Rich text editor not showing                                  | Run `npm install react-quill-new` and import CSS: `import "react-quill-new/dist/quill.snow.css";` |
+| Issue                                                 | Solution                                                              |
+| ----------------------------------------------------- | --------------------------------------------------------------------- |
+| Navbar items squished                                 | Restart Vite: `rm -rf node_modules/.vite && npm run dev`              |
+| CSS not applying                                      | Check import paths in component files                                 |
+| JobCard not showing                                   | Verify API response shape and component props                         |
+| Footer not sticky                                     | Use `min-height: 100vh` and `flex-direction: column` in layout        |
+| Form validation not working                           | Check `validators.js` import path                                     |
+| HomePage featured jobs not showing                    | Ensure featured jobs exist in database                                |
+| Search redirect not working                           | Check AuthContext and route guards                                    |
+| Icons not showing                                     | Add Google Fonts link in `index.html`                                 |
+| Filters not working                                   | Check URL query params, backend filters, and state                    |
+| Mobile filter drawer not showing                      | Verify CSS media queries                                              |
+| Apply button not working                              | Check authentication status and user role                             |
+| Similar jobs not showing                              | Verify backend query for similar jobs                                 |
+| Company search not working                            | Ensure companies endpoint returns valid data                          |
+| Company cards not showing                             | Check `CompanyCard` component import                                  |
+| Company details not showing                           | Verify company ID in URL and API response                             |
+| Database connection error                             | Start MySQL and verify `.env` configuration                           |
+| Protected route redirecting                           | Check AuthContext and token storage                                   |
+| 404 page not showing                                  | Ensure `*` route is last in Routes                                    |
+| Login not working                                     | Verify correct test credentials                                       |
+| Toast notifications not showing                       | Ensure `react-hot-toast` installed and `<Toaster />` in `App.jsx`     |
+| 500 Internal Server Error                             | Check server logs and database tables                                 |
+| JWT_SECRET missing                                    | Add `JWT_SECRET` to `.env` (min 32 characters)                        |
+| Rate limit exceeded                                   | Wait 15 minutes or restart server                                     |
+| Apply button stays enabled after applying             | Verify application status from backend                                |
+| Saved jobs not appearing in dashboard                 | Verify `saved_jobs` API and response                                  |
+| Charts not loading                                    | Check Recharts and `/api/admin/stats/overview` endpoint               |
+| Email not sending                                     | Check SMTP config; run `node scripts/test-email.js`                   |
+| Save search modal not opening                         | Check `SaveSearchModal` import and state handling                     |
+| Saved search limit not enforced                       | Add backend validation (max 10 per user)                              |
+| 429 Too Many Requests (email)                         | Wait 60 seconds before retrying                                       |
+| Resume upload not appearing                           | Ensure `ResumeUpload` component is imported and `resumeUrl` is set    |
+| Drag-and-drop not working                             | Verify file type/size constraints and event handlers                  |
+| Progress bar not showing                              | Check `USE_MOCK=true` flag or API integration                         |
+| Delete resume fails                                   | Verify backend endpoint or test with mock enabled                     |
+| Cron job not running                                  | Ensure `startDailyJobAlert()` is called in `server.js` and Redis runs |
+| Unsubscribe link shows "Invalid"                      | Backfill tokens using UUID update query                               |
+| Daily alert email not received                        | Check `cron_state.last_run` and job existence                         |
+| Report not submitting                                 | Check `jobId`, authentication, and Redis status                       |
+| Rate limit hit on reports                             | Wait 24h or reset Redis key                                           |
+| Resume upload fails with "Unexpected end of form"     | File corrupt/empty/locked. Use fresh text-based PDF                   |
+| Resume upload succeeds but parsed_data is NULL        | Parser failed (likely scanned PDF). Use text-based PDF                |
+| Resume upload succeeds but no record in resumes table | DB INSERT failed. Check `req.user.id` and schema                      |
+| Cover letter creation fails                           | Ensure `cover_letters` table exists and DB connection works           |
+| FULLTEXT search error                                 | Add index: `ALTER TABLE jobs ADD FULLTEXT INDEX ft_search (...)`      |
+| SQL syntax error on search                            | Fix controller fallback: use `sort='recent'` when search empty        |
+| Suggestions endpoint returns empty                    | Run `/api/jobs?search=...` to populate `search_logs`                  |
+| Cover letter doesn't save                             | Check fields, console (F12), backend & routes                         |
+| Rich text editor not showing                          | Install `react-quill-new` and import its CSS                          |
+| Reports not loading in Admin Dashboard                | Check `GET /api/admin/reports` and filters                            |
+| Confirmation modal not opening                        | Ensure `isModalOpen` state and CSS imports                            |
+| Report email not sent to reporter                     | Verify Bull/Redis, queue enabled, template exists                     |
+| Resolved report still appears in table                | Refresh via `fetchReportsData()` or check pagination                  |
+| "Failed to resolve report" toast                      | Ensure report isn’t already resolved                                  |
 
 ## Contributing
 **Create a new branch:**
@@ -1984,6 +2008,7 @@ client/src/pages/NotFoundPage/
 - Interview scheduling system
 - Mobile native apps (React Native)
 - Integrate with a structured resume API (e.g., Affinda) for higher‑accuracy parsing of work experience and education fields.
+- Enhanced moderation dashboard with real-time updates and advanced search.
 
 ## License
 
@@ -2021,6 +2046,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Admin analytics API endpoints (overview, timeline, popular, retention) with efficient SQL aggregation
 - Job reports table and API (POST /api/reports) with Redis rate limiting and duplicate detection
 - Notify reporter on resolution – email sent to reporter when admin resolves a job report (approved / removed / dismissed). Includes job title, reason, resolution outcome, and optional admin note. Queue via Bull + Redis, with rate limit and audit logging.
+- Admin Reports Queue UI – Dedicated moderation panel with status filters, action buttons (Approve, Remove, Dismiss, Ban Employer), confirmation modal with resolution notes, and automated email notification to the reporter via background queue. Located entirely within `AdminDashboard.jsx`.
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard, Toast, Footer, Navbar, ResumeUpload
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data
@@ -2047,6 +2073,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Cover Letters CRUD APIs (/api/cover-letters – create, get, update, delete, set default)
 - Cover Letter selection and inline edit during job application
 - Cover Letters – Full CRUD API and frontend UI in Job Seeker Dashboard (rich text editor, modal, set default, delete with confirmation), plus integrated selection and inline editing in the job application modal.
+- Admin Reports API (/api/admin/reports – fetch, stats, resolve with status update + email notification)
 - Backend-driven filtering, sorting, and pagination for all job listings
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes.

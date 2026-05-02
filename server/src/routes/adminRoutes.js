@@ -13,6 +13,10 @@ const {
   unfeatureJob,
   deleteJob,
   getAdminStats,
+  getJobReports,
+  getJobReportById,
+  updateJobReportStatus,
+  getJobReportStats,
 } = require('../controllers/adminController');
 
 // Analytics controller
@@ -51,6 +55,12 @@ router.get('/jobs', getAllJobs);
 router.put('/jobs/:id/feature', featureJob);
 router.put('/jobs/:id/unfeature', unfeatureJob);
 router.delete('/jobs/:id', deleteJob);
+
+// Admin reports
+router.get('/reports', getJobReports);
+router.get('/reports/stats', getJobReportStats);
+router.get('/reports/:id', getJobReportById);
+router.put('/reports/:id/status', updateJobReportStatus);
 
 // Analytics
 router.get('/analytics/overview',   getOverview);

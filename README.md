@@ -22,6 +22,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [Email Rate Limiting & Retry Logic](#email-rate-limiting--retry-logic)
   - [Email Service Features](#email-service-features)
   - [Daily Job Alert Cron Job](#daily-job-alert-cron-job)
+  - [Notify Reporter on Resolution](#notify-reporter-on-resolution)
   - [ResumeUpload Component](#resumeupload-component)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
@@ -43,6 +44,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [Company Routes](#company-routes)
   - [Admin Routes](#admin-routes)
   - [Reports Routes](#reports-routes)
+  - [Search Suggestions](#search-suggestions)
 - [Components Implemented](#components-implemented)
   - [Navbar Component](#navbar-component)
   - [Footer Component](#footer-component)
@@ -62,6 +64,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [JobSeekerDashboard Component](#jobseekerdashboard-component)
   - [EmployerDashboard Component](#employerdashboard-component)
   - [AdminDashboard Component](#admindashboard-component)
+  - [ReportsTable Component](#reportstable-component)
   - [ProtectedRoute Component](#protectedroute-component)
   - [ScrollToTop Component](#scrolltotop-component)
   - [NotFoundPage Component](#notfoundpage-component)
@@ -118,14 +121,14 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Save this search button on jobs listing page to store current search filters with a name and alert frequency
 - Drag-and-drop resume upload on profile with progress indicator, file validation, and delete functionality
 - Automatic resume parsing (PDF/DOCX) and auto‑filling of profile fields extracted data is stored in the `parsed_data` column of the `resumes` table and can be retrieved to pre‑fill the user's profile form.
-- Cover Letters – Create, edit, delete, and set default cover letter templates (B13). The default cover letter is automatically selected when applying to a job.
+- Cover Letters – Create, edit, delete, and set default cover letter templates. The default cover letter is automatically selected when applying to a job.
 
 ### Backend Features
 - JWT authentication (register, login, profile)
 - Password hashing with bcrypt (10 rounds)
 - Input validation with express-validator
 - Rate limiting (5 login attempts per 15 minutes)
-- MySQL database with 16+ tables
+- MySQL database with 27 tables
 - Transaction support for registration
 - CORS configured for frontend
 - Helmet.js for security headers
@@ -239,7 +242,7 @@ Five responsive HTML email templates are used for different notifications. All t
 | Job seeker applies to a job            | `new-applicant.html`                           | Employer             |
 | Employer updates application status    | `status-change.html`                           | Job seeker           |
 | New job posted (matching saved search) | `new-job-alert.html`                           | Matching job seekers |
-
+| Admin resolves a job report            | ``report-resolution.html``                     | Reporter             |
 
 All emails are sent asynchronously; failures are logged but do not break the main functionality.
 
@@ -252,6 +255,35 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 - Builds a digest email with up to 20 matching jobs and sends it via the background email queue.
 - Each email includes an unsubscribe link (unique token per saved search) that deactivates the search permanently.
 - Stores the *ast‑run timestamp in the cron_state table to avoid duplicate alerts.
+
+### Notify Reporter on Resolution
+
+**Feature:**  
+- When an admin resolves a job report (status changes to `approved`, `removed`, or `dismissed`), the reporter receives an automated email notification with the resolution outcome.
+
+**How it works:**
+- **Table:** `job_reports` (resolution fields: `resolved_at`, `resolved_by`, `resolution_notes`)
+- **API Endpoint:** `PUT /api/admin/reports/:id/status` (admin‑only, JWT protected)
+- **Status options:** `approved` (no action taken), `removed` (job soft‑deleted), `dismissed` (no violation found)
+- **Side effect:** When `removed` is chosen, the job’s `is_active` flag is set to `0` (soft‑delete)
+- **Email:** Queued via Bull + Redis using the `report-resolution.html` template, containing:
+  - Reporter name
+  - Job title
+  - Reason for the report
+  - Resolution label (e.g., "Job Removed")
+  - Admin note (optional)
+  - Dashboard link
+
+**Email Template (`report-resolution.html`):**  
+Five‑section responsive email with a clear resolution badge and a "Go to Dashboard" call‑to‑action. The email is queued asynchronously, respecting the user’s email rate limit (10 per minute). All resolution actions are logged in the `audit_logs` table.
+
+**Admin UI Integration:**  
+The `ReportsTable` component (used in Admin Dashboard) displays pending reports and provides **Resolve** buttons (Approve, Remove, Dismiss). When an admin takes action, the reporter is notified immediately via the background email queue.
+
+**Benefits:**
+- Transparency – reporters know that their report was reviewed and what action was taken.
+- Reduces unnecessary follow‑up questions.
+- Builds trust in the moderation system.
 
 ### Resume Upload 
 
@@ -541,6 +573,7 @@ All emails are sent asynchronously; failures are logged but do not break the mai
   - Bar chart showing jobs posted per day over the last 30 days with hover tooltips
   - Pie chart displaying job type distribution (Full‑time, Part‑time, Remote, Contract, Internship)
   - All charts built with Recharts and fully responsive (desktop, tablet, mobile)
+  - Reports Table – A dedicated section to view and resolve job reports (see [Notify Reporter on Resolution](#notify-reporter-on-resolution) for details).
 - User Management tab:
   - Search users by name or email
   - Filter users by role (Job Seeker, Employer, Admin) and status (Active / Inactive)
@@ -653,6 +686,9 @@ SmartHire/
 │   │   │   │   ├── ResumeUpload/
 │   │   │   │   │   ├── ResumeUpload.jsx
 │   │   │   │   │   └── ResumeUpload.css
+│   │   │   │   ├── Admin/
+│   │   │   │   │   ├── ReportsTable.jsx
+│   │   │   │   │   └── ReportsTable.css
 │   │   │   │   └── ScrollToTop.jsx
 │   │   │   ├── jobs/
 │   │   │   │   └── JobCard/
@@ -693,9 +729,12 @@ SmartHire/
 │   │   │   │   ├── jobseeker/
 │   │   │   │   │   ├── JobSeekerDashboard.jsx
 │   │   │   │   │   └── JobSeekerDashboard.css
-│   │   │   │   └── employer/
-│   │   │   │       ├── EmployerDashboard.jsx
-│   │   │   │       └── EmployerDashboard.css
+│   │   │   │   ├──employer/
+│   │   │   │   |   ├── EmployerDashboard.jsx
+│   │   │   │   |   └── EmployerDashboard.css
+│   │   │   │   └── admin/
+│   │   │   │       ├── AdminDashboard.jsx
+│   │   │   │       └── AdminDashboard.css
 │   │   │   └── NotFoundPage/
 │   │   │       ├── NotFoundPage.jsx
 │   │   │       └── NotFoundPage.css
@@ -743,6 +782,7 @@ SmartHire/
 │   │   │   ├── new-applicant.html
 │   │   │   ├── new-job-alert.html
 │   │   │   ├── status-change.html
+│   │   │   └── report-resolution.js
 │   │   ├── middleware/
 │   │   │   ├── authMiddleware.js
 │   │   │   └── rateLimiter.js
@@ -787,6 +827,7 @@ SmartHire/
 │   │   ├── test-suggestions.js
 │   │   ├── test-update-resume.js
 │   │   ├── test-analytics.js
+│   │   ├── test-report-resolution.js
 │   │   └── test-cover-letters.js
 │   ├── .env
 │   ├── .gitignore
@@ -849,6 +890,7 @@ SmartHire uses **Nodemailer** with **Resend** (or any SMTP provider) to send tra
 
 - **Welcome emails** on user registration.
 - **Application status update emails** to job seekers.
+- **Report resolution emails** to reporters.
 
 ### Configure email credentials
 
@@ -886,6 +928,7 @@ Five responsive HTML email templates are used for different notifications. ALl t
 | `new-job-alert.html`            | New job posted matching saved search | Job seeker |
 | `new-applicant.html`            | Job seeker applies to job            | Employer   |
 | `account-verification.html`     | User registers (future)              | New user   |
+| `report-resolution.html`        | Admin resolves a job report          | Reporter   |
 
 Each template uses inline CSS, is responsive, includes a plain‑text fallback, and contains a clear call‑to‑action button.
 
@@ -1103,6 +1146,10 @@ Content-Type: application/json
 | GET    | `/admin/analytics/popular`   | Top job types, locations, categories                                                    | Admin  |
 | GET    | `/admin/analytics/retention` | Retention data and weekly cohorts                                                       | Admin  |
 | GET    | `/admin/analytics/kpi`       | KPI cards with percent change (Total Users, Active Jobs, Applications, Pending Reports) | Admin  |
+| GET    | `/admin/reports`             | Fetch job reports (with filters & pagination)                                           | Admin  |
+| GET    | `/admin/reports/stats`       | Get report statistics (pending, approved, removed, dismissed)                           | Admin  |
+| GET    | `/admin/reports/:id`         | Get single report details                                                               | Admin  |
+| PUT    | `/admin/reports/:id/status`  | Update report status (approved / removed / dismissed) + notify reporter                 | Admin  |
 
 #### Analytics Endpoints (Admin‑only)
 These endpoints are part of the admin routes (`/api/admin/analytics/…`). They require a valid admin JWT token.
@@ -1714,6 +1761,18 @@ client/src/pages/dashboard/admin/
 | **Tablet (768px–1024px)** | Sidebar collapses, full width              |
 | **Mobile (<768px)**       | Stacked layout, tables scroll horizontally |
 
+### ReportsTable Component
+
+**Location:** `client/src/components/Admin/ReportsTable.jsx`
+
+- Fetches pending reports from `GET /api/admin/reports` (with mock data fallback if endpoint is missing).
+- Displays: Job Title, Reporter, Reason, Description, Date, Status.
+- Status badges: `pending` (yellow), `approved` (green), `removed` (red), `dismissed` (gray).
+- Action buttons: **Approve**, **Remove**, **Dismiss** – each calls `PUT /api/admin/reports/:id`.
+- Confirmation modal with optional **resolution notes** (sent to reporter via email).
+- Shows success/error toasts via `showSuccess` and `showError`.
+- Removes resolved reports from the list automatically.
+
 ### ProtectedRoute Component
 
 **Location:** `client/src/components/auth/ProtectedRoute.jsx`
@@ -1909,7 +1968,7 @@ client/src/pages/NotFoundPage/
 ## Future Improvements
 - Add Docker support
 - Cloud deployment (Vercel + Render)
-- Real-time notification system
+- Real-time notification system (Socket.io)
 - Advanced search filters with debouncing
 - Email verification
 - Password reset functionality
@@ -1959,6 +2018,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Daily job alert cron job (node-cron) – scans active saved searches at 8 AM, sends digest emails for new matching jobs with unsubscribe links
 - Admin analytics API endpoints (overview, timeline, popular, retention) with efficient SQL aggregation
 - Job reports table and API (POST /api/reports) with Redis rate limiting and duplicate detection
+- Notify reporter on resolution – email sent to reporter when admin resolves a job report (approved / removed / dismissed). Includes job title, reason, resolution outcome, and optional admin note. Queue via Bull + Redis, with rate limit and audit logging.
 - Reusable components: Button, Input, Tag, TagGroup, JobCard, CompanyCard, Toast, Footer, Navbar, ResumeUpload
 - Complete routing system with protected routes and 404 page
 - MySQL database schema with 16+ tables and seed data

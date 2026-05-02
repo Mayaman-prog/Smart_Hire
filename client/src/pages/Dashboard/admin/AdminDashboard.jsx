@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { adminAPI } from "../../../services/api";
 import toast from "react-hot-toast";
@@ -60,6 +66,17 @@ const AdminDashboard = () => {
   const [jobTypeData, setJobTypeData] = useState({ labels: [], values: [] });
   const [chartLoading, setChartLoading] = useState(true);
 
+  // Date range for charts (preset or custom)
+  const [dateRange, setDateRange] = useState(30);
+  const [customDateRange, setCustomDateRange] = useState({
+    start: "",
+    end: "",
+  });
+  const [datePickerMode, setDatePickerMode] = useState("preset"); // 'preset' or 'custom'
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  const refreshIntervalRef = useRef(null);
+
   // UI States
   const [togglingUserId, setTogglingUserId] = useState(null);
   const [deletingJobId, setDeletingJobId] = useState(null);
@@ -79,10 +96,12 @@ const AdminDashboard = () => {
   const [companyPage, setCompanyPage] = useState(1);
 
   // Fetch Data (Living on the live endpoints)
-  const fetchData = async () => {
+  const fetchData = useCallback(async (daysParam = null) => {
     try {
       setLoading(true);
       setChartLoading(true);
+
+      const days = daysParam !== null ? daysParam : dateRange;
 
       // Fetch table data
       const [usersRes, jobsRes, compRes] = await Promise.all([
@@ -98,7 +117,7 @@ const AdminDashboard = () => {
       // Fetch chart data
       const [kpiRes, timelineRes, popularRes] = await Promise.all([
         adminAPI.getKPI(),
-        adminAPI.getTimeline(30),
+        adminAPI.getTimeline(days),
         adminAPI.getPopular("job_types"),
       ]);
 
@@ -125,6 +144,9 @@ const AdminDashboard = () => {
           values: jobTypes.map((item) => item.count),
         });
       }
+
+      // Update last refresh timestamp
+      setLastRefresh(new Date());
     } catch (err) {
       console.error("Admin fetch error:", err);
       toast.error(err.response?.data?.message || "Failed to load admin data");
@@ -132,6 +154,193 @@ const AdminDashboard = () => {
       setLoading(false);
       setChartLoading(false);
     }
+  }, []);
+
+  // Auto-refresh charts every 5 minutes if enabled
+  useEffect(() => {
+    if (autoRefresh) {
+      refreshIntervalRef.current = setInterval(
+        () => {
+          fetchData();
+        },
+        5 * 60 * 1000,
+      ); // Refresh every 5 minutes
+    } else {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [autoRefresh, fetchData]);
+
+  // Handle date range changes for charts
+  const handleDataRangeChange = (value) => {
+    if (value === "custom") {
+      setDatePickerMode("custom");
+      // Don't fetch immediately, wait for user to select dates
+      if (customDateRange.start && customDateRange.end) {
+        const start = new Date(customDateRange.start);
+        const end = new Date(customDateRange.end);
+        const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        if (diffDays > 0) {
+          setDateRange(diffDays);
+          fetchData(diffDays);
+        }
+      }
+    } else {
+      setDatePickerMode("preset");
+      const days = parseInt(value, 10);
+      setDateRange(days);
+      fetchData(days);
+    }
+  };
+
+  // Handle custom date changes
+  const handleCustomDateChange = (type, value) => {
+    setCustomDateRange((prev) => ({ ...prev, [type]: value }));
+    if (customDateRange.start && customDateRange.end) {
+      const start = new Date(customDateRange.start);
+      const end = new Date(customDateRange.end);
+      const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) {
+        setDateRange(diffDays);
+        fetchData(diffDays);
+      }
+    }
+  };
+
+  const downloadCSV = (data, headers, filename = "export.csv") => {
+    if (!data || data.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+
+    // Build CSV content
+    const csvRows = [];
+    // Add headers
+    csvRows.push(headers.join(","));
+    // Add data rows
+    data.forEach((row) => {
+      const values = headers.map((header) => {
+        const val = row[header] !== undefined ? row[header] : "";
+        return `"${String(val).replace(/"/g, '""')}"`;
+      });
+      csvRows.push(values.join(","));
+    });
+
+    const csvString = csvRows.join("\n");
+    const blob = new Blob(["\uFEFF" + csvString], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${filename}`);
+  };
+
+  // Export user growth timeline data as CSV
+  const exportUsersCSV = () => {
+    const data = timelineData.dates.map((date, i) => ({
+      date: date,
+      users: timelineData.users[i] || 0,
+    }));
+    downloadCSV(data, ["date", "users"], "user_growth.csv");
+  };
+
+  // Export job growth timeline data as CSV
+  const exportJobTypesCSV = () => {
+    const data = jobTypeData.labels.map((label, i) => ({
+      type: label,
+      count: jobTypeData.values[i] || 0,
+    }));
+    downloadCSV(data, ["type", "count"], "job_types_distribution.csv");
+  };
+
+  // Export jobs growth timeline data as CSV
+  const exportJobsCSV = () => {
+    const data = timelineData.dates.map((date, i) => ({
+      date: date,
+      jobs: timelineData.jobs[i] || 0,
+    }));
+    downloadCSV(data, ["date", "jobs"], "jobs_growth.csv");
+  };
+
+  // Export users table data as CSV
+  const exportUsersTableCSV = () => {
+    const data = users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      status: Number(u.is_active) === 1 ? "Active" : "Inactive",
+      joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : "",
+    }));
+    downloadCSV(
+      data,
+      ["id", "name", "email", "role", "status", "joined"],
+      "users.csv",
+    );
+  };
+
+  // Export jobs table data as CSV
+  const exportJobsTableCSV = () => {
+    const data = jobs.map((j) => ({
+      id: j.id,
+      title: j.title,
+      company: j.company_name || "",
+      location: j.location || "",
+      type: j.job_type || "",
+      status: Number(j.is_active) === 1 ? "Active" : "Inactive",
+      posted: j.created_at ? new Date(j.created_at).toLocaleDateString() : "",
+    }));
+    downloadCSV(
+      data,
+      ["id", "title", "company", "location", "type", "status", "posted"],
+      "jobs.csv",
+    );
+  };
+
+  // Export companies table data as CSV
+  const exportCompaniesTableCSV = () => {
+    const data = companies.map((c) => ({
+      id: c.id,
+      name: c.name,
+      location: c.location || "",
+      jobs: c.jobs_count || 0,
+      created: c.created_at ? new Date(c.created_at).toLocaleDateString() : "",
+    }));
+    downloadCSV(
+      data,
+      ["id", "name", "location", "jobs", "created"],
+      "companies.csv",
+    );
+  };
+
+  const exportReportsTableCSV = () => {
+    const data = reports.map((r) => ({
+      id: r.id,
+      job_title: r.job_title,
+      reporter: r.reporter_name || "",
+      reason: r.reason,
+      status: r.status,
+      created: r.created_at ? new Date(r.created_at).toLocaleDateString() : "",
+    }));
+    downloadCSV(
+      data,
+      ["id", "job_title", "reporter", "reason", "status", "created"],
+      "reports.csv",
+    );
   };
 
   // Fetch reports separately since it has its own filters and pagination
@@ -160,8 +369,8 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(dateRange);
+  }, [dateRange, fetchData]);
 
   // Refetch reports when filters or page changes
   useEffect(() => {
@@ -397,6 +606,65 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+              <div className="dashboard-controls">
+                <div className="controls-left">
+                  {/* Date Range Picker */}
+                  <div className="date-range-group">
+                    <label>Date Range:</label>
+                    <select
+                      value={
+                        datePickerMode === "custom"
+                          ? "custom"
+                          : String(dateRange)
+                      }
+                      onChange={(e) => handleDataRangeChange(e.target.value)}
+                    >
+                      <option value="7">Last 7 Days</option>
+                      <option value="30">Last 30 Days</option>
+                      <option value="90">Last 90 Days</option>
+                      <option value="custom">Custom...</option>
+                    </select>
+                    {datePickerMode === "custom" && (
+                      <div className="custom-date-inputs">
+                        <input
+                          type="date"
+                          value={customDateRange.start}
+                          onChange={(e) =>
+                            handleCustomDateChange("start", e.target.value)
+                          }
+                        />
+                        <span>to</span>
+                        <input
+                          type="date"
+                          value={customDateRange.end}
+                          onChange={(e) =>
+                            handleCustomDateChange("end", e.target.value)
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Auto-Refresh Toggle */}
+                  <div className="auto-refresh-group">
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={autoRefresh}
+                        onChange={() => setAutoRefresh(!autoRefresh)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                    <span>Auto-refresh (5 min)</span>
+                    {lastRefresh && (
+                      <span className="last-refresh">
+                        Last: {lastRefresh.toLocaleTimeString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* KPI CARDS - LIVE DATA */}
               <div className="kpi-grid">
                 {kpiData.length > 0 ? (
@@ -433,6 +701,12 @@ const AdminDashboard = () => {
                       <div className="chart-card-header">
                         <h3>User Growth</h3>
                         <p>New users per day</p>
+                        <button className="export-btn" onClick={exportUsersCSV}>
+                          <span className="material-symbols-outlined">
+                            download
+                          </span>{" "}
+                          CSV
+                        </button>
                       </div>
                       <div className="chart-wrap">
                         {timelineData.dates.length > 0 ? (
@@ -471,6 +745,12 @@ const AdminDashboard = () => {
                       <div className="chart-card-header">
                         <h3>Jobs Posted per Day</h3>
                         <p>New jobs per day</p>
+                        <button className="export-btn" onClick={exportJobsCSV}>
+                          <span className="material-symbols-outlined">
+                            download
+                          </span>{" "}
+                          CSV
+                        </button>
                       </div>
                       <div className="chart-wrap">
                         {timelineData.dates.length > 0 ? (
@@ -507,6 +787,15 @@ const AdminDashboard = () => {
                       <div className="chart-card-header">
                         <h3>Job Type Distribution</h3>
                         <p>Active jobs by type</p>
+                        <button
+                          className="export-btn"
+                          onClick={exportJobTypesCSV}
+                        >
+                          <span className="material-symbols-outlined">
+                            download
+                          </span>{" "}
+                          CSV
+                        </button>
                       </div>
                       <div className="chart-wrap">
                         {jobTypeData.values.length > 0 ? (
@@ -553,6 +842,15 @@ const AdminDashboard = () => {
                 <section className="admin-section overview-panel">
                   <div className="admin-section-header">
                     <h2>Recent Users</h2>
+                    <button
+                      className="export-btn"
+                      onClick={exportUsersTableCSV}
+                    >
+                      <span className="material-symbols-outlined">
+                        download
+                      </span>{" "}
+                      CSV
+                    </button>
                   </div>
                   {users.length === 0 ? (
                     <div className="empty-state">No recent users.</div>
@@ -591,6 +889,12 @@ const AdminDashboard = () => {
                 <section className="admin-section overview-panel">
                   <div className="admin-section-header">
                     <h2>Recent Jobs</h2>
+                    <button className="export-btn" onClick={exportJobsTableCSV}>
+                      <span className="material-symbols-outlined">
+                        download
+                      </span>{" "}
+                      CSV
+                    </button>
                   </div>
                   {jobs.length === 0 ? (
                     <div className="empty-state">No jobs posted yet.</div>
@@ -842,6 +1146,13 @@ const AdminDashboard = () => {
             <section className="admin-section">
               <div className="admin-section-header">
                 <h2>Companies</h2>
+                <button
+                  className="export-btn"
+                  onClick={exportCompaniesTableCSV}
+                >
+                  <span className="material-symbols-outlined">download</span>{" "}
+                  CSV
+                </button>
                 <span className="admin-count">
                   {filteredCompanies.length} matched / {stats.totalCompanies}{" "}
                   total
@@ -898,6 +1209,10 @@ const AdminDashboard = () => {
             <section className="admin-section">
               <div className="admin-section-header">
                 <h2>Reports Queue</h2>
+                <button className="export-btn" onClick={exportReportsTableCSV}>
+                  <span className="material-symbols-outlined">download</span>{" "}
+                  CSV
+                </button>
                 <span className="admin-count">
                   {reportStats ? (
                     <>

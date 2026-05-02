@@ -26,6 +26,7 @@ const MOCK_USERS = {
   },
 };
 
+// Utility function to simulate network delay for mock API
 const delay = (ms = 800) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const mockAPI = {
@@ -148,6 +149,7 @@ const mockAPI = {
       const applied = JSON.parse(localStorage.getItem(appliedKey) || "[]");
       const { jobId } = data;
 
+      // Check if user has already applied to this job
       if (applied.includes(jobId)) {
         throw {
           response: {
@@ -173,6 +175,7 @@ const mockAPI = {
     };
   },
 
+  // Only implement GET for /auth/me, /jobs, /jobs/:id, and /jobs/me for mock API
   get: async (url) => {
     await delay();
 
@@ -208,6 +211,7 @@ const mockAPI = {
       };
     }
 
+    // Mock job listings for /jobs and /jobs? endpoints
     if (url === "/jobs" || url.startsWith("/jobs?")) {
       const mockJobs = [
         {
@@ -327,6 +331,7 @@ const axiosInstance = axios.create({
   timeout: 10000,
 });
 
+// Global request interceptor to add Authorization header and log requests
 axiosInstance.interceptors.request.use(
   (config) => {
     const token =
@@ -345,6 +350,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+// Global response interceptor to handle 401 Unauthorized errors
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -362,6 +368,7 @@ axiosInstance.interceptors.response.use(
   },
 );
 
+// SWITCH BETWEEN REAL API AND MOCK API BASED ON ENV VARIABLE
 const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API === "true";
 const api = USE_MOCK_API ? mockAPI : axiosInstance;
 
@@ -373,6 +380,7 @@ export const authAPI = {
   logout: () => api.post("/auth/logout"),
 };
 
+// Job APIs (used by both Job Seekers and Employers)
 export const jobAPI = {
   getJobs: (params) => api.get("/jobs", { params }),
   getFeaturedJobs: () => api.get("/jobs/featured"),
@@ -384,6 +392,7 @@ export const jobAPI = {
   getRecommendedJobs: () => api.get("/jobs/recommended"),
 };
 
+// Application APIs (used by Job Seekers and Employers)
 export const applicationAPI = {
   applyForJob: (jobId, applicationData) =>
     api.post("/applications", { jobId, ...applicationData }),
@@ -394,22 +403,26 @@ export const applicationAPI = {
   withdrawApplication: (id) => api.delete(`/applications/${id}`),
 };
 
+// Employer APIs
 export const employerAPI = {
   getDashboardSummary: () => api.get("/employer/dashboard-summary"),
 };
 
+// Company APIs (used by both Employers and Admins)
 export const companyAPI = {
   getCompanies: () => api.get("/companies"),
   getCompanyById: (id) => api.get(`/companies/${id}`),
   updateCompany: (id, companyData) => api.put(`/companies/${id}`, companyData),
 };
 
+// New API for Saved Jobs
 export const savedJobsAPI = {
   saveJob: (jobId) => api.post("/saved-jobs", { jobId }),
   getSavedJobs: () => api.get("/saved-jobs"),
   removeSavedJob: (jobId) => api.delete(`/saved-jobs/${jobId}`),
 };
 
+// New API for Saved Searches
 export const savedSearchAPI = {
   getSavedSearches: () => api.get("/saved-searches"),
   createSavedSearch: (data) => api.post("/saved-searches", data),
@@ -417,6 +430,7 @@ export const savedSearchAPI = {
   deleteSavedSearch: (id) => api.delete(`/saved-searches/${id}`),
 };
 
+// New API for User Profile and Resume Upload
 export const userAPI = {
   updateProfile: (data) => api.put("/users/profile", data),
   uploadResume: (formData) =>
@@ -425,6 +439,7 @@ export const userAPI = {
     }),
 };
 
+// Admin APIs
 export const adminAPI = {
   getUsers: () => api.get("/admin/users"),
   toggleUser: (id) => api.patch(`/admin/users/${id}/toggle`),
@@ -441,9 +456,25 @@ export const adminAPI = {
   getPopular: (type = "job_types") => api.get(`/admin/analytics/popular?type=${type}`),
 };
 
+// New API for Notifications
 export const notificationAPI = {
   getNotifications: () => api.get("/notifications"),
   markAsRead: (id) => api.put(`/notifications/${id}/read`),
 };
+
+// New API for Cover Letters
+export const coverLetterAPI = {
+  getAll: () => api.get("/cover-letters"),
+  create: (data) => api.post("/cover-letters", data),
+  update: (id, data) => api.put(`/cover-letters/${id}`, data),
+  delete: (id) => api.delete(`/cover-letters/${id}`),
+  setDefault: (id) => api.put(`/cover-letters/${id}/default`),
+};
+
+export const getCoverLetters = () => api.get("/cover-letters");
+export const createCoverLetter = (data) => api.post("/cover-letters", data);
+export const updateCoverLetter = (id, data) => api.put(`/cover-letters/${id}`, data);
+export const deleteCoverLetter = (id) => api.delete(`/cover-letters/${id}`);
+export const setDefaultCoverLetter = (id) => api.put(`/cover-letters/${id}/default`);
 
 export default api;

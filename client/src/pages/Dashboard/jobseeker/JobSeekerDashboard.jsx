@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
@@ -8,9 +8,16 @@ import {
   jobAPI,
   notificationAPI,
   savedSearchAPI,
+  getCoverLetters,
+  createCoverLetter,
+  updateCoverLetter,
+  deleteCoverLetter,
+  setDefaultCoverLetter,
 } from "../../../services/api";
 import toast from "react-hot-toast";
 import ResumeUpload from "../../../components/common/ResumeUpload/ResumeUpload";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import "./JobSeekerDashboard.css";
 
 /**
@@ -34,6 +41,12 @@ const JobSeekerDashboard = () => {
   const [savedSearches, setSavedSearches] = useState([]);
   const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [notifications, setNotifications] = useState([]);
+
+  const [coverLetters, setCoverLetters] = useState([]);
+  const [coverModalOpen, setCoverModalOpen] = useState(false);
+  const [editingCover, setEditingCover] = useState(null);
+  const [coverForm, setCoverForm] = useState({ name: "", content: "" });
+  const [coverDeleteConfirm, setCoverDeleteConfirm] = useState(null);
 
   const [showSearchForm, setShowSearchForm] = useState(false);
   const [editingSearch, setEditingSearch] = useState(null);
@@ -85,6 +98,7 @@ const JobSeekerDashboard = () => {
     }));
   }, [user]);
 
+  // Fetch all necessary dashboard data on component mount and when auth state changes
   useEffect(() => {
     if (authLoading || !isAuthenticated || user?.role !== "job_seeker") return;
 
@@ -128,6 +142,79 @@ const JobSeekerDashboard = () => {
     fetchDashboardData();
   }, [authLoading, isAuthenticated, user]);
 
+  // Cover Letters Functions
+  const loadCoverLetters = async () => {
+    try {
+      const res = await getCoverLetters();
+      const letters = res.data?.data || res.data || [];
+      setCoverLetters(letters);
+    } catch (err) {
+      toast.error("Failed to load cover letters");
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "cover-letters") {
+      loadCoverLetters();
+    }
+  }, [activeTab]);
+
+  const openCoverModal = (cover = null) => {
+    setEditingCover(cover);
+    setCoverForm({
+      name: cover ? cover.name : "",
+      content: cover ? cover.content : "",
+    });
+    setCoverModalOpen(true);
+  };
+
+  const closeCoverModal = () => {
+    setCoverModalOpen(false);
+    setEditingCover(null);
+    setCoverForm({ name: "", content: "" });
+  };
+
+  const handleCoverSave = async () => {
+    if (!coverForm.name.trim() || !coverForm.content.trim()) {
+      toast.error("Name and content are required");
+      return;
+    }
+    try {
+      if (editingCover) {
+        await updateCoverLetter(editingCover.id, coverForm);
+        toast.success("Cover letter updated");
+      } else {
+        await createCoverLetter(coverForm);
+        toast.success("Cover letter created");
+      }
+      loadCoverLetters();
+      closeCoverModal();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save cover letter");
+    }
+  };
+
+  const handleCoverDelete = async (id) => {
+    try {
+      await deleteCoverLetter(id);
+      toast.success("Cover letter deleted");
+      loadCoverLetters();
+      setCoverDeleteConfirm(null);
+    } catch (err) {
+      toast.error("Failed to delete cover letter");
+    }
+  };
+
+  const handleSetDefaultCover = async (id) => {
+    try {
+      await setDefaultCoverLetter(id);
+      toast.success("Default cover letter updated");
+      loadCoverLetters();
+    } catch (err) {
+      toast.error("Failed to set default cover letter");
+    }
+  };
+
   // Utility Functions
   // Format salary range for display
   const formatSalary = (min, max) => {
@@ -148,6 +235,7 @@ const JobSeekerDashboard = () => {
     hired: applications.filter((a) => a.status === "hired").length,
   };
 
+  // Handle withdrawing an application with confirmation and state updates
   const handleWithdraw = async (applicationId) => {
     if (!window.confirm("Are you sure you want to withdraw this application?"))
       return;
@@ -176,6 +264,7 @@ const JobSeekerDashboard = () => {
     }
   };
 
+  // Handle profile update with validation for password change and API call to update profile
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     if (
@@ -210,7 +299,7 @@ const JobSeekerDashboard = () => {
     }
   };
 
-  // Saved Searches Functions
+  // Load saved searches for the user with error handling and loading state management
   const loadSavedSearches = async () => {
     try {
       setSearchLoading(true);
@@ -285,6 +374,135 @@ const JobSeekerDashboard = () => {
     return <div className="dashboard-loading">Loading dashboard...</div>;
   }
 
+  // Render the cover letters management section with list of cover letters and modals for creating/editing and deleting cover letters
+  const renderCoverLetters = () => (
+    <div className="cover-letters-section">
+      <div className="section-header">
+        <h3>Cover Letters</h3>
+        <button className="btn-primary" onClick={() => openCoverModal()}>
+          <span className="material-symbols-outlined">add</span> New Cover
+          Letter
+        </button>
+      </div>
+
+      {coverLetters.length === 0 ? (
+        <p className="empty-message">
+          No cover letters yet. Create one to get started.
+        </p>
+      ) : (
+        <div className="cover-letters-list">
+          {coverLetters.map((cl) => (
+            <div key={cl.id} className="cover-letter-card">
+              <div className="card-header">
+                <span className="name">{cl.name}</span>
+                {cl.is_default && <span className="default-star">⭐</span>}
+              </div>
+              <div className="card-body">
+                <div
+                  className="preview"
+                  dangerouslySetInnerHTML={{
+                    __html: cl.content.substring(0, 150) + "...",
+                  }}
+                />
+              </div>
+              <div className="card-actions">
+                <button
+                  className="btn-sm btn-secondary"
+                  onClick={() => openCoverModal(cl)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn-sm btn-outline"
+                  onClick={() => handleSetDefaultCover(cl.id)}
+                >
+                  {cl.is_default ? "Default" : "Set as Default"}
+                </button>
+                <button
+                  className="btn-sm btn-danger"
+                  onClick={() => setCoverDeleteConfirm(cl.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal for New/Edit */}
+      {coverModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>{editingCover ? "Edit Cover Letter" : "New Cover Letter"}</h3>
+            <div className="form-group">
+              <label>Name</label>
+              <input
+                type="text"
+                value={coverForm.name}
+                onChange={(e) =>
+                  setCoverForm({ ...coverForm, name: e.target.value })
+                }
+                placeholder="e.g. Software Engineer Template"
+              />
+            </div>
+            <div className="form-group">
+              <label>Content</label>
+              <ReactQuill
+                value={coverForm.content}
+                onChange={(content) => setCoverForm({ ...coverForm, content })}
+                theme="snow"
+                modules={{
+                  toolbar: [
+                    ["bold", "italic", "underline", "strike"],
+                    [{ list: "ordered" }, { list: "bullet" }],
+                    ["link", "clean"],
+                  ],
+                }}
+              />
+            </div>
+            <div className="modal-actions">
+              <button className="btn-primary" onClick={handleCoverSave}>
+                Save
+              </button>
+              <button className="btn-secondary" onClick={closeCoverModal}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {coverDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Delete Cover Letter</h3>
+            <p>
+              Are you sure you want to delete this cover letter? This action
+              cannot be undone.
+            </p>
+            <div className="modal-actions">
+              <button
+                className="btn-danger"
+                onClick={() => handleCoverDelete(coverDeleteConfirm)}
+              >
+                Delete
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => setCoverDeleteConfirm(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // If the user is not authenticated or still loading auth state, show loading message
   return (
     <div className="seeker-dashboard">
       <div className="dashboard-container">
@@ -303,6 +521,7 @@ const JobSeekerDashboard = () => {
               <span className="material-symbols-outlined">dashboard</span>
               Overview
             </button>
+
             <button
               className={activeTab === "applied" ? "active" : ""}
               onClick={() => setActiveTab("applied")}
@@ -310,6 +529,7 @@ const JobSeekerDashboard = () => {
               <span className="material-symbols-outlined">assignment</span>
               Applied Jobs
             </button>
+
             <button
               className={activeTab === "saved" ? "active" : ""}
               onClick={() => setActiveTab("saved")}
@@ -317,6 +537,7 @@ const JobSeekerDashboard = () => {
               <span className="material-symbols-outlined">bookmarks</span>
               Saved Jobs
             </button>
+
             <button
               className={activeTab === "saved-searches" ? "active" : ""}
               onClick={() => {
@@ -328,6 +549,15 @@ const JobSeekerDashboard = () => {
               <span className="material-symbols-outlined">search</span>
               Saved Searches
             </button>
+
+            <button
+              className={activeTab === "cover-letters" ? "active" : ""}
+              onClick={() => setActiveTab("cover-letters")}
+            >
+              <span className="material-symbols-outlined">description</span>
+              Cover Letters
+            </button>
+
             <button
               className={activeTab === "profile" ? "active" : ""}
               onClick={() => setActiveTab("profile")}
@@ -355,7 +585,7 @@ const JobSeekerDashboard = () => {
         <main className="dashboard-main">
           {activeTab === "overview" && (
             <div className="overview-tab">
-              {/* ... unchanged overview content ... */}
+              {/* Overview content */}
               <div className="welcome-header">
                 <h1>Welcome back, {user?.name?.split(" ")[0]}!</h1>
                 <p>
@@ -704,6 +934,10 @@ const JobSeekerDashboard = () => {
             </div>
           )}
 
+          {/* Cover Letters Tab */}
+          {activeTab === "cover-letters" && renderCoverLetters()}
+
+          {/* Profile Tab */}
           {activeTab === "profile" && (
             <div className="profile-tab">
               <h2>Edit Profile</h2>

@@ -18,6 +18,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
     - [Typo Tolerance & Autocomplete](#typo-tolerance--autocomplete)
     - [Resume Parsing & CRUD](#resume-parsing-crud)
     - [Admin Reports Queue UI](#admin-reports-queue-ui)
+    - [Search Term Logging & Keyword Highlighting](#search-term-logging--keyword-highlighting)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
   - [Email Rate Limiting & Retry Logic](#email-rate-limiting--retry-logic)
@@ -71,7 +72,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [NotFoundPage Component](#notfoundpage-component)
   - [SaveSearchModal Component](#savesearchmodal-component)
   - [ResumeUpload Component](#resumeupload-component)
-  - [Daily Job Alert Cron](#daily-job-alert-cron)(#savesearchmodal-component)
+  - [Daily Job Alert Cron](#daily-job-alert-cron)
 - [Routing System](#routing-system)
 - [Validation Utilities](#validation-utilities)
 - [Database Schema](#database-schema)
@@ -124,6 +125,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Automatic resume parsing (PDF/DOCX) and auto‑filling of profile fields extracted data is stored in the `parsed_data` column of the `resumes` table and can be retrieved to pre‑fill the user's profile form.
 - Cover Letters – Create, edit, delete, and set default cover letter templates directly in the Job Seeker Dashboard using a built-in rich text editor (bold, italic, bullet points, links). The default cover letter is automatically selected when applying to a job.
 - Admin Reports Queue UI – Dedicated moderation panel with status filters, action buttons (Approve, Remove, Dismiss, Ban Employer), confirmation modal with resolution notes, and automated email notification to the reporter via background queue.
+- Search Term Logging & Keyword Highlighting – Every search term is logged with user/IP data for analytics. Matching terms in job titles and descriptions are highlighted with a yellow background in search results.
 
 ### Backend Features
 - JWT authentication (register, login, profile)
@@ -189,6 +191,16 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - **Audit Logging:** All resolution actions are logged in the `audit_logs` table for compliance.
 - **Rate Limiting:** 5 reports per user per 24 hours (Redis).
 - **Duplicate Check:** One report per user per job.
+
+#### Search Term Logging & Keyword Highlighting
+- **Table:** `search_logs` stores every search with the term, user ID, IP address, result count, and timestamp.
+- **Logging:** Every search request is logged automatically in the background. Guest searches are logged with IP address only.
+- **Analytics:** Admins can view search trends via SQL queries or future analytics dashboards.
+- **Frontend Highlighting:** Matching terms in job titles and descriptions are wrapped with `<mark class="bg-yellow-200">` to visually show why a job was matched.
+- **Implementation:**
+  - Middleware: `searchLogger.js` automatically logs each search before passing to the controller.
+  - Controller: `jobController.js` updates the `result_count` in the log after the query runs.
+  - Frontend: `highlightText.js` utility function is used in `JobCard.jsx` to wrap matches.
 
 ### Saved Searches Feature
 - Job seekers can create, read, update, and delete saved search criteria.
@@ -806,6 +818,7 @@ SmartHire/
 │   │   ├── middleware/
 │   │   │   ├── authMiddleware.js
 │   │   │   └── rateLimiter.js
+│   │   │   └── searchLogger.js
 │   │   ├── routes/
 │   │   │   ├── adminRoutes.js
 │   │   │   ├── applicationRoutes.js
@@ -838,6 +851,7 @@ SmartHire/
 │   │   ├── test-email.js
 │   │   ├── test-email-templates.js
 │   │   ├── test-saved-searches.js
+│   │   ├── test-searche-logs.js
 │   │   ├── test-email-queue-response-time.js
 │   │   ├── test-reports.js
 │   │   ├── test-KPI.js
@@ -2069,6 +2083,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Resume parsing (PDF/DOCX) with full CRUD – extracted data stored in `parsed_data` column
 - Cover Letters – Full CRUD API + frontend UI (rich text editor, modal, set default)
 - Admin Reports Queue UI – Dedicated moderation panel with filters, action buttons, confirmation modal with resolution notes, and email notifications
+- Search Term Logging & Keyword Highlighting – All search terms are logged with user/IP for analytics. Matching keywords are highlighted in job titles and descriptions.
 
 **Miscellaneous:**
 

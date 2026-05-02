@@ -244,13 +244,13 @@ const getJobs = async (req, res) => {
       if (sort === "relevance") {
         orderBy = "ORDER BY relevance_score DESC";
       } else {
-        orderBy = 'ORDER BY ' + normalizeSort(sort);
+        orderBy = "ORDER BY " + normalizeSort(sort);
       }
     } else {
       // No FULLTEXT search – use normal sorting
       // If sort is 'relevance' but no search, fallback to 'recent'
       const effectiveSort = sort === "relevance" ? "recent" : sort;
-      orderBy = 'ORDER BY ' + normalizeSort(effectiveSort);
+      orderBy = "ORDER BY " + normalizeSort(effectiveSort);
     }
 
     // Pagination
@@ -287,11 +287,29 @@ const getJobs = async (req, res) => {
     `;
 
     const [jobs] = await pool.query(sql, queryParams);
+    const totalCount = Number(countRows[0]?.total || 0);
+
+    // Log search if 'search' param is present and non-empty
+    if (search && search.trim() !== "") {
+      try {
+        const userId = req.user ? req.user.id : null;
+        const ipAddress = req.ip || req.connection.remoteAddress;
+
+        await pool.query(
+          `INSERT INTO search_logs (search_term, user_id, ip_address, result_count) 
+           VALUES (?, ?, ?, ?)`,
+          [search.trim(), userId, ipAddress, totalCount],
+        );
+      } catch (logError) {
+        console.error("Search log error:", logError);
+        // Don't fail the request if logging fails
+      }
+    }
 
     res.json({
       success: true,
       data: jobs,
-      total: Number(countRows[0]?.total || 0),
+      total: totalCount,
       page: parsedPage,
       limit: parsedLimit,
     });
@@ -682,30 +700,68 @@ const getRecommendedJobs = async (req, res) => {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    const [jobs] = await pool.query(sql, queryParams);
-    if (search && search.trim() !== "") {
-      try {
-        const logSearch = async () => {
-          await pool.query(
-            "INSERT INTO search_logs (search_term, user_id, result_count) VALUES (?, ?, ?)",
-            [search.trim(), req.user?.id || null, jobs.length]
-          );
-        };
-        logSearch().catch((err) => console.error("Search log error:", err));
-      } catch (err) {
-        // ignore log errors
-      }
+    // Get job seeker's skills and/or past job titles to recommend matching jobs
+    const [seekerSkills] = await pool.query(
+      `
+      SELECT DISTINCT s.name
+      FROM job_seekers js
+      JOIN job_seeker_skills jss ON js.id = jss.job_seeker_id
+      JOIN skills s ON jss.skill_id = s.id
+      WHERE js.user_id = ?
+      `,
+      [user.id],
+    );
+
+    let skillNames = seekerSkills.map((skill) => skill.name);
+
+    // Build recommendation query
+    let sql = `
+      SELECT 
+        j.id, j.title, j.description, j.requirements, j.salary_min, j.salary_max,
+        j.location, j.job_type, j.is_featured, j.created_at,
+        c.id AS company_id, c.name AS company_name, c.logo_url AS company_logo
+      FROM jobs j
+      LEFT JOIN companies c ON j.company_id = c.id
+      WHERE j.is_active = 1
+    `;
+
+    let params = [];
+
+    // If the seeker has skills, prioritize jobs that match their skills
+    if (skillNames.length > 0) {
+      const skillPlaceholders = skillNames.map(() => "?").join(", ");
+      sql += `
+        AND (j.requirements LIKE ? OR j.requirements LIKE ?)
+        ORDER BY 
+          CASE 
+            WHEN j.requirements IN (${skillPlaceholders}) THEN 1
+            ELSE 2
+          END,
+          j.created_at DESC
+      `;
+      // Add each skill as separate param for the LIKE conditions
+      skillNames.forEach((skill) => {
+        params.push(`%${skill}%`);
+        params.push(`%${skill}%`);
+      });
+      // Also add the skill placeholders for the CASE statement
+      params.push(...skillNames);
+    } else {
+      // Fallback: just get the most recent jobs
+      sql += ` ORDER BY j.created_at DESC`;
     }
+
+    sql += ` LIMIT 6`;
+
+    const [jobs] = await pool.query(sql, params);
 
     res.json({
       success: true,
       data: jobs,
-      total: Number(countRows[0]?.total || 0),
-      page: parsedPage,
-      limit: parsedLimit,
+      total: jobs.length,
     });
   } catch (error) {
-    console.error("getJobs error:", error);
+    console.error("getRecommendedJobs error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

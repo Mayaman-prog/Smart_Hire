@@ -1,8 +1,19 @@
+/* Main stylesheet for the Job Seeker Dashboard */
+/* Uses global CSS variables for consistent colors, spacing, and typography */
+
+@import "../../../styles/variables.css";
+@import "../../../styles/globals.css";
+
+/* Container and layout structure for the entire dashboard */
+/* Uses flexbox for responsive side-by-side layout */
+
+/* Main dashboard wrapper - takes up full viewport height */
 .seeker-dashboard {
   min-height: 100vh;
   background: var(--light-gray);
 }
 
+/* Container that holds sidebar and main content side-by-side */
 .dashboard-container {
   display: flex;
   max-width: 1400px;
@@ -14,7 +25,8 @@
   min-height: calc(100vh - 80px);
 }
 
-/* Sidebar */
+/* Sidebar navigation - fixed width left column with user info and menu */
+
 .dashboard-sidebar {
   width: 280px;
   background: var(--white);
@@ -25,12 +37,14 @@
   gap: var(--spacing-xl);
 }
 
+/* Section showing user profile info at top of sidebar */
 .user-info {
   text-align: center;
   padding-bottom: var(--spacing-lg);
   border-bottom: 1px solid var(--border-color);
 }
 
+/* Circular avatar displaying user initials */
 .user-avatar {
   width: 80px;
   height: 80px;
@@ -58,12 +72,14 @@
   color: var(--gray-color);
 }
 
+/* Navigation menu buttons stacked vertically */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
 }
 
+/* Individual nav buttons with hover and active states */
 .sidebar-nav button {
   display: flex;
   align-items: center;
@@ -95,6 +111,7 @@
   font-size: 1.25rem;
 }
 
+/* Bottom section of sidebar with help and logout buttons */
 .sidebar-footer {
   margin-top: auto;
   display: flex;
@@ -104,6 +121,7 @@
   border-top: 1px solid var(--border-color);
 }
 
+/* Buttons at bottom of sidebar */
 .help-btn,
 .logout-btn {
   display: flex;
@@ -134,14 +152,17 @@
   background: #fef2f2;
 }
 
-/* Main Content */
+/* Main content area - takes remaining space next to sidebar */
+
 .dashboard-main {
   flex: 1;
   padding: var(--spacing-xl);
   overflow-y: auto;
 }
 
-/* Welcome Header */
+/* Welcome section and statistics display on overview tab */
+
+/* Top greeting section */
 .welcome-header {
   margin-bottom: var(--spacing-xl);
 }
@@ -159,7 +180,7 @@
   line-height: 1.5;
 }
 
-/* Stats Grid */
+/* 4-column grid showing key stats (applications, saved jobs, etc) */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -167,6 +188,7 @@
   margin-bottom: var(--spacing-xl);
 }
 
+/* Individual stat card with large number and label */
 .stat-card {
   background: var(--white);
   border: 1px solid var(--border-color);
@@ -181,6 +203,7 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Large number in stat card */
 .stat-value {
   display: block;
   font-size: 2rem;
@@ -189,17 +212,20 @@
   margin-bottom: var(--spacing-xs);
 }
 
+/* Label text below stat number */
 .stat-label {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--gray-color);
 }
 
-/* Recommended Section */
+/* Section showing AI-recommended job listings */
+
 .recommended-section {
   margin-bottom: var(--spacing-xl);
 }
 
+/* Header row with title and "View All" button */
 .section-header {
   display: flex;
   align-items: center;
@@ -214,6 +240,7 @@
   color: var(--dark-color);
 }
 
+/* AI badge showing recommendations are AI-powered */
 .ai-badge {
   background: linear-gradient(
     135deg,
@@ -228,6 +255,7 @@
   letter-spacing: 0.5px;
 }
 
+/* Link to view more recommended jobs */
 .view-all {
   margin-left: auto;
   color: var(--primary-color);
@@ -238,12 +266,14 @@
   font-weight: 500;
 }
 
+/* Grid of recommended job cards */
 .recommended-jobs {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--spacing-lg);
 }
 
+/* Job card with title, company, and apply button */
 .job-card {
   background: var(--white);
   border: 1px solid var(--border-color);
@@ -253,6 +283,7 @@
   transition: all 0.2s;
 }
 
+/* Subtle shadow on hover */
 .job-card:hover {
   border-color: var(--gray-light);
   box-shadow: var(--shadow-sm);
@@ -288,6 +319,7 @@
   background: var(--primary-dark);
 }
 
+/* Percentage showing how well job matches user profile */
 .match-score {
   position: absolute;
   top: var(--spacing-lg);
@@ -300,7 +332,8 @@
   font-weight: 600;
 }
 
-/* Activity Section */
+/* Timeline of user activities (applications, views, etc) */
+
 .activity-section h2 {
   font-size: 1.25rem;
   font-weight: 600;
@@ -308,12 +341,14 @@
   margin-bottom: var(--spacing-lg);
 }
 
+/* List of activity items stacked vertically */
 .activity-list {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
 }
 
+/* Single activity event with icon and description */
 .activity-item {
   display: flex;
   gap: var(--spacing-md);
@@ -323,6 +358,7 @@
   align-items: flex-start;
 }
 
+/* Icon next to activity text */
 .activity-item .material-symbols-outlined {
   color: var(--primary-color);
   font-size: 1.5rem;
@@ -347,42 +383,18 @@
   line-height: 1.4;
 }
 
-.activity-actions {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.activity-actions button {
-  background: none;
-  border: 1px solid var(--border-color);
-  padding: 6px 14px;
-  border-radius: 30px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.activity-actions button:first-child {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
-}
-
-.activity-actions button:last-child {
-  background: white;
-  color: var(--gray-color);
-}
-
 .time {
   font-size: 0.75rem;
   color: var(--gray-light);
   white-space: nowrap;
 }
 
-/* Applied Jobs & Saved Jobs Tabs */
+/* Tab showing all job applications user has submitted */
+
 .applied-tab h2,
 .saved-tab h2,
-.profile-tab h2 {
+.profile-tab h2,
+.cover-letters-section .section-header h3 {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--dark-color);
@@ -395,6 +407,7 @@
   gap: var(--spacing-md);
 }
 
+/* Card showing a single job application with status */
 .application-card {
   display: flex;
   justify-content: space-between;
@@ -417,6 +430,7 @@
   margin-bottom: var(--spacing-xs);
 }
 
+/* Color-coded status indicator for applications */
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -426,6 +440,7 @@
   margin-bottom: var(--spacing-xs);
 }
 
+/* Yellow badge for pending applications */
 .status-pending {
   background: #fef3c7;
   color: #d97706;
@@ -436,15 +451,15 @@
 }
 .status-shortlisted {
   background: #d1fae5;
-  color: var(--success-color);
+  color: #059669;
 }
 .status-rejected {
   background: #fee2e2;
-  color: var(--danger-color);
+  color: #dc2626;
 }
 .status-hired {
   background: #d1fae5;
-  color: var(--success-color);
+  color: #059669;
 }
 .status-interviewing {
   background: #e0e7ff;
@@ -452,9 +467,10 @@
 }
 .status-offered {
   background: #d1fae5;
-  color: var(--success-color);
+  color: #059669;
 }
 
+/* Button to withdraw/cancel an application */
 .withdraw-btn {
   background: var(--danger-color);
   color: white;
@@ -471,12 +487,16 @@
   cursor: not-allowed;
 }
 
+/* Tab showing jobs saved for later */
+
+/* Grid of saved job cards */
 .saved-jobs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--spacing-lg);
 }
 
+/* Card for a saved job with apply/remove options */
 .saved-job-card {
   background: var(--white);
   border: 1px solid var(--border-color);
@@ -496,12 +516,14 @@
   margin-bottom: var(--spacing-xs);
 }
 
+/* Row of action buttons on each job card */
 .job-actions {
   display: flex;
   gap: var(--spacing-sm);
   margin-top: var(--spacing-md);
 }
 
+/* Green button to apply for a job */
 .apply-btn {
   background: var(--primary-color);
   color: white;
@@ -514,6 +536,7 @@
   flex: 1;
 }
 
+/* Red button to remove a saved job */
 .remove-btn {
   background: var(--danger-color);
   color: white;
@@ -525,125 +548,8 @@
   cursor: pointer;
 }
 
-/* Ensure all action buttons are always visible */
-.withdraw-btn,
-.remove-btn,
-.apply-btn {
-  opacity: 1 !important;
-  visibility: visible !important;
-  display: inline-block !important;
-}
+/* Tab for saving and managing job search filters */
 
-.application-card .withdraw-btn,
-.saved-job-card .remove-btn,
-.saved-job-card .apply-btn {
-  opacity: 1 !important;
-}
-
-/* Profile Tab */
-.profile-form {
-  max-width: 500px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.form-group label {
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: var(--dark-color);
-}
-
-.form-group input {
-  padding: 10px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-family: inherit;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.profile-form button {
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.profile-form button:hover {
-  background: var(--primary-dark);
-}
-
-.profile-form button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Loading State */
-.dashboard-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.125rem;
-  color: var(--gray-color);
-}
-
-/* Force all action buttons to always be visible */
-.job-actions .apply-btn,
-.job-actions .remove-btn,
-.saved-job-card .apply-btn,
-.saved-job-card .remove-btn,
-.application-card .withdraw-btn {
-  opacity: 1 !important;
-  visibility: visible !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Ensure the Remove button has a background color */
-.remove-btn {
-  background: var(--danger-color) !important;
-  color: white !important;
-  border: none !important;
-  padding: 8px 16px !important;
-  border-radius: var(--radius-md) !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-}
-
-/* Ensure Apply button has correct styles */
-.apply-btn {
-  background: var(--primary-color) !important;
-  color: white !important;
-  border: none !important;
-  padding: 8px 16px !important;
-  border-radius: var(--radius-md) !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  flex: 1;
-}
-
-/* Saved Searches Tab */
 .saved-searches-container {
   padding: 0 10px;
 }
@@ -655,6 +561,7 @@
   margin-bottom: 20px;
 }
 
+/* Blue button to create a new saved search */
 .new-search-btn {
   display: inline-flex;
   align-items: center;
@@ -674,8 +581,9 @@
   background: var(--primary-dark);
 }
 
+/* Form card for creating or editing search filters */
 .search-form-card {
-  background: #fff;
+  background: var(--white);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 24px;
@@ -689,6 +597,7 @@
   color: var(--dark-color);
 }
 
+/* 2-column layout for search filter form */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -723,6 +632,7 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+/* Row of buttons to save/cancel search form */
 .form-actions {
   display: flex;
   gap: 12px;
@@ -758,14 +668,16 @@
   background: var(--light-gray);
 }
 
+/* List of all saved searches */
 .search-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
+/* Card showing a saved search with filters and actions */
 .search-card {
-  background: #fff;
+  background: var(--white);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 16px;
@@ -786,6 +698,7 @@
   color: var(--dark-color);
 }
 
+/* Details about a saved search (filters, keywords) */
 .search-meta {
   display: flex;
   flex-wrap: wrap;
@@ -801,6 +714,7 @@
   gap: 2px;
 }
 
+/* Small label for job type, location, etc */
 .tag {
   background: var(--light-gray);
   color: var(--dark-color);
@@ -810,6 +724,7 @@
   font-weight: 500;
 }
 
+/* Badge for email alert frequency */
 .alert-badge {
   background: #e0e7ff;
   color: #4338ca;
@@ -837,6 +752,7 @@
   font-weight: 500;
 }
 
+/* Edit/delete buttons for a saved search */
 .search-actions {
   display: flex;
   gap: 8px;
@@ -874,28 +790,338 @@
   color: white;
 }
 
+/* Message shown when no saved searches exist */
 .empty-message {
   color: var(--gray-color);
   font-size: 0.9rem;
   margin-top: 16px;
 }
 
-/* Responsive */
+/* Tab for managing cover letter templates */
+
+.cover-letters-section {
+  padding: var(--spacing-md) 0;
+}
+
+/* Header with title and create button */
+.cover-letters-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.cover-letters-section .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cover-letters-section .btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+/* Grid of cover letter template cards */
+.cover-letters-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+/* Individual cover letter card with preview and actions */
+.cover-letter-card {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.cover-letter-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Top row with cover letter name and star icon */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Cover letter title */
+.card-header .name {
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: var(--dark-color);
+}
+
+/* Star icon for default cover letter */
+.default-star {
+  color: #fbbf24;
+  font-size: 1.25rem;
+}
+
+/* First few lines of cover letter text */
+.card-body .preview {
+  font-size: 0.875rem;
+  color: var(--gray-color);
+  margin-bottom: var(--spacing-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* Row of small action buttons */
+.card-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+/* Small button styles for edit/delete/etc */
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sm.btn-secondary {
+  background: var(--light-gray);
+  color: var(--dark-color);
+}
+
+.btn-sm.btn-secondary:hover {
+  background: var(--gray-light);
+}
+
+.btn-sm.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--gray-700);
+}
+
+.btn-sm.btn-outline:hover {
+  background: var(--light-gray);
+}
+
+.btn-sm.btn-danger {
+  background: #fee2e2;
+  color: var(--danger-color);
+}
+
+.btn-sm.btn-danger:hover {
+  background: #fecaca;
+}
+
+/* Modal dialog for editing/viewing forms and confirmations */
+
+/* Dark overlay behind modal with blur effect */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--spacing-md);
+}
+
+/* Centered white box with form or content */
+.modal-content {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+}
+
+.modal-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--dark-color);
+  margin-bottom: var(--spacing-lg);
+}
+
+.modal-content .form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.modal-content .form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--dark-color);
+  margin-bottom: var(--spacing-xs);
+}
+
+.modal-content .form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-family: inherit;
+}
+
+.modal-content .form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.modal-content .ql-container {
+  min-height: 150px;
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: var(--radius-md);
+}
+
+/* Row of buttons at bottom of modal (Save/Cancel) */
+.modal-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+  margin-top: var(--spacing-lg);
+}
+
+.modal-actions button {
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.modal-actions .btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.modal-actions .btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.modal-actions .btn-secondary {
+  background: var(--light-gray);
+  color: var(--gray-700);
+}
+
+.modal-actions .btn-secondary:hover {
+  background: var(--gray-light);
+}
+
+.modal-actions .btn-danger {
+  background: var(--danger-color);
+  color: white;
+}
+
+.modal-actions .btn-danger:hover {
+  background: #dc2626;
+}
+
+/* Tab for managing user profile and resume upload */
+
+/* Profile form with limited width */
+.profile-form {
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Individual form field (input + label) */
+.profile-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.profile-form .form-group label {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--dark-color);
+}
+
+.profile-form .form-group input {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-family: inherit;
+}
+
+.profile-form .form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.profile-form button[type="submit"] {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.profile-form button[type="submit"]:hover {
+  background: var(--primary-dark);
+}
+
+.profile-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Mobile and tablet responsive adjustments */
+
+/* Tablet and below: stack sidebar above content */
 @media (max-width: 768px) {
   .dashboard-container {
     flex-direction: column;
     border-radius: 0;
+    min-height: auto;
   }
 
+  /* Full-width sidebar */
   .dashboard-sidebar {
     width: 100%;
     padding: var(--spacing-lg);
   }
 
+  /* 2 columns for stat cards on mobile */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  /* Single column for job cards */
   .recommended-jobs {
     grid-template-columns: 1fr;
   }
@@ -918,11 +1144,12 @@
     align-self: flex-end;
   }
 
-  /* Saved Searches mobile */
+  /* Single column for form inputs on mobile */
   .form-grid {
     grid-template-columns: 1fr;
   }
 
+  /* Stack search card vertically */
   .search-card {
     flex-direction: column;
     align-items: flex-start;
@@ -932,5 +1159,33 @@
     margin-top: 12px;
     width: 100%;
     justify-content: flex-end;
+  }
+
+  /* Single column for cover letter cards on mobile */
+  .cover-letters-list {
+    grid-template-columns: 1fr;
+  }
+
+  .cover-letters-section .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+  }
+
+  /* Reduce padding in modals on mobile */
+  .modal-content {
+    padding: var(--spacing-lg);
+  }
+
+  /* Stack modal buttons vertically */
+  .modal-actions {
+    flex-direction: column;
+  }
+}
+
+/* Phone: single column for everything */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 }

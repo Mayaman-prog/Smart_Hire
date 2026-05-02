@@ -160,6 +160,16 @@ INSERT INTO search_logs (search_term, user_id, result_count) VALUES
 ('backend developer', NULL, 1),
 ('frontend developer', NULL, 2);
 
+-- 19. INSERT JOB REPORTS
+INSERT INTO job_reports (reporter_id, job_id, reason, description, status)
+VALUES (1, 2, 'spam', 'This job seems like a scam. The same posting appears on multiple platforms.', 'pending');
+INSERT INTO job_reports (reporter_id, job_id, reason, description, status, resolved_at, resolved_by, resolution_notes)
+VALUES (2, 1, 'duplicate', 'I already applied to this job under a different title.', 'approved', NOW(), 5, 'No duplicate found – job remains active.');
+INSERT INTO job_reports (reporter_id, job_id, reason, description, status, resolved_at, resolved_by, resolution_notes)
+VALUES (1, 3, 'inappropriate', 'The job description contains offensive language.', 'removed', NOW() - INTERVAL 2 DAY, 5, 'Job removed as per policy violation.');
+INSERT INTO job_reports (reporter_id, job_id, reason, description, status, resolved_at, resolved_by, resolution_notes)
+VALUES (2, 4, 'fraud', 'Employer asked for payment before interview.', 'dismissed', NOW() - INTERVAL 5 DAY, 5, 'No evidence found – employer verified.');
+
 -- Insert default cron state
 INSERT IGNORE INTO cron_state (job_name, last_run) VALUES ('daily_job_alert', NOW());
 
@@ -181,5 +191,6 @@ SELECT 'Job Required Skills' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM
 SELECT 'Activity Logs' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM activity_logs;
 SELECT 'Contact Messages' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM contact_messages;
 SELECT 'Saved Searches' AS Table_Name; SELECT COUNT(*) AS Record_Count FROM saved_searches;
+SELECT COUNT(*) AS total_job_reports FROM job_reports;
 
 SELECT 'All seed data inserted successfully' AS Status;

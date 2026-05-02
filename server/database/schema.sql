@@ -350,7 +350,10 @@ CREATE TABLE IF NOT EXISTS job_reports (
   resolution_notes TEXT,
   FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
-  FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL
+  FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX idx_status (status),
+  INDEX idx_created_at (created_at),
+  UNIQUE KEY unique_report (reporter_id, job_id)
 );
 
 -- 25. COVER LETTERS TABLE

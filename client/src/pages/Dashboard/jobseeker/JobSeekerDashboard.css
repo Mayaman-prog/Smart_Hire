@@ -1,19 +1,13 @@
-/* Main stylesheet for the Job Seeker Dashboard */
-/* Uses global CSS variables for consistent colors, spacing, and typography */
-
 @import "../../../styles/variables.css";
 @import "../../../styles/globals.css";
 
-/* Container and layout structure for the entire dashboard */
-/* Uses flexbox for responsive side-by-side layout */
-
-/* Main dashboard wrapper - takes up full viewport height */
+/* Main dashboard wrapper */
 .seeker-dashboard {
   min-height: 100vh;
   background: var(--light-gray);
 }
 
-/* Container that holds sidebar and main content side-by-side */
+/* Container */
 .dashboard-container {
   display: flex;
   max-width: 1400px;
@@ -25,8 +19,7 @@
   min-height: calc(100vh - 80px);
 }
 
-/* Sidebar navigation - fixed width left column with user info and menu */
-
+/* Sidebar navigation */
 .dashboard-sidebar {
   width: 280px;
   background: var(--white);
@@ -487,8 +480,6 @@
   cursor: not-allowed;
 }
 
-/* Tab showing jobs saved for later */
-
 /* Grid of saved job cards */
 .saved-jobs-grid {
   display: grid;
@@ -798,7 +789,6 @@
 }
 
 /* Tab for managing cover letter templates */
-
 .cover-letters-section {
   padding: var(--spacing-md) 0;
 }
@@ -929,8 +919,6 @@
   background: #fecaca;
 }
 
-/* Modal dialog for editing/viewing forms and confirmations */
-
 /* Dark overlay behind modal with blur effect */
 .modal-overlay {
   position: fixed;
@@ -1042,11 +1030,9 @@
   background: #dc2626;
 }
 
-/* Tab for managing user profile and resume upload */
-
 /* Profile form with limited width */
 .profile-form {
-  max-width: 500px;
+  max-width: 700px;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
@@ -1065,15 +1051,22 @@
   color: var(--dark-color);
 }
 
-.profile-form .form-group input {
+.profile-form .form-group input,
+.profile-form .form-group textarea {
   padding: 10px 12px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
   font-family: inherit;
+  width: 100%;
 }
 
-.profile-form .form-group input:focus {
+.profile-form .form-group textarea {
+  resize: vertical;
+}
+
+.profile-form .form-group input:focus,
+.profile-form .form-group textarea:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
@@ -1089,6 +1082,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  width: 100%;
 }
 
 .profile-form button[type="submit"]:hover {
@@ -1100,8 +1094,100 @@
   cursor: not-allowed;
 }
 
-/* Mobile and tablet responsive adjustments */
+/* AUTO-FILL PREVIEW  */
 
+.preview-panel {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.preview-panel h3 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 15px 0;
+}
+
+.comparison-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.parsed-field {
+  margin-bottom: 4px;
+}
+
+.parsed-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-color);
+  margin-bottom: 2px;
+}
+
+.parsed-field .read-only {
+  background: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: #4b5563;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  border: 1px dashed #d1d5db;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-family: inherit;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+/* Button variant for "Discard" action */
+.btn-outline {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  background: #f3f4f6;
+}
+
+/* Mobile and tablet responsive adjustments */
 /* Tablet and below: stack sidebar above content */
 @media (max-width: 768px) {
   .dashboard-container {
@@ -1180,6 +1266,11 @@
   /* Stack modal buttons vertically */
   .modal-actions {
     flex-direction: column;
+  }
+
+  /* Comparison grid becomes single column on mobile */
+  .comparison-grid {
+    grid-template-columns: 1fr;
   }
 }
 

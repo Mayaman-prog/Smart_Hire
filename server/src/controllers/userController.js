@@ -4,8 +4,18 @@ const bcrypt = require('bcryptjs');
 const updateProfile = async (req, res) => {
   try {
     const { user } = req;
-    const { name, email, currentPassword, newPassword } = req.body;
+    const { 
+      name, 
+      email, 
+      currentPassword, 
+      newPassword,
+      phone,
+      skills,
+      experience,
+      education,
+    } = req.body;
 
+    // Update users table (name, email, password)
     const updates = [];
     const values = [];
 
@@ -14,7 +24,10 @@ const updateProfile = async (req, res) => {
       values.push(name);
     }
     if (email) {
-      const [existing] = await pool.query('SELECT id FROM users WHERE email = ? AND id != ?', [email, user.id]);
+      const [existing] = await pool.query(
+        'SELECT id FROM users WHERE email = ? AND id != ?',
+        [email, user.id]
+      );
       if (existing.length > 0) {
         return res.status(409).json({ success: false, message: 'Email already in use' });
       }
@@ -35,15 +48,66 @@ const updateProfile = async (req, res) => {
       values.push(hashed);
     }
 
-    if (updates.length === 0) {
-      return res.status(400).json({ success: false, message: 'No fields to update' });
+    // Apply user updates if any
+    if (updates.length > 0) {
+      values.push(user.id);
+      await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
     }
 
-    values.push(user.id);
-    await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
+    // Update job_seekers table (phone, skills, experience, education)
+    const seekerUpdates = [];
+    const seekerValues = [];
 
-    const [updated] = await pool.query('SELECT id, email, name, role, company_id FROM users WHERE id = ?', [user.id]);
-    res.json({ success: true, data: updated[0], message: 'Profile updated' });
+    if (phone !== undefined) {
+      seekerUpdates.push('phone = ?');
+      seekerValues.push(phone);
+    }
+    if (skills !== undefined) {
+      seekerUpdates.push('skills = ?');
+      seekerValues.push(skills);
+    }
+    if (experience !== undefined) {
+      seekerUpdates.push('experience = ?');
+      seekerValues.push(experience);
+    }
+    if (education !== undefined) {
+      seekerUpdates.push('education = ?');
+      seekerValues.push(education);
+    }
+
+    // Only proceed if at least one job_seeker field is provided
+    if (seekerUpdates.length > 0) {
+      // Check if a job_seeker record exists for this user
+      const [existingSeeker] = await pool.query(
+        'SELECT id FROM job_seekers WHERE user_id = ?',
+        [user.id]
+      );
+
+      if (existingSeeker.length > 0) {
+        // Update existing record
+        const sql = `UPDATE job_seekers SET ${seekerUpdates.join(', ')} WHERE user_id = ?`;
+        await pool.query(sql, [...seekerValues, user.id]);
+      } else {
+        // Insert new record
+        // Extract column names from the update strings (e.g., 'phone = ?' -> 'phone')
+        const columns = seekerUpdates.map(u => u.split(' ')[0]);
+        const placeholders = columns.map(() => '?');
+        const sql = `INSERT INTO job_seekers (user_id, ${columns.join(', ')}) VALUES (?, ${placeholders.join(', ')})`;
+        await pool.query(sql, [user.id, ...seekerValues]);
+      }
+    }
+
+    // Return updated user data
+    const [updated] = await pool.query(
+      'SELECT id, email, name, role, company_id FROM users WHERE id = ?',
+      [user.id]
+    );
+
+    res.json({ 
+      success: true, 
+      data: updated[0], 
+      message: 'Profile updated successfully' 
+    });
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ success: false, message: 'Server error' });

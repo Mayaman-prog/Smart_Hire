@@ -104,6 +104,8 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Job listing with cards
 - Company directory with cards
 - Advanced job search with filters (job type, location, salary range) and FULLTEXT keyword search with relevance scoring
+- Advanced search operators – support for `"exact phrase"`, `-exclude`, `OR`, `AND` (MySQL boolean mode)
+
 - Typo tolerance and autocomplete suggestions – corrects common typos (e.g., "reac" = "React") and shows suggestions as you type.
 - Sorting options (Most recent, Salary high to low, Salary low to high)
 - Pagination for job listings
@@ -891,11 +893,12 @@ SmartHire/
 │   │   │   └── emailQueue.js
 │   │   ├── services/
 │   │   │   ├── emailService.js
-│   │   │   ├── resumeParser.js
+│   │   │   └── resumeParser.js
 │   │   ├── cron/
 │   │   │   └── dailyJobAlert.js
 │   │   └── utils/
-│   │       └── generateToken.js
+│   │       ├── generateToken.js
+│   │       └── searchParser.js
 │   ├── upload/
 │   │   └── resume
 │   ├── database/
@@ -917,7 +920,8 @@ SmartHire/
 │   │   ├── test-update-resume.js
 │   │   ├── test-analytics.js
 │   │   ├── test-report-resolution.js
-│   │   └── test-cover-letters.js
+│   │   ├── test-cover-letters.js
+│   │   └── test-advanced-search.js
 │   ├── .env
 │   ├── .gitignore
 │   ├── package.json
@@ -1050,6 +1054,14 @@ SMTP_USER=resend
 SMTP_PASS=re_YourApiKeyHere
 EMAIL_FROM=onboarding@resend.dev
 ADMIN_EMAIL=your-email@example.com   # for test script only
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+# LinkedIn OAuth
+LINKEDIN_CLIENT_ID=your_linkedin_client_id_here
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret_here
 
 ## API Endpoints
 
@@ -2135,6 +2147,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 
 - FULLTEXT search (`MATCH AGAINST`) with relevance scoring
 - Typo tolerance and autocomplete suggestions (SOUNDEX, prefix searches, search logging)
+- Advanced search operators – support for "exact phrase", -exclude, OR, AND (MySQL boolean mode)
 - Resume parsing (PDF/DOCX) with full CRUD – extracted data stored in `parsed_data` column
 - Cover Letters – Full CRUD API + frontend UI (rich text editor, modal, set default)
 - Admin Reports Queue UI – Dedicated moderation panel with filters, action buttons, confirmation modal with resolution notes, and email notifications

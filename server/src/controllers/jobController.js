@@ -1,5 +1,6 @@
 const { pool } = require("../config/database");
 const { addEmailJob } = require("../queues/emailQueue");
+const { parseAdvancedQuery } = require('../utils/searchParser');
 
 // @desc   Get all jobs with filters, pagination, sorting
 // @route  GET /api/jobs
@@ -177,17 +178,26 @@ const getJobs = async (req, res) => {
 
     // FULLTEXT search (if 'search' provided and non-empty)
     const useFulltext = search && search.trim() !== "";
+    let parsedSearch = "";
 
+    // If FULLTEXT search is used, parse the search query for boolean mode
     if (useFulltext) {
-      conditions.push(
-        "MATCH(j.title, j.description, j.requirements) AGAINST(? IN NATURAL LANGUAGE MODE)",
-      );
-      values.push(search.trim());
+      parsedSearch = parseAdvancedQuery(search);
+
+      if (!parsedSearch || parsedSearch.trim() === "") {
+        useFulltext = false; // Fallback to keyword search if parsing results in empty string
+      } else {
+        conditions.push(
+          "MATCH(j.title, j.description, j.requirements) AGAINST(? IN BOOLEAN MODE)",
+        );
+        values.push(parsedSearch);
+      }
     }
-    // Legacy keyword search (if 'keyword' provided and no 'search')
-    else if (keyword && keyword.trim() !== "") {
+
+    // If no FULLTEXT search, but 'keyword' provided, use legacy keyword search
+    if (!useFulltext && keyword && keyword.trim() !== "") {
       conditions.push(
-        "(j.title LIKE ? OR j.description LIKE ? OR c.name LIKE ?)",
+        "(j.title LIKE ? OR j.description LIKE ? OR c.name LIKE ?)"
       );
       values.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
     }
@@ -237,8 +247,8 @@ const getJobs = async (req, res) => {
     let orderBy = "";
 
     // If FULLTEXT search is active, add relevance_score
-    if (useFulltext) {
-      relevanceSelect = `, MATCH(j.title, j.description, j.requirements) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevance_score`;
+    if (useFulltext && parsedSearch && parsedSearch.trim() !== "") {
+      relevanceSelect = `, MATCH(j.title, j.description, j.requirements) AGAINST(? IN BOOLEAN MODE) AS relevance_score`;
 
       // For ORDER BY: if sort is 'relevance', order by score; otherwise use user's sort choice
       if (sort === "relevance") {
@@ -272,8 +282,8 @@ const getJobs = async (req, res) => {
     // Main query with optional relevance_score
     // If using FULLTEXT, we need to duplicate the search param for the SELECT
     let queryParams = [...values];
-    if (useFulltext) {
-      queryParams.push(search.trim()); // extra param for the SELECT relevance_score
+    if (useFulltext && parsedSearch && parsedSearch.trim() !== "") {
+      queryParams.push(parsedSearch); // For relevance_score in SELECT
     }
     queryParams.push(parsedLimit, offset);
 

@@ -326,6 +326,34 @@
   background: var(--success-color);
 }
 
+/* One‑click Apply with Resume button */
+.apply-with-resume-btn {
+  width: 100%;
+  padding: var(--spacing-md);
+  background: #10b981; /* Emerald green */
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.apply-with-resume-btn:hover:not(:disabled) {
+  background: #059669; /* Darker emerald green */
+}
+
+.apply-with-resume-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .employer-note {
   background: #fef3c7;
   padding: var(--spacing-sm) var(--spacing-md);
@@ -766,6 +794,11 @@
 
   .job-title-section {
     text-align: center;
+  }
+
+  .apply-with-resume-btn {
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-md);
   }
 
   .action-buttons {

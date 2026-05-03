@@ -32,6 +32,10 @@ const JobDetailsPage = () => {
   const [alreadyReported, setAlreadyReported] = useState(false);
   const [error, setError] = useState(null);
 
+  // State for one-click application
+  const [hasResume, setHasResume] = useState(false);
+  const [showOneClickConfirmModal, setShowOneClickConfirmModal] = useState(false);
+
   // Cover letter states
   const [coverLetters, setCoverLetters] = useState([]);
   const [selectedCoverId, setSelectedCoverId] = useState(null);
@@ -132,6 +136,23 @@ const JobDetailsPage = () => {
     fetchData();
   }, [id, isAuthenticated, user]);
 
+  // Check if user has a primary resume
+  useEffect(() => {
+    if (isAuthenticated && user?.role === "job_seeker") {
+      const checkResume = async () => {
+        try {
+          const res = await api.get("/users/resume/primary");
+          if (res.data.data && res.data.data.parsed_data) {
+            setHasResume(true);
+          }
+        } catch {
+          // No resume – silently ignore
+        }
+      };
+      checkResume();
+    }
+  }, [isAuthenticated, user]);
+
   // Fetch cover letters for the apply modal
   const fetchCoverLetters = async () => {
     try {
@@ -190,6 +211,28 @@ const JobDetailsPage = () => {
       if (err.response?.status === 409) {
         setHasApplied(true);
         toast.error("You have already applied to this job");
+      } else {
+        toast.error(err.response?.data?.message || "Failed to apply");
+      }
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  // Handle one-click application with resume
+  const handleOneClickApply = async () => {
+    setApplying(true);
+    try {
+      // The backend must support `useResume: true` to use stored profile & default cover letter
+      await applicationAPI.applyForJob(job.id, { useResume: true });
+      setHasApplied(true);
+      toast.success("Application submitted successfully using your resume!");
+      setShowOneClickConfirmModal(false);
+    } catch (err) {
+      console.error(err);
+      if (err.response?.data?.message === "Profile incomplete") {
+        toast.error("Your profile is incomplete. Please complete it first.");
+        navigate("/dashboard/seeker?tab=profile");
       } else {
         toast.error(err.response?.data?.message || "Failed to apply");
       }
@@ -404,30 +447,44 @@ const JobDetailsPage = () => {
               You are viewing your own job posting
             </div>
           ) : (
-            <button
-              className={`apply-btn ${hasApplied ? "applied" : ""}`}
-              onClick={handleApply}
-              disabled={hasApplied || applying}
-              type="button"
-            >
-              {applying ? (
-                <>
-                  <span className="spinner"></span> Applying...
-                </>
-              ) : hasApplied ? (
-                <>
-                  <span className="material-symbols-outlined">
-                    check_circle
-                  </span>
-                  Already Applied
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined">send</span>
-                  Apply Now
-                </>
+            <>
+              {/* One‑click Apply with Resume button */}
+              {isAuthenticated && user?.role === "job_seeker" && hasResume && (
+                <button
+                  className="apply-with-resume-btn"
+                  onClick={() => setShowOneClickConfirmModal(true)}
+                  disabled={hasApplied || applying}
+                  type="button"
+                >
+                  {applying ? "Applying..." : "⚡ Apply with Resume"}
+                </button>
               )}
-            </button>
+
+              <button
+                className={`apply-btn ${hasApplied ? "applied" : ""}`}
+                onClick={handleApply}
+                disabled={hasApplied || applying}
+                type="button"
+              >
+                {applying ? (
+                  <>
+                    <span className="spinner"></span> Applying...
+                  </>
+                ) : hasApplied ? (
+                  <>
+                    <span className="material-symbols-outlined">
+                      check_circle
+                    </span>
+                    Already Applied
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined">send</span>
+                    Apply Now
+                  </>
+                )}
+              </button>
+            </>
           )}
         </div>
 
@@ -654,6 +711,34 @@ const JobDetailsPage = () => {
               <button
                 className="btn-secondary"
                 onClick={() => setShowApplyModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NEW: One‑Click Confirmation Modal */}
+      {showOneClickConfirmModal && (
+        <div className="modal-overlay" onClick={() => setShowOneClickConfirmModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Quick Apply with Resume</h3>
+            <p>
+              You are about to apply for <strong>{job?.title}</strong> at{" "}
+              <strong>{job?.company_name}</strong> using your stored resume data and default cover letter.
+            </p>
+            <div className="modal-actions">
+              <button
+                className="btn-primary"
+                onClick={handleOneClickApply}
+                disabled={applying}
+              >
+                {applying ? "Submitting..." : "Confirm & Apply"}
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => setShowOneClickConfirmModal(false)}
               >
                 Cancel
               </button>

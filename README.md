@@ -104,8 +104,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Job listing with cards
 - Company directory with cards
 - Advanced job search with filters (job type, location, salary range) and FULLTEXT keyword search with relevance scoring
-- Advanced search operators – support for `"exact phrase"`, `-exclude`, `OR`, `AND` (MySQL boolean mode)
-
+- **Advanced search operators** – support for `"exact phrase"`, `-exclude`, `OR`, `AND` (MySQL boolean mode)
 - Typo tolerance and autocomplete suggestions – corrects common typos (e.g., "reac" = "React") and shows suggestions as you type.
 - Sorting options (Most recent, Salary high to low, Salary low to high)
 - Pagination for job listings
@@ -113,7 +112,6 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Reusable form components with validation
 - Protected routes with role-based access
 - 404 page for unknown routes
-
 - Scroll restoration on route change
 - CSS variables for consistent theming
 - Google Material Icons integration
@@ -125,12 +123,12 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - JWT token storage in localStorage/sessionStorage
 - Success and error toast notifications
 - Social login buttons (Google & LinkedIn - UI ready). Google OAuth backend is fully implemented. LinkedIn OAuth is available for future integration.
-- Save this search button on jobs listing page to store current search filters with a name and alert frequency
-- Drag-and-drop resume upload on profile with progress indicator, file validation, and delete functionality
-- Automatic resume parsing (PDF/DOCX) and auto‑filling of profile fields extracted data is stored in the parsed_data column of the resumes table and can be retrieved to pre‑fill the user's profile form.
-- Cover Letters – Create, edit, delete, and set default cover letter templates directly in the Job Seeker Dashboard using a built-in rich text editor (bold, italic, bullet points, links). The default cover letter is automatically selected when applying to a job.
-- Admin Reports Queue UI – Dedicated moderation panel with status filters, action buttons (Approve, Remove, Dismiss, Ban Employer), confirmation modal with resolution notes, and automated email notification to the reporter via background queue.
-- Search Term Logging & Keyword Highlighting – Every search term is logged with user/IP data for analytics. Matching terms in job titles and descriptions are highlighted with a yellow background in search results.
+- **Save this search** button on jobs listing page to store current search filters with a name and alert frequency
+- **Drag-and-drop resume upload** on profile with progress indicator, file validation, and delete functionality
+- **Automatic resume parsing** (PDF/DOCX) and **auto‑filling of profile fields** – extracted data is stored in the `parsed_data` column of the `resumes` table and can be retrieved to pre‑fill the user's profile form with a side‑by‑side preview.
+- **Cover Letters** – Create, edit, delete, and set default cover letter templates directly in the Job Seeker Dashboard using a built-in rich text editor (bold, italic, bullet points, links). The default cover letter is automatically selected when applying to a job.
+- **Admin Reports Queue UI** – Dedicated moderation panel with status filters, action buttons (Approve, Remove, Dismiss, Ban Employer), confirmation modal with resolution notes, and automated email notification to the reporter via background queue.
+- **Search Term Logging & Keyword Highlighting** – Every search term is logged with user/IP data for analytics. Matching terms in job titles and descriptions are highlighted with a yellow background in search results.
 
 ### Backend Features
 - JWT authentication (register, login, profile)
@@ -174,7 +172,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - **Full CRUD Endpoints** (all protected with JWT):
   - `POST /api/users/resume` – Upload, parse, and save a resume (automatically sets as primary).
   - `GET /api/users/resume` – Retrieve all resumes for the authenticated user.
-  - `GET /api/users/resume/primary` – Get the primary resume’s parsed data.
+  - `GET /api/users/resume/primary` – Get the primary resume’s parsed data (for auto-filling the profile).
   - `GET /api/users/resume/:id` – Get a single resume by ID.
   - `PUT /api/users/resume/:id` – Update resume metadata (`title`, `is_primary`).
   - `DELETE /api/users/resume/:id` – Delete a resume (and its file) – if primary, promotes the most recent resume.
@@ -603,7 +601,7 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 ### JobSeekerDashboard
 
 **Features:**
-- Sidebar navigation with tabs: Overview, Applied Jobs, Saved Jobs, Profile
+- Sidebar navigation with tabs: Overview, Applied Jobs, Saved Jobs, Saved Searches, Cover Letters, Profile
 - Overview dashboard with:
   - Welcome message and profile strength statistic
   - Stats cards: Profile Strength, Applied, Interviewing, Offers
@@ -614,11 +612,14 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
   - Withdraw button for pending applications (with confirmation modal)
 - Saved Jobs tab:
   - Display saved jobs with Apply Now and Remove buttons
+- Saved Searches tab:
+  - Create, edit, delete, and manage saved search filters with alert frequency
+- Cover Letters tab:
+  - Create, edit, delete, and set default cover letter templates using a rich text editor (bold, italic, bullet points, links). All operations are reflected instantly and sync with the backend via a dedicated API.
 - Profile tab:
-  - Edit profile form (name, email, password change with current password verification)
+  - Edit profile form (name, email, phone, skills, experience, education, password change with current password verification)
   - Drag‑and‑drop resume upload with real‑time progress bar, client‑side validation (PDF, DOC, DOCX, max 5 MB), delete functionality, and dynamic profile strength update
-  - Auto‑fill profile fields from the parsed resume data after upload, the system extracts full name, email, phone, skills, work experience, and education, and pre‑populates the form for the user to review and save.
-    - Cover Letters – A fully integrated section to manage cover letter templates: create, edit, delete, and set default using a rich text editor (bold, italic, bullet points, links). All operations are reflected instantly and sync with the backend via a dedicated API.
+  - **Auto‑fill profile fields from parsed resume data** – after upload, the system extracts full name, email, phone, skills, work experience, and education. A **preview panel** shows extracted data next to editable form fields. The user can edit any field before saving. **Save Profile** persists final values; **Discard** reverts to original profile data.
 - Fully integrated with backend APIs for applications, saved jobs, profile updates, recommended jobs, and notifications
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
@@ -2117,7 +2118,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - CompaniesPage (search, responsive grid, company cards)
 - LoginPage (email/password validation, remember me, role-based redirects)
 - RegisterPage (full validation, role dropdown, conditional company name)
-- JobSeekerDashboard (overview, applied jobs, saved jobs, profile edit, resume upload with progress bar, cover letters)
+- JobSeekerDashboard (overview, applied jobs, saved jobs, profile edit, resume upload with auto‑fill preview panel, drag‑and‑drop progress bar)
 - EmployerDashboard (overview, job creation/editing/deletion, applicant management)
 - AdminDashboard (KPI cards, charts, tables, reports, date range picker, export CSV, auto-refresh)
 
@@ -2149,6 +2150,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Typo tolerance and autocomplete suggestions (SOUNDEX, prefix searches, search logging)
 - Advanced search operators – support for "exact phrase", -exclude, OR, AND (MySQL boolean mode)
 - Resume parsing (PDF/DOCX) with full CRUD – extracted data stored in `parsed_data` column
+- Auto‑fill profile with parsed resume data – preview panel, editable fields, Save/Discard actions
 - Cover Letters – Full CRUD API + frontend UI (rich text editor, modal, set default)
 - Admin Reports Queue UI – Dedicated moderation panel with filters, action buttons, confirmation modal with resolution notes, and email notifications
 - Search Term Logging & Keyword Highlighting – All search terms are logged with user/IP for analytics. Matching keywords are highlighted in job titles and descriptions.

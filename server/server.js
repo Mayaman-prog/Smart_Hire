@@ -22,6 +22,7 @@ const startDailyJobAlert = require('./src/cron/dailyJobAlert');
 const reportRoutes = require('./src/routes/reportRoutes');
 const coverLetterRoutes = require('./src/routes/coverLetterRoutes');
 const searchSuggestionRoutes = require('./src/routes/searchSuggestionRoutes');
+const passport = require('./src/config/passport');
 
 dotenv.config();
 
@@ -82,6 +83,9 @@ app.get('/api/test', (req, res) => {
 
 // Auth routes
 app.use('/api/auth', authRoutes);
+
+// Initialize Passport middleware
+app.use(passport.initialize());
 
 // Job routes
 app.use('/api/jobs', jobRoutes);

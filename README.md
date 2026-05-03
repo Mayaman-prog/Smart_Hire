@@ -2070,6 +2070,7 @@ client/src/pages/NotFoundPage/
 | Export CSV button not downloading                             | Check `downloadCSV` function and data availability                                             |
 | Auto-refresh not triggering                                   | Verify toggle is ON and `setInterval` is active in `useEffect`                                 |
 | Last refresh timestamp not updating                           | Ensure `setLastRefresh(new Date())` is called inside `fetchData()`                             |
+| Profile incomplete on Apply with Resume                       | Complete your profile (phone, skills, experience, education) in the dashboard                  |
 
 ## Contributing
 **Create a new branch:**
@@ -2114,7 +2115,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Footer (4 cloumns, newsletter, social links)
 - Homepage (hero, CTA, searchbar, featured jobs, "How It Works")
 - JobsPage (debounced search, URL query sync, filters, pagination, sorting, clear filters, mobile drawer, "Save this search" modal)
-- JobDetailsPage (dynamic fetch, apply flow, duplicate prevention, save flow, similar jobs, report job modal)
+- JobDetailsPage (dynamic fetch, apply flow, duplicate prevention, save flow, similar jobs, report job modal, Apply with Resume)
 - CompaniesPage (search, responsive grid, company cards)
 - LoginPage (email/password validation, remember me, role-based redirects)
 - RegisterPage (full validation, role dropdown, conditional company name)

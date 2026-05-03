@@ -53,6 +53,9 @@ CREATE TABLE IF NOT EXISTS job_seekers (
     experience_years INT DEFAULT 0,
     expected_salary DECIMAL(10,2),
     profile_completeness INT DEFAULT 0,
+    skills TEXT,
+    experience TEXT,
+    education TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

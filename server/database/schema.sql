@@ -371,13 +371,15 @@ CREATE TABLE IF NOT EXISTS cover_letters (
 
 -- 26. SEARCH LOGS TABLE
 CREATE TABLE IF NOT EXISTS search_logs (
-  id INT PRIMARY KEY AUTO_INCREMENT,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   search_term VARCHAR(255) NOT NULL,
   user_id INT NULL,
+  ip_address VARCHAR(45) NULL,
   result_count INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_search_term (search_term),
-  INDEX idx_created_at (created_at)
+  INDEX idx_created_at (created_at),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 SELECT 'Database schema created successfully' AS Status;

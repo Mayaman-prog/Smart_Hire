@@ -15,9 +15,10 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [Backend Features](#backend-features)
     - [Cover Letters](#cover-letters)
     - [FULLTEXT Search](#fulltext-search)
-    - [Typo Tolerance & Autocomplete](#typo-tolerance--autocomplete)
+    - [Typo Tolerance & Autocomplete](#typo-tolerance-autocomplete)
     - [Resume Parsing & CRUD](#resume-parsing-crud)
     - [Admin Reports Queue UI](#admin-reports-queue-ui)
+    - [Search Term Logging & Keyword Highlighting](#search-term-logging--keyword-highlighting)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
   - [Email Rate Limiting & Retry Logic](#email-rate-limiting--retry-logic)
@@ -34,6 +35,8 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [Database Setup](#database-setup)
   - [Email Service Setup](#email-service-setup)
   - [Email Templates](#email-templates)
+  - [Google OAuth Setup](#google-oauth-setup)
+  - [LinkedIn OAuth Setup](#linkedIn-oauth-setup)
 - [Environment Variables](#environment-variables)
 - [API Endpoints](#api-endpoints)
   - [Authentication Routes](#authentication-routes)
@@ -71,7 +74,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [NotFoundPage Component](#notfoundpage-component)
   - [SaveSearchModal Component](#savesearchmodal-component)
   - [ResumeUpload Component](#resumeupload-component)
-  - [Daily Job Alert Cron](#daily-job-alert-cron)(#savesearchmodal-component)
+  - [Daily Job Alert Cron](#daily-job-alert-cron)
 - [Routing System](#routing-system)
 - [Validation Utilities](#validation-utilities)
 - [Database Schema](#database-schema)
@@ -108,6 +111,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Reusable form components with validation
 - Protected routes with role-based access
 - 404 page for unknown routes
+
 - Scroll restoration on route change
 - CSS variables for consistent theming
 - Google Material Icons integration
@@ -118,12 +122,13 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Role-based redirects after login
 - JWT token storage in localStorage/sessionStorage
 - Success and error toast notifications
-- Social login buttons (Google & LinkedIn - UI ready)
+- Social login buttons (Google & LinkedIn - UI ready). Google OAuth backend is fully implemented. LinkedIn OAuth is available for future integration.
 - Save this search button on jobs listing page to store current search filters with a name and alert frequency
 - Drag-and-drop resume upload on profile with progress indicator, file validation, and delete functionality
-- Automatic resume parsing (PDF/DOCX) and auto‑filling of profile fields extracted data is stored in the `parsed_data` column of the `resumes` table and can be retrieved to pre‑fill the user's profile form.
+- Automatic resume parsing (PDF/DOCX) and auto‑filling of profile fields extracted data is stored in the parsed_data column of the resumes table and can be retrieved to pre‑fill the user's profile form.
 - Cover Letters – Create, edit, delete, and set default cover letter templates directly in the Job Seeker Dashboard using a built-in rich text editor (bold, italic, bullet points, links). The default cover letter is automatically selected when applying to a job.
 - Admin Reports Queue UI – Dedicated moderation panel with status filters, action buttons (Approve, Remove, Dismiss, Ban Employer), confirmation modal with resolution notes, and automated email notification to the reporter via background queue.
+- Search Term Logging & Keyword Highlighting – Every search term is logged with user/IP data for analytics. Matching terms in job titles and descriptions are highlighted with a yellow background in search results.
 
 ### Backend Features
 - JWT authentication (register, login, profile)
@@ -189,6 +194,16 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - **Audit Logging:** All resolution actions are logged in the `audit_logs` table for compliance.
 - **Rate Limiting:** 5 reports per user per 24 hours (Redis).
 - **Duplicate Check:** One report per user per job.
+
+#### Search Term Logging & Keyword Highlighting
+- **Table:** `search_logs` stores every search with the term, user ID, IP address, result count, and timestamp.
+- **Logging:** Every search request is logged automatically in the background. Guest searches are logged with IP address only.
+- **Analytics:** Admins can view search trends via SQL queries or future analytics dashboards.
+- **Frontend Highlighting:** Matching terms in job titles and descriptions are wrapped with `<mark class="bg-yellow-200">` to visually show why a job was matched.
+- **Implementation:**
+  - Middleware: `searchLogger.js` automatically logs each search before passing to the controller.
+  - Controller: `jobController.js` updates the `result_count` in the log after the query runs.
+  - Frontend: `highlightText.js` utility function is used in `JobCard.jsx` to wrap matches.
 
 ### Saved Searches Feature
 - Job seekers can create, read, update, and delete saved search criteria.
@@ -262,6 +277,58 @@ Five responsive HTML email templates are used for different notifications. All t
 | Admin resolves a job report            | ``report-resolution.html``                     | Reporter             |
 
 All emails are sent asynchronously; failures are logged but do not break the main functionality.
+
+### Google OAuth Setup (Backend)
+
+#### Overview:
+- Enables social login with Google using Passport.js
+
+#### Endpoints (`server/src/routes/authRoutes.js`):
+| Method | Endpoint                  | Description                                               |
+| ------ | ------------------------- | --------------------------------------------------------- |
+| GET    | /api/auth/google          | Redirects to Google login page                            |
+| GET    | /api/auth/google/callback | Handles callback and redirects to frontend with JWT token |
+
+- Because `passport.authenticate` handles the redirect, no controller logic is required for these routes.
+
+#### Environment Variables:
+- Add the following to `server/.env`:
+
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+#### Dependencies:
+- `passport`
+- `passport-google-oauth20`
+
+#### Google Cloud Console Setup:
+
+- Go to `Google Cloud Console` and create a new project.
+- Navigate to `APIs & Services → Credentials`.
+- Click Create `Credentials → OAuth client ID` (Web application).
+- Set Authorized JavaScript origins: `http://localhost:5173`
+- Set Authorized redirect URIs: `http://localhost:5000/api/auth/google/callback`
+- Copy the Client ID and Client Secret into `.env`.
+
+#### Passport Strategy (`server/src/config/passport.js`):
+
+- Uses `GoogleStrategy` with `clientID` and `clientSecret`.
+- Callback URL: `http://localhost:5000/api/auth/google/callback`.
+- Fetches user's `google_id`, email, and name.
+- If user exists by `google_id` → generates JWT.
+- If user exists by email → links `google_id` to existing account.
+- If new user → creates account (role: `job_seeker`), then generates JWT.
+
+### LinkedIn OAuth Setup - Backend (Disabled)
+
+#### Overview:
+- LinkedIn OAuth is not yet enabled due to LinkedIn’s requirement for a `Company Page` and `10+ connections` on the developer’s account. The routes are currently disabled and return a `503` status.
+
+#### Future Activation:
+- When LinkedIn credentials are added to `server/.env` and the Passport strategy is uncommented, the feature can be activated.
+
+LINKEDIN_CLIENT_ID=your_linkedin_client_id_here
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret_here
 
 ### Daily Job Alert Cron Job
 
@@ -806,6 +873,7 @@ SmartHire/
 │   │   ├── middleware/
 │   │   │   ├── authMiddleware.js
 │   │   │   └── rateLimiter.js
+│   │   │   └── searchLogger.js
 │   │   ├── routes/
 │   │   │   ├── adminRoutes.js
 │   │   │   ├── applicationRoutes.js
@@ -838,6 +906,7 @@ SmartHire/
 │   │   ├── test-email.js
 │   │   ├── test-email-templates.js
 │   │   ├── test-saved-searches.js
+│   │   ├── test-searche-logs.js
 │   │   ├── test-email-queue-response-time.js
 │   │   ├── test-reports.js
 │   │   ├── test-KPI.js
@@ -2069,6 +2138,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Resume parsing (PDF/DOCX) with full CRUD – extracted data stored in `parsed_data` column
 - Cover Letters – Full CRUD API + frontend UI (rich text editor, modal, set default)
 - Admin Reports Queue UI – Dedicated moderation panel with filters, action buttons, confirmation modal with resolution notes, and email notifications
+- Search Term Logging & Keyword Highlighting – All search terms are logged with user/IP for analytics. Matching keywords are highlighted in job titles and descriptions.
 
 **Miscellaneous:**
 

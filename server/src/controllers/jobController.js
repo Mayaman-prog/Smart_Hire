@@ -1,6 +1,6 @@
 const { pool } = require("../config/database");
 const { addEmailJob } = require("../queues/emailQueue");
-const { parseAdvancedQuery } = require('../utils/searchParser');
+const { parseAdvancedQuery } = require("../utils/searchParser");
 
 // @desc   Get all jobs with filters, pagination, sorting
 // @route  GET /api/jobs
@@ -197,7 +197,7 @@ const getJobs = async (req, res) => {
     // If no FULLTEXT search, but 'keyword' provided, use legacy keyword search
     if (!useFulltext && keyword && keyword.trim() !== "") {
       conditions.push(
-        "(j.title LIKE ? OR j.description LIKE ? OR c.name LIKE ?)"
+        "(j.title LIKE ? OR j.description LIKE ? OR c.name LIKE ?)",
       );
       values.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
     }
@@ -700,7 +700,7 @@ const deleteJob = async (req, res) => {
   }
 };
 
-// @desc    Get recommended jobs for job seeker
+// @desc    Get recommended jobs based on user's skills
 // @route   GET /api/jobs/recommended
 const getRecommendedJobs = async (req, res) => {
   try {
@@ -710,58 +710,48 @@ const getRecommendedJobs = async (req, res) => {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    // Get job seeker's skills and/or past job titles to recommend matching jobs
-    const [seekerSkills] = await pool.query(
-      `
-      SELECT DISTINCT s.name
-      FROM job_seekers js
-      JOIN job_seeker_skills jss ON js.id = jss.job_seeker_id
-      JOIN skills s ON jss.skill_id = s.id
-      WHERE js.user_id = ?
-      `,
-      [user.id],
+    // 1. Get user's skill IDs
+    const [skillRows] = await pool.query(
+      `SELECT skill_id FROM job_seeker_skills WHERE job_seeker_id = ?`,
+      [user.id], // Ensure user.id is the correct ID for job_seekers
     );
 
-    let skillNames = seekerSkills.map((skill) => skill.name);
+    let skillIds = skillRows.map((row) => row.skill_id);
 
-    // Build recommendation query
-    let sql = `
-      SELECT 
-        j.id, j.title, j.description, j.requirements, j.salary_min, j.salary_max,
-        j.location, j.job_type, j.is_featured, j.created_at,
-        c.id AS company_id, c.name AS company_name, c.logo_url AS company_logo
-      FROM jobs j
-      LEFT JOIN companies c ON j.company_id = c.id
-      WHERE j.is_active = 1
-    `;
-
+    let sql;
     let params = [];
 
-    // If the seeker has skills, prioritize jobs that match their skills
-    if (skillNames.length > 0) {
-      const skillPlaceholders = skillNames.map(() => "?").join(", ");
-      sql += `
-        AND (j.requirements LIKE ? OR j.requirements LIKE ?)
-        ORDER BY 
-          CASE 
-            WHEN j.requirements IN (${skillPlaceholders}) THEN 1
-            ELSE 2
-          END,
-          j.created_at DESC
+    if (skillIds.length > 0) {
+      // 2. Build a query that joins jobs with required skills
+      const placeholders = skillIds.map(() => "?").join(",");
+      sql = `
+        SELECT DISTINCT
+          j.id, j.title, j.description, j.requirements, j.salary_min, j.salary_max,
+          j.location, j.job_type, j.is_featured, j.created_at,
+          c.id AS company_id, c.name AS company_name, c.logo_url AS company_logo
+        FROM jobs j
+        LEFT JOIN companies c ON j.company_id = c.id
+        JOIN job_required_skills jrs ON j.id = jrs.job_id
+        WHERE j.is_active = 1
+          AND jrs.skill_id IN (${placeholders})
+        ORDER BY j.created_at DESC
+        LIMIT 6
       `;
-      // Add each skill as separate param for the LIKE conditions
-      skillNames.forEach((skill) => {
-        params.push(`%${skill}%`);
-        params.push(`%${skill}%`);
-      });
-      // Also add the skill placeholders for the CASE statement
-      params.push(...skillNames);
+      params = skillIds;
     } else {
-      // Fallback: just get the most recent jobs
-      sql += ` ORDER BY j.created_at DESC`;
+      // Fallback: latest jobs
+      sql = `
+        SELECT 
+          j.id, j.title, j.description, j.requirements, j.salary_min, j.salary_max,
+          j.location, j.job_type, j.is_featured, j.created_at,
+          c.id AS company_id, c.name AS company_name, c.logo_url AS company_logo
+        FROM jobs j
+        LEFT JOIN companies c ON j.company_id = c.id
+        WHERE j.is_active = 1
+        ORDER BY j.created_at DESC
+        LIMIT 6
+      `;
     }
-
-    sql += ` LIMIT 6`;
 
     const [jobs] = await pool.query(sql, params);
 

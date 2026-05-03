@@ -102,10 +102,12 @@ const register = async (req, res) => {
         [userId, companyId],
       );
     } else {
-      // If job seeker, create job seeker record
+      // If job seeker, create job seeker record with first_name and last_name
+      const firstName = name.split(" ")[0] || "";
+      const lastName = name.split(" ").slice(1).join(" ") || "";
       await connection.query(
-        "INSERT INTO job_seekers (user_id, profile_completeness) VALUES (?, 0)",
-        [userId],
+        "INSERT INTO job_seekers (user_id, first_name, last_name, profile_completeness) VALUES (?, ?, ?, 0)",
+        [userId, firstName, lastName],
       );
     }
 
@@ -262,9 +264,42 @@ const login = async (req, res) => {
 // Get logged-in user's profile
 const getProfile = async (req, res) => {
   try {
-    res.json({ success: true, data: { user: req.user } });
+    // Fetch user data
+    const [userRows] = await pool.query(
+      "SELECT id, name, email, role, company_id, is_active FROM users WHERE id = ?",
+      [req.user.id],
+    );
+    if (userRows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    const user = userRows[0];
+
+    // If user is a job seeker, fetch job_seeker details
+    let jobSeekerData = null;
+    if (user.role === "job_seeker") {
+      const [jobSeekerRows] = await pool.query(
+        "SELECT phone, skills, experience, education FROM job_seekers WHERE user_id = ?",
+        [req.user.id],
+      );
+      if (jobSeekerRows.length > 0) {
+        jobSeekerData = jobSeekerRows[0];
+      }
+    }
+
+    // Merge user data with job_seeker data
+    const profile = {
+      ...user,
+      phone: jobSeekerData?.phone || "",
+      skills: jobSeekerData?.skills || "",
+      experience: jobSeekerData?.experience || "",
+      education: jobSeekerData?.education || "",
+    };
+
+    res.json({ success: true, data: { user: profile } });
   } catch (error) {
-    console.error("Profile error:", error);
+    console.error("Profile fetch error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

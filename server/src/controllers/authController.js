@@ -276,7 +276,6 @@ const getProfile = async (req, res) => {
     }
     const user = userRows[0];
 
-    // If user is a job seeker, fetch job_seeker details
     let jobSeekerData = null;
     if (user.role === "job_seeker") {
       const [jobSeekerRows] = await pool.query(
@@ -285,6 +284,14 @@ const getProfile = async (req, res) => {
       );
       if (jobSeekerRows.length > 0) {
         jobSeekerData = jobSeekerRows[0];
+      } else {
+        // Create default object if no row exists to avoid null reference
+        jobSeekerData = {
+          phone: "",
+          skills: "",
+          experience: "",
+          education: "",
+        };
       }
     }
 

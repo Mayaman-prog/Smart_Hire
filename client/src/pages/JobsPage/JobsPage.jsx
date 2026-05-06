@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import { jobAPI } from "../../services/api";
 import JobCard from "../../components/jobs/JobCard/JobCard";
 import toast from "react-hot-toast";
 import SaveSearchModal from "../../components/SaveSearchModal/SaveSearchModal";
+import { useSavedSearch } from "../../contexts/SavedSearchContext";
 import "./JobsPage.css";
 
 const JobsPage = () => {
+  const { user, isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // State: search fields (must be declared before use)
+  // State: search fields
   const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
   const [location, setLocation] = useState(searchParams.get("location") || "");
   const [selectedJobTypes, setSelectedJobTypes] = useState(() => {
@@ -35,6 +38,8 @@ const JobsPage = () => {
   const [loading, setLoading] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+
+  const { refreshSavedSearches } = useSavedSearch();
 
   // Debounce keyword
   useEffect(() => {
@@ -172,6 +177,20 @@ const JobsPage = () => {
     salary_max: salaryRange.max,
   };
 
+  const handleSaveSearchClick = () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to save searches");
+      return;
+    }
+    if (user?.role !== "job_seeker") {
+      toast.error("Only job seekers can save searches");
+      return;
+    }
+    setIsSaveModalOpen(true);
+  };
+
+  const showSaveSearch = user?.role === "job_seeker";
+
   return (
     <div className="jobs-page">
       <div className="container">
@@ -219,16 +238,18 @@ const JobsPage = () => {
             </button>
           </div>
 
-          {/* “Save this search” */}
-          <button
-            className="save-search-btn"
-            type="button"
-            onClick={() => setIsSaveModalOpen(true)}
-            title="Save this search"
-          >
-            <span className="material-symbols-outlined">bookmark</span>
-            Save this search
-          </button>
+          {/* Save this search */}
+          {showSaveSearch && (
+            <button
+              className="save-search-btn"
+              type="button"
+              onClick={handleSaveSearchClick}
+              title="Save this search"
+            >
+              <span className="material-symbols-outlined">bookmark</span>
+              Save this search
+            </button>
+          )}
 
           {/* Active filters */}
           {(activeFilterCount > 0 || selectedJobTypes.length > 0) && (
@@ -581,11 +602,14 @@ const JobsPage = () => {
       </div>
 
       {/* Save search modal */}
-      <SaveSearchModal
-        isOpen={isSaveModalOpen}
-        onClose={() => setIsSaveModalOpen(false)}
-        queryParams={currentQueryParams}
-      />
+      {showSaveSearch && (
+        <SaveSearchModal
+          isOpen={isSaveModalOpen}
+          onClose={() => setIsSaveModalOpen(false)}
+          queryParams={currentQueryParams}
+          onSaveSuccess={refreshSavedSearches}
+        />
+      )}
     </div>
   );
 };

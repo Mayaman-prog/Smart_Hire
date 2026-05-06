@@ -52,13 +52,62 @@
   font-size: var(--font-md);
   font-family: inherit;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 /* Style when user clicks in the dropdown */
 .form-group select:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Form inputs for edit mode */
+.form-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 196, 140, 0.1);
+}
+
+.form-select {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: var(--font-sm);
+  font-family: inherit;
+}
+
+.salary-group .salary-inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.salary-group .salary-inputs input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-family: inherit;
+}
+
+.salary-group .salary-inputs span {
+  color: var(--gray-color);
+  font-size: var(--font-sm);
 }
 
 /* Container for the Cancel and Save buttons at the bottom */
@@ -84,6 +133,10 @@
 
   .form-group select {
     font-size: var(--font-sm);
+  }
+
+  .salary-group .salary-inputs {
+    flex-wrap: wrap;
   }
 
   .modal-actions {

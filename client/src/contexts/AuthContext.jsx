@@ -17,57 +17,92 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check for existing session on mount
+  const getToken = () =>
+    localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  const getStoredUser = () =>
+    localStorage.getItem("user") || sessionStorage.getItem("user");
+
+  const clearAuth = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  const saveUser = (userData) => {
+    const isLocal = !!localStorage.getItem("token");
+
+    if (isLocal) {
+      localStorage.setItem("user", JSON.stringify(userData));
+    } else {
+      sessionStorage.setItem("user", JSON.stringify(userData));
+    }
+  };
+
   useEffect(() => {
-    const initializeAuth = async () => {
-      const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
-      const userData =
-        localStorage.getItem("user") || sessionStorage.getItem("user");
+    const handleOAuthRedirect = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromOAuth = urlParams.get("token");
 
-      if (token && userData) {
-        try {
-          const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
-          setIsAuthenticated(true);
-
-          // Verify token with backend
-          try {
-            const response = await authAPI.getMe();
-            const freshUser = response.data?.data?.user;
-
-            if (freshUser) {
-              setUser(freshUser);
-
-              if (localStorage.getItem("token")) {
-                localStorage.setItem("user", JSON.stringify(freshUser));
-              } else if (sessionStorage.getItem("token")) {
-                sessionStorage.setItem("user", JSON.stringify(freshUser));
-              }
-            }
-          } catch (error) {
-            // If token is invalid, clear storage
-            console.error("Token validation failed:", error);
-            localStorage.removeItem("token");
-            sessionStorage.removeItem("token");
-            localStorage.removeItem("user");
-            setUser(null);
-            setIsAuthenticated(false);
-          }
-        } catch (error) {
-          console.error("Failed to parse user data:", error);
-          localStorage.removeItem("token");
-          sessionStorage.removeItem("token");
-          localStorage.removeItem("user");
-        }
+      if (tokenFromOAuth) {
+        localStorage.setItem("token", tokenFromOAuth);
+        window.history.replaceState({}, "", window.location.pathname);
       }
-      setLoading(false);
+    };
+
+    const initializeAuth = async () => {
+      try {
+        handleOAuthRedirect();
+
+        const token = getToken();
+        const storedUser = getStoredUser();
+
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+
+        // Load cached user first (fast UI)
+        if (storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            setUser(parsed);
+            setIsAuthenticated(true);
+          } catch (e) {
+            console.warn("Invalid stored user");
+          }
+        }
+
+        // Verify with backend
+        const response = await authAPI.getMe();
+        const freshUser = response.data?.data?.user;
+
+        if (!freshUser?.id) throw new Error("Invalid session");
+
+        setUser(freshUser);
+        setIsAuthenticated(true);
+        saveUser(freshUser);
+      } catch (error) {
+        const status = error.response?.status;
+
+        console.log("Auth verification failed:", status);
+
+        if (status === 401 || status === 403) {
+          clearAuth();
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
     initializeAuth();
   }, []);
 
-  // Login function - works with your api.js (mock mode)
+  // LOGIN
   const login = async (email, password, rememberMe = false) => {
     try {
       const response = await authAPI.login(email, password);
@@ -83,6 +118,7 @@ export const AuthProvider = ({ children }) => {
 
       setUser(user);
       setIsAuthenticated(true);
+
       toast.success("Login successful!");
       return { success: true, user };
     } catch (error) {
@@ -90,11 +126,9 @@ export const AuthProvider = ({ children }) => {
       const message = error.response?.data?.message;
 
       let errorMessage = "Login failed";
+
       if (status === 401) errorMessage = "Invalid email or password";
-      else if (status === 403)
-        errorMessage = "Account disabled. Please contact support.";
-      else if (status === 500)
-        errorMessage = "Server error. Please try again later.";
+      else if (status === 403) errorMessage = "Account disabled";
       else if (message) errorMessage = message;
 
       toast.error(errorMessage);
@@ -102,75 +136,51 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register function
+  // REGISTER
   const register = async (userData, rememberMe = false) => {
     try {
       const response = await authAPI.register(userData);
-      const { token, user: newUser } = response.data.data;
+      const { token, user } = response.data.data;
 
       if (rememberMe) {
         localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(newUser));
+        localStorage.setItem("user", JSON.stringify(user));
       } else {
         sessionStorage.setItem("token", token);
-        sessionStorage.setItem("user", JSON.stringify(newUser));
+        sessionStorage.setItem("user", JSON.stringify(user));
       }
 
-      setUser(newUser);
+      setUser(user);
       setIsAuthenticated(true);
 
-      toast.success("Registration successful! Welcome aboard!");
-      return { success: true, user: newUser };
+      toast.success("Registration successful!");
+      return { success: true, user };
     } catch (error) {
       const message = error.response?.data?.message || "Registration failed";
+
       toast.error(message);
       return { success: false, error: message };
     }
   };
 
-  // Logout function
+  // LOGOUT
   const logout = () => {
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("user");
-    setUser(null);
-    setIsAuthenticated(false);
+    clearAuth();
     toast.success("Logged out successfully");
   };
 
-  // Helper functions
-  const getUserRole = () => {
-    return user?.role || null;
-  };
+  // HELPERS
+  const getUserRole = () => user?.role || null;
+  const hasRole = (role) => user?.role === role;
 
-  const hasRole = (role) => {
-    return user?.role === role;
-  };
-
-  const isJobSeeker = () => {
-    return user?.role === "job_seeker";
-  };
-
-  const isEmployer = () => {
-    return user?.role === "employer";
-  };
-
-  const isAdmin = () => {
-    return user?.role === "admin";
-  };
+  const isJobSeeker = () => user?.role === "job_seeker";
+  const isEmployer = () => user?.role === "employer";
+  const isAdmin = () => user?.role === "admin";
 
   const updateUser = (updatedData) => {
     const updatedUser = { ...user, ...updatedData };
     setUser(updatedUser);
-
-    if (localStorage.getItem("token")) {
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    } else if (sessionStorage.getItem("token")) {
-      sessionStorage.setItem("user", JSON.stringify(updatedUser));
-    }
-
-    toast.success("Profile updated successfully");
+    saveUser(updatedUser);
   };
 
   return (

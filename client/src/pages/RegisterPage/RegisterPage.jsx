@@ -10,6 +10,7 @@ import "./RegisterPage.css";
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState("job_seeker"); // For UI and payload
 
   const {
     register,
@@ -23,12 +24,10 @@ const RegisterPage = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "job_seeker",
       companyName: "",
     },
   });
 
-  const selectedRole = watch("role");
   const passwordValue = watch("password");
 
   const onSubmit = async (data) => {
@@ -38,8 +37,8 @@ const RegisterPage = () => {
         name: data.fullName,
         email: data.email,
         password: data.password,
-        role: data.role,
-        ...(data.role === "employer" && { companyName: data.companyName }),
+        role: role, // ✅ Use local state instead of form value
+        ...(role === "employer" && { companyName: data.companyName }),
       };
       const response = await authAPI.register(payload);
       if (response.data.success) {
@@ -68,27 +67,20 @@ const RegisterPage = () => {
         <div className="register-hero">
           <div className="hero-content">
             <div className="hero-icon">
-              <span className="material-symbols-outlined">rocket_launch</span>
+              <span className="material-symbols-outlined">
+                {role === "job_seeker" ? "person_search" : "business_center"}
+              </span>
             </div>
-            <h1>The Intelligent Curator of Your Next Career Move.</h1>
+            <h1>
+              {role === "job_seeker"
+                ? "Unlock Your Career Potential"
+                : "Find Your Next Top Performer"}
+            </h1>
             <p>
-              Join 50,000+ professionals discovering high-impact roles through
-              AI-driven matching.
+              {role === "job_seeker"
+                ? "Get matched with top employers, receive job alerts based on your skills, and track your applications in one place."
+                : "Post jobs, manage applicants, and use AI-driven insights to find the perfect candidate for your team."}
             </p>
-            <div className="hero-stats">
-              <div className="stat">
-                <span className="stat-number">50k+</span>
-                <span className="stat-label">Active Users</span>
-              </div>
-              <div className="stat">
-                <span className="stat-number">10k+</span>
-                <span className="stat-label">Companies</span>
-              </div>
-              <div className="stat">
-                <span className="stat-number">95%</span>
-                <span className="stat-label">Match Rate</span>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -101,15 +93,30 @@ const RegisterPage = () => {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="register-form">
+              {/* Role Toggle */}
+              <div className="role-toggle-group">
+                <button
+                  type="button"
+                  className={`role-btn ${role === "employer" ? "active" : ""}`}
+                  onClick={() => setRole("employer")}
+                >
+                  Employer
+                </button>
+                <button
+                  type="button"
+                  className={`role-btn ${role === "job_seeker" ? "active" : ""}`}
+                  onClick={() => setRole("job_seeker")}
+                >
+                  Job Seeker
+                </button>
+              </div>
+
               {/* Full Name */}
               <div className="form-group">
-                <label htmlFor="fullName" className="form-label">
-                  FULL NAME
-                </label>
                 <Input
                   id="fullName"
                   type="text"
-                  placeholder="Enter your full name"
+                  placeholder="Full Name*"
                   icon="person"
                   error={errors.fullName?.message}
                   {...register("fullName", {
@@ -129,13 +136,10 @@ const RegisterPage = () => {
 
               {/* Email */}
               <div className="form-group">
-                <label htmlFor="email" className="form-label">
-                  EMAIL ADDRESS
-                </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Email ID*"
                   icon="mail"
                   error={errors.email?.message}
                   {...register("email", {
@@ -148,15 +152,29 @@ const RegisterPage = () => {
                 />
               </div>
 
-              {/* Password (no toggle) */}
+              {/* Mobile Number (New field) */}
               <div className="form-group">
-                <label htmlFor="password" className="form-label">
-                  PASSWORD
-                </label>
+                <Input
+                  id="mobile"
+                  type="tel"
+                  placeholder="Mobile Number*"
+                  icon="phone"
+                  {...register("mobile", {
+                    required: "Mobile number is required",
+                    pattern: {
+                      value: /^[0-9]{10}$/,
+                      message: "Mobile number must be 10 digits",
+                    },
+                  })}
+                />
+              </div>
+
+              {/* Password */}
+              <div className="form-group">
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Create a password"
+                  placeholder="Password*"
                   icon="lock"
                   error={errors.password?.message}
                   {...register("password", {
@@ -173,15 +191,12 @@ const RegisterPage = () => {
                 />
               </div>
 
-              {/* Confirm Password (no toggle) */}
+              {/* Confirm Password */}
               <div className="form-group">
-                <label htmlFor="confirmPassword" className="form-label">
-                  CONFIRM PASSWORD
-                </label>
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="Confirm your password"
+                  placeholder="Confirm Password*"
                   icon="lock"
                   error={errors.confirmPassword?.message}
                   {...register("confirmPassword", {
@@ -192,27 +207,13 @@ const RegisterPage = () => {
                 />
               </div>
 
-              {/* Role Dropdown */}
-              <div className="form-group">
-                <label htmlFor="role" className="form-label">
-                  ROLE
-                </label>
-                <select id="role" className="role-select" {...register("role")}>
-                  <option value="job_seeker">Job Seeker</option>
-                  <option value="employer">Employer</option>
-                </select>
-              </div>
-
               {/* Conditional Company Name (only for employer) */}
-              {selectedRole === "employer" && (
+              {role === "employer" && (
                 <div className="form-group">
-                  <label htmlFor="companyName" className="form-label">
-                    COMPANY NAME
-                  </label>
                   <Input
                     id="companyName"
                     type="text"
-                    placeholder="Enter your company name"
+                    placeholder="Company Name*"
                     icon="business"
                     error={errors.companyName?.message}
                     {...register("companyName", {
@@ -222,15 +223,45 @@ const RegisterPage = () => {
                 </div>
               )}
 
+              {/* Experienced / Fresher Cards */}
+              <div className="user-type-group">
+                <div className="user-type-card">
+                  <h4>Experienced</h4>
+                  <p>
+                    Already have experience? Leverage our AI to discover
+                    higher-level roles.
+                  </p>
+                </div>
+                <div className="user-type-card">
+                  <h4>Fresher</h4>
+                  <p>
+                    New to the job market? SmartHire offers plenty of
+                    opportunities for freshers.
+                  </p>
+                </div>
+              </div>
+
+              {/* Terms Text */}
+              <p className="terms-text">
+                <span className="material-symbols-outlined info-icon">
+                  info
+                </span>
+                By clicking 'Create Account', you agree to our{" "}
+                <Link to="/terms">Terms & Conditions</Link> and{" "}
+                <Link to="/privacy">Privacy Policy</Link>.
+              </p>
+
               {/* Submit Button */}
               <Button
                 type="submit"
                 variant="primary"
+                className="btn-black-pill"
                 fullWidth
                 loading={isLoading}
                 disabled={isLoading}
               >
-                Create Account
+                Create {role === "job_seeker" ? "Job Seeker" : "Employer"}{" "}
+                Account
               </Button>
 
               {/* Login Link */}
@@ -240,11 +271,6 @@ const RegisterPage = () => {
                 </p>
               </div>
             </form>
-
-            <p className="terms-text">
-              By signing up, you agree to our Terms of Service and Privacy
-              Policy.
-            </p>
           </div>
         </div>
       </div>

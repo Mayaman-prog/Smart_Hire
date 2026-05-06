@@ -92,6 +92,8 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 | **Employer**   | Post jobs, manage listings, view applications, manage company profile       |
 | **Admin**      | Monitor users, manage jobs, generate reports, oversee the system            |
 
+
+
 ## Features
 
 ### Core Features
@@ -104,7 +106,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Job listing with cards
 - Company directory with cards
 - Advanced job search with filters (job type, location, salary range) and FULLTEXT keyword search with relevance scoring
-- **Advanced search operators** – support for `"exact phrase"`, `-exclude`, `OR`, `AND` (MySQL boolean mode)
+- Advanced search operators – support for `"exact phrase"`, `-exclude`, `OR`, `AND` (MySQL boolean mode)
 - Typo tolerance and autocomplete suggestions – corrects common typos (e.g., "reac" = "React") and shows suggestions as you type.
 - Sorting options (Most recent, Salary high to low, Salary low to high)
 - Pagination for job listings
@@ -143,6 +145,14 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Job reporting with Redis rate limiting (5 reports per user per 24h)
 - Admin analytics API endpoints (overview, timeline, popular, retention, KPI)
 - Typo tolerance and autocomplete suggestions – SOUNDEX‑based term matching and prefix suggestions from `search_logs`.
+- FULLTEXT search – `ft_search` index on `jobs(title, description, requirements)` with relevance scoring and `sort=relevance`
+- Resume Parsing & CRUD – `pdf-parse-fork` (PDF) and `mammoth` (DOCX) extract structured data; full CRUD endpoints for resumes
+- Cover Letters CRUD – `GET`, `POST`, `PUT`, `DELETE`, `PUT /:id/default`
+- Background Email Queue – Bull + Redis, all transactional emails processed asynchronously
+- Email Rate Limiting – 10 emails per minute per user, 429 rejection, exponential backoff retry (1m, 5m, 15m)
+- Daily Job Alert Cron – runs at 8 AM, scans active saved searches, sends digest emails with unsubscribe links
+- Report Resolution Email – notifies reporter when admin resolves a job report
+- Audit Logging – `audit_logs` table for security‑sensitive actions
 
 #### Cover Letters
 - **Table:** `cover_letters` (user_id, name, content, is_default, timestamps)
@@ -453,6 +463,7 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - SmartHire Match Insights for authenticated job seekers
 - Apply Now button with authentication check (redirects to login if not logged in)
 - Apply Now button disabled if already applied, shows loading state during submission
+**Apply with Resume** (one‑click application using stored resume and default cover letter)
 - Success toast notification on successful application
 - Hide apply button if employer is viewing their own job
 - Save Job button with heart icon toggle
@@ -825,9 +836,12 @@ SmartHire/
 │   │   │   │   └── admin/
 │   │   │   │       ├── AdminDashboard.jsx
 │   │   │   │       └── AdminDashboard.css
-│   │   │   └── NotFoundPage/
-│   │   │       ├── NotFoundPage.jsx
-│   │   │       └── NotFoundPage.css
+│   │   │   ├── NotFoundPage/
+│   │   │   |   ├── NotFoundPage.jsx
+│   │   │   |   └── NotFoundPage.css
+│   │   │   └── ProfilePage/
+│   │   │       ├── ProfilePage.jsx
+│   │   │       └── ProfilePage.css
 │   │   ├── services
 │   │   │   └── api.js
 │   │   ├── contexts/
@@ -894,12 +908,15 @@ SmartHire/
 │   │   │   └── emailQueue.js
 │   │   ├── services/
 │   │   │   ├── emailService.js
+│   │   │   ├── application.service.js
 │   │   │   └── resumeParser.js
 │   │   ├── cron/
 │   │   │   └── dailyJobAlert.js
-│   │   └── utils/
-│   │       ├── generateToken.js
-│   │       └── searchParser.js
+│   │   ├──├── utils/
+│   │   │    ├── generateToken.js
+│   │   │    └── searchParser.js
+│   │   ├── validator/
+│   │   │   └── application.validator.js
 │   ├── upload/
 │   │   └── resume
 │   ├── database/

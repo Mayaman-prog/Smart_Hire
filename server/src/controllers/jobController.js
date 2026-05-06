@@ -20,13 +20,30 @@ const getUsersWithMatchingSavedSearches = async (job) => {
       WHERE 
         u.role = 'job_seeker'
         AND u.is_active = 1
-        AND (ss.location IS NULL OR LOWER(ss.location) = LOWER(?) OR LOWER(job.location) LIKE CONCAT('%', LOWER(ss.location), '%'))
-        AND (ss.job_type IS NULL OR ss.job_type = ?)
-        AND (ss.min_salary IS NULL OR ? >= ss.min_salary)
-      LIMIT 100
+
+        AND (
+          ss.location IS NULL 
+          OR LOWER(ss.location) = LOWER(?)
+        )
+
+        AND (
+          ss.job_type IS NULL 
+          OR ss.job_type = ?
+        )
+
+        AND (
+          ss.min_salary IS NULL 
+          OR ? >= ss.min_salary
+        )
       `,
-      [job.location, job.job_type, job.salary_min || 0],
+      [
+        job.location || "",
+        job.location || "",
+        job.job_type || "",
+        job.salary_min || 0,
+      ],
     );
+
     return users;
   } catch (error) {
     console.error("Error fetching matching users:", error);
@@ -177,7 +194,7 @@ const getJobs = async (req, res) => {
     const values = [];
 
     // FULLTEXT search (if 'search' provided and non-empty)
-    const useFulltext = search && search.trim() !== "";
+    let useFulltext = search && search.trim() !== "";
     let parsedSearch = "";
 
     // If FULLTEXT search is used, parse the search query for boolean mode
@@ -706,23 +723,41 @@ const getRecommendedJobs = async (req, res) => {
   try {
     const { user } = req;
 
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized - user not found",
+      });
+    }
+
     if (user.role !== "job_seeker") {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    // 1. Get user's skill IDs
-    const [skillRows] = await pool.query(
-      `SELECT skill_id FROM job_seeker_skills WHERE job_seeker_id = ?`,
-      [user.id], // Ensure user.id is the correct ID for job_seekers
+    const [jsRows] = await pool.query(
+      `SELECT id FROM job_seekers WHERE user_id = ?`,
+      [user.id],
     );
 
-    let skillIds = skillRows.map((row) => row.skill_id);
+    if (!jsRows.length) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const jobSeekerId = jsRows[0].id;
+
+    // Get user's skill IDs
+    const [skillRows] = await pool.query(
+      `SELECT skill_id FROM job_seeker_skills WHERE job_seeker_id = ?`,
+      [jobSeekerId],
+    );
+
+    const skillIds = skillRows.map((row) => row.skill_id);
 
     let sql;
     let params = [];
 
     if (skillIds.length > 0) {
-      // 2. Build a query that joins jobs with required skills
+      // Build a query that joins jobs with required skills
       const placeholders = skillIds.map(() => "?").join(",");
       sql = `
         SELECT DISTINCT

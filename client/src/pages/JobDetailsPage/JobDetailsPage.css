@@ -398,6 +398,13 @@
   box-shadow: var(--shadow-sm);
 }
 
+.salary-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .metadata-item .material-symbols-outlined {
   font-size: 28px;
   color: var(--primary-color);

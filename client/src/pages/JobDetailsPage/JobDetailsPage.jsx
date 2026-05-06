@@ -13,6 +13,7 @@ import JobCard from "../../components/jobs/JobCard/JobCard";
 import toast from "react-hot-toast";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import SalaryComparisonBadge from "../../components/salary/SalaryComparisonBadge";
 import "./JobDetailsPage.css";
 
 const JobDetailsPage = () => {
@@ -519,7 +520,15 @@ const JobDetailsPage = () => {
             <span className="material-symbols-outlined">attach_money</span>
             <div>
               <label>Salary Range</label>
-              <p>{formatSalary(job.salary_min, job.salary_max)}</p>
+              <p className="salary-display">
+                {formatSalary(job.salary_min, job.salary_max)}
+                <SalaryComparisonBadge
+                  jobTitle={job.title}
+                  location={job.location}
+                  salaryMin={job.salary_min}
+                  salaryMax={job.salary_max}
+                />
+              </p>
             </div>
           </div>
         </div>

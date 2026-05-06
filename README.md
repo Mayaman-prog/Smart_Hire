@@ -132,6 +132,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - **Connected Accounts** – Users can securely link or unlink their Google and LinkedIn accounts directly from their profile to add extra login methods. Includes confirmation modals and a backend lockout prevention system (prevents unlinking if no other login method exists).
 - **Admin Reports Queue UI** – Dedicated moderation panel with status filters, action buttons (Approve, Remove, Dismiss, Ban Employer), confirmation modal with resolution notes, and automated email notification to the reporter via background queue.
 - **Search Term Logging & Keyword Highlighting** – Every search term is logged with user/IP data for analytics. Matching terms in job titles and descriptions are highlighted with a yellow background in search results.
+- Salary Comparison Badge – On the job details page, a colored pill indicates if the job’s salary is above, average, or below market, with a tooltip showing market stats (average, median, percentiles, sample count).
 
 ### Backend Features
 - JWT authentication (register, login, profile)
@@ -154,6 +155,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Daily Job Alert Cron – runs at 8 AM, scans active saved searches, sends digest emails with unsubscribe links
 - Report Resolution Email – notifies reporter when admin resolves a job report
 - Audit Logging – `audit_logs` table for security‑sensitive actions
+- Salary Aggregation API – GET /api/salary/estimate returns market salary data by title and location for the salary comparison badge.
 
 #### Cover Letters
 - **Table:** `cover_letters` (user_id, name, content, is_default, timestamps)
@@ -808,6 +810,9 @@ SmartHire/
 │   │   │   │   └── JobCard/
 │   │   │   │       ├── JobCard.jsx
 │   │   │   │       └── JobCard.css
+│   │   │   ├── salary/
+│   │   │   │   ├── SalaryComparisonBadge.jsx
+│   │   │   │   └── SalaryComparisonBadge.css
 │   │   │   ├── companies/
 │   │   │   │   └── CompanyCard/
 │   │   │   │       ├── CompanyCard.jsx
@@ -1299,6 +1304,25 @@ These endpoints are part of the admin routes (`/api/admin/analytics/…`). They 
 - **retention** – returns active/inactive users and weekly new‑user cohorts for the last 12 weeks.
 - **kpi** – returns an array of 4 KPI objects: `{ label, value, change }` where `change` is percentage vs previous week.
 
+**Salary Estimate Endpoint (`/api/salary`)**
+| Method  | Endpoint    | Description                                   | Access |
+| ------- | ----------- | --------------------------------------------- | ------ |
+| GET     | `/estimate` | Get market salary data for a title & location | Public |
+
+**Example request:**
+GET `/api/salary/estimate?title`=Frontend Developer&location=Remote
+
+**Example response:**
+{
+  "average": 95000,
+  "median": 92000,
+  "p25": 80000,
+  "p75": 110000,
+  "sampleCount": 42
+}
+
+If sampleCount < 5, the salary comparison badge will be hidden.
+
 #### Search Suggestions (`/api/search/suggest`)
 | Method | Endpoint          | Description                                                               | Access |
 | ------ | ----------------- | ------------------------------------------------------------------------- | ------ |
@@ -1475,6 +1499,27 @@ client/src/pages/JobDetailsPage/
 - Loading skeleton while fetching data
 - Error message with retry option
 - Toast notifications for user actions
+
+#### Salary Comparison Badge Component
+**Location:** `client/src/components/salary/SalaryComparisonBadge.jsx`
+
+**Features:**
+- Displays a colored pill next to the salary range indicating if the job’s salary is **above market** (green), **market average** (yellow), or **below market** (red).
+- Calculated by comparing the job’s salary midpoint against market average for the same title and location.
+- **Hover over the badge** to see a tooltip showing market statistics:
+`Average`, `Median`, `25th percentile`, `75th percentile`, and `Sample count`.
+- Fetches market data from `GET /api/salary/estimate` (backend endpoint required – see WBS 27).
+- Fully responsive – badge wraps on mobile, tooltip adjusts for small screens.
+- Supports dark mode with adaptive colors (`.dark` class + `prefers-color-scheme`).
+
+**Example of what the user will see next to the salary range:**
+$80,000 - $110,000   [Green badge: "Above market"]
+
+**Hovering shows tooltip:**
+Market data for Frontend Developer
+Avg: $95,000   Median: $92,000
+25th %ile: $80,000   75th %ile: $110,000
+Based on 42 salaries
 
 #### CompaniesPage Component
 **Location:** `client/src/pages/CompaniesPage/CompaniesPage.jsx`
@@ -2148,7 +2193,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Footer (4 cloumns, newsletter, social links)
 - Homepage (hero, CTA, searchbar, featured jobs, "How It Works")
 - JobsPage (debounced search, URL query sync, filters, pagination, sorting, clear filters, mobile drawer, "Save this search" modal)
-- JobDetailsPage (dynamic fetch, apply flow, duplicate prevention, save flow, similar jobs, report job modal, Apply with Resume)
+- JobDetailsPage (dynamic fetch, apply flow, duplicate prevention, save flow, similar jobs, report job modal, Apply with Resume, Salary Comparison Badge)
 - CompaniesPage (search, responsive grid, company cards)
 - LoginPage (email/password validation, remember me, role-based redirects, social login with Google, LinkedIn disabled)
 - RegisterPage (full validation, role dropdown, conditional company name)
@@ -2167,6 +2212,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Admin Dashboard analytics APIs (`/admin/analytics/kpi`, `/admin/analytics/timeline`, `/admin/analytics/popular`)
 - Resume CRUD APIs (`/api/users/resume`) – upload/parse, fetch all, fetch primary, update metadata, delete, set as primary
 - Cover Letters CRUD APIs (`/api/cover-letters`) – create, get, update, delete, set default
+- Salary Aggregation API – `GET /api/salary/estimate` returns market salary data for the salary comparison badge.
 - Backend-driven filtering, sorting, and pagination for all job listings
 
 **Email and Backround Jobs:**
@@ -2190,6 +2236,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Search Term Logging & Keyword Highlighting – All search terms are logged with user/IP for analytics. Matching keywords are highlighted in job titles and descriptions.
 - Social Login – Google OAuth fully integrated for login, registration, and profile account linking/unlinking.
 - Social Login – LinkedIn button disabled (backend pending, frontend UI present with tooltip)
+- Salary Comparison Badge – On the job details page, a colored pill with tooltip shows how the job's salary compares to market data.
 
 **Miscellaneous:**
 

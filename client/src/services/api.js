@@ -172,4 +172,15 @@ export const deleteCoverLetter = (id) => api.delete(`/cover-letters/${id}`);
 export const setDefaultCoverLetter = (id) =>
   api.put(`/cover-letters/${id}/default`);
 
+// API for Salary
+export const salaryAPI = {
+  // Get salary estimate for a job title and location
+  getEstimate: (title, location) =>
+    api.get("/salary/estimate", { params: { title, location } }),
+
+  // Get salary trend over time
+  getTrend: (title, location, months = 6) =>
+    api.get("/salary/trend", { params: { title, location, months } }),
+};
+
 export default api;

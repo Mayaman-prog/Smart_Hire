@@ -37,14 +37,23 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: `${process.env.FRONTEND_URL}/login`,
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=auth_failed`,
   }),
   (req, res) => {
-    // Successful authentication – redirect with token
+    // Successful authentication redirect with token
     const { user, token } = req.user;
     res.redirect(
       `${process.env.FRONTEND_URL}/login?token=${token}&social=google`,
     );
+  },
+  (err, req, res, next) => {
+    // Custom error handler for email conflict
+    if (err.message === "EMAIL_CONFLICT") {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?error=email_conflict&provider=google`,
+      );
+    }
+    next(err);
   },
 );
 

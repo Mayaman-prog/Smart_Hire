@@ -129,6 +129,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - **Drag-and-drop resume upload** on profile with progress indicator, file validation, and delete functionality
 - **Automatic resume parsing** (PDF/DOCX) and **auto‑filling of profile fields** – extracted data is stored in the `parsed_data` column of the `resumes` table and can be retrieved to pre‑fill the user's profile form with a side‑by‑side preview.
 - **Cover Letters** – Create, edit, delete, and set default cover letter templates directly in the Job Seeker Dashboard using a built-in rich text editor (bold, italic, bullet points, links). The default cover letter is automatically selected when applying to a job.
+- **Connected Accounts** – Users can securely link or unlink their Google and LinkedIn accounts directly from their profile to add extra login methods. Includes confirmation modals and a backend lockout prevention system (prevents unlinking if no other login method exists).
 - **Admin Reports Queue UI** – Dedicated moderation panel with status filters, action buttons (Approve, Remove, Dismiss, Ban Employer), confirmation modal with resolution notes, and automated email notification to the reporter via background queue.
 - **Search Term Logging & Keyword Highlighting** – Every search term is logged with user/IP data for analytics. Matching terms in job titles and descriptions are highlighted with a yellow background in search results.
 
@@ -284,7 +285,7 @@ Five responsive HTML email templates are used for different notifications. All t
 | Job seeker applies to a job            | `new-applicant.html`                           | Employer             |
 | Employer updates application status    | `status-change.html`                           | Job seeker           |
 | New job posted (matching saved search) | `new-job-alert.html`                           | Matching job seekers |
-| Admin resolves a job report            | ``report-resolution.html``                     | Reporter             |
+| Admin resolves a job report            | `report-resolution.html`                       | Reporter             |
 
 All emails are sent asynchronously; failures are logged but do not break the main functionality.
 
@@ -852,6 +853,7 @@ SmartHire/
 │   │   │   |   ├── NotFoundPage.jsx
 │   │   │   |   └── NotFoundPage.css
 │   │   │   └── ProfilePage/
+│   │   │       ├── ConnectedAccounts.jsx
 │   │   │       ├── ProfilePage.jsx
 │   │   │       └── ProfilePage.css
 │   │   ├── services
@@ -2186,7 +2188,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Cover Letters – Full CRUD API + frontend UI (rich text editor, modal, set default)
 - Admin Reports Queue UI – Dedicated moderation panel with filters, action buttons, confirmation modal with resolution notes, and email notifications
 - Search Term Logging & Keyword Highlighting – All search terms are logged with user/IP for analytics. Matching keywords are highlighted in job titles and descriptions.
-- Social Login – Google OAuth fully integrated (backend + frontend)
+- Social Login – Google OAuth fully integrated for login, registration, and profile account linking/unlinking.
 - Social Login – LinkedIn button disabled (backend pending, frontend UI present with tooltip)
 
 **Miscellaneous:**

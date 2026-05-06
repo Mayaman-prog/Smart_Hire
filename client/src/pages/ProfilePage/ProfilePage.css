@@ -184,6 +184,110 @@
   background: var(--white);
 }
 
+/* Connected Accounts Component Styles */
+.provider-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.provider-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--light-gray);
+}
+
+.provider-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.provider-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: bold;
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.google-icon {
+  background-color: #DB4437;
+}
+
+.linkedin-icon {
+  background-color: #0077b5;
+}
+
+.provider-name {
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--dark-color);
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+}
+
+.status-badge.linked {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.unlinked {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.btn-outline-primary,
+.btn-outline-danger {
+  background: transparent;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-outline-primary {
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.btn-outline-danger {
+  border: 1px solid var(--danger-color, #ef4444);
+  color: var(--danger-color, #ef4444);
+}
+
+.btn-outline-danger:hover:not(:disabled) {
+  background-color: var(--danger-color, #ef4444);
+  color: #fff;
+}
+
+.btn-outline-primary:disabled,
+.btn-outline-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* INFO GRID (Personal Information) */
 .info-grid {
   display: grid;

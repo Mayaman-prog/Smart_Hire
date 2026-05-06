@@ -124,7 +124,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Role-based redirects after login
 - JWT token storage in localStorage/sessionStorage
 - Success and error toast notifications
-- Social login buttons (Google & LinkedIn - UI ready). Google OAuth backend is fully implemented. LinkedIn OAuth is available for future integration.
+- Social login buttons Google OAuth fully integrated (backend + frontend), LinkedIn button disabled (backend pending)
 - **Save this search** button on jobs listing page to store current search filters with a name and alert frequency
 - **Drag-and-drop resume upload** on profile with progress indicator, file validation, and delete functionality
 - **Automatic resume parsing** (PDF/DOCX) and **auto‑filling of profile fields** – extracted data is stored in the `parsed_data` column of the `resumes` table and can be retrieved to pre‑fill the user's profile form with a side‑by‑side preview.
@@ -288,12 +288,13 @@ Five responsive HTML email templates are used for different notifications. All t
 
 All emails are sent asynchronously; failures are logged but do not break the main functionality.
 
-### Google OAuth Setup (Backend)
+### Google OAuth Setup
 
 #### Overview:
-- Enables social login with Google using Passport.js
+- Social login with Google using Passport.js (backend) + React (frontend)
+- Users can sign in with their Google account – redirects to frontend with JWT token
 
-#### Endpoints (`server/src/routes/authRoutes.js`):
+#### Endpoints (`/api/auth/google` and `/api/auth/google/callback`):
 | Method | Endpoint                  | Description                                               |
 | ------ | ------------------------- | --------------------------------------------------------- |
 | GET    | /api/auth/google          | Redirects to Google login page                            |
@@ -306,6 +307,9 @@ All emails are sent asynchronously; failures are logged but do not break the mai
 
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:5000
 
 #### Dependencies:
 - `passport`
@@ -329,10 +333,17 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 - If user exists by email → links `google_id` to existing account.
 - If new user → creates account (role: `job_seeker`), then generates JWT.
 
+#### Frontend Integration:
+- "Sign in with Google" button on Login page redirects to backend OAuth initiation endpoint.
+- After callback, token is extracted from URL and stored in `localStorage`.
+- User is redirected to appropriate dashboard based on role (`job_seeker`, `employer`, `admin`).
+- Error handling for email conflicts and authentication failures.
+
 ### LinkedIn OAuth Setup - Backend (Disabled)
 
 #### Overview:
-- LinkedIn OAuth is not yet enabled due to LinkedIn’s requirement for a `Company Page` and `10+ connections` on the developer’s account. The routes are currently disabled and return a `503` status.
+- LinkedIn OAuth is not yet enabled due to LinkedIn’s requirement for a `Company Page` and `10+ connections` on the developer’s account.
+- Routes return `503` status; frontend button is disabled with a tooltip.
 
 #### Future Activation:
 - When LinkedIn credentials are added to `server/.env` and the Passport strategy is uncommented, the feature can be activated.
@@ -747,6 +758,7 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - **Redis** (message broker for Bull)
 - **pdf-parse-fork** – PDF text extraction
 - **mammoth** – DOCX text extraction
+- **Passport.js** – Google OAuth
 
 ### Database
 - MySQL 8.0 (via XAMPP)
@@ -1084,11 +1096,13 @@ LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret_here
 ## API Endpoints
 
 ### Authentication Routes (/api/auth)
-| Method | Endpoint    | Description                                  | Access  |
-| ------ | ----------- | -------------------------------------------- | ------- |
-| POST   | `/register` | Register a new user (job_seeker or employer) | Public  |
-| POST   | `/login`    | Login user, returns JWT token                | Public  |
-| GET    | `/profile`  | Get current user profile (requires JWT)      | Private |
+| Method | Endpoint           | Description                                  | Access  |
+| ------ | ------------------ | -------------------------------------------- | ------- |
+| POST   | `/register`        | Register a new user (job_seeker or employer) | Public  |
+| POST   | `/login`           | Login user, returns JWT token                | Public  |
+| GET    | `/profile`         | Get current user profile (requires JWT)      | Private |
+| GET    | `/google`          | Initiate Google OAuth login                  | Public  |
+| GET    | `/google/callback` | Google OAuth callback                        | Public  |
 
 ### Register (Job Seeker)
 **POST** `/api/auth/register`
@@ -2134,7 +2148,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - JobsPage (debounced search, URL query sync, filters, pagination, sorting, clear filters, mobile drawer, "Save this search" modal)
 - JobDetailsPage (dynamic fetch, apply flow, duplicate prevention, save flow, similar jobs, report job modal, Apply with Resume)
 - CompaniesPage (search, responsive grid, company cards)
-- LoginPage (email/password validation, remember me, role-based redirects)
+- LoginPage (email/password validation, remember me, role-based redirects, social login with Google, LinkedIn disabled)
 - RegisterPage (full validation, role dropdown, conditional company name)
 - JobSeekerDashboard (overview, applied jobs, saved jobs, profile edit, resume upload with auto‑fill preview panel, drag‑and‑drop progress bar)
 - EmployerDashboard (overview, job creation/editing/deletion, applicant management)
@@ -2172,6 +2186,8 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Cover Letters – Full CRUD API + frontend UI (rich text editor, modal, set default)
 - Admin Reports Queue UI – Dedicated moderation panel with filters, action buttons, confirmation modal with resolution notes, and email notifications
 - Search Term Logging & Keyword Highlighting – All search terms are logged with user/IP for analytics. Matching keywords are highlighted in job titles and descriptions.
+- Social Login – Google OAuth fully integrated (backend + frontend)
+- Social Login – LinkedIn button disabled (backend pending, frontend UI present with tooltip)
 
 **Miscellaneous:**
 

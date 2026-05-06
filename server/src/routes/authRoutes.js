@@ -30,30 +30,48 @@ router.get("/me", protect, getProfile);
 // Google OAuth Routes (Active)
 router.get(
   "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
+  passport.authenticate("google", { 
+    scope:["profile", "email"],
+    prompt: 'consent select_account'
+   })
 );
 
 router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: `${process.env.FRONTEND_URL}/login?error=auth_failed`,
+    failureRedirect: `${process.env.FRONTEND_URL}/login`,
+    failWithError: true,
   }),
   (req, res) => {
-    // Successful authentication redirect with token
+    // Success
     const { user, token } = req.user;
     res.redirect(
       `${process.env.FRONTEND_URL}/login?token=${token}&social=google`,
     );
   },
   (err, req, res, next) => {
-    // Custom error handler for email conflict
+    // Error handler that catches ALL errors
+    console.error("Google OAuth error:", err);
+
+    // Specific handling for email conflict
     if (err.message === "EMAIL_CONFLICT") {
       return res.redirect(
         `${process.env.FRONTEND_URL}/login?error=email_conflict&provider=google`,
       );
     }
-    next(err);
+
+    // Handle "Bad Request" (invalid OAuth code or missing state)
+    if (err.status === 400 || err.message === "Bad Request") {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?error=invalid_request&provider=google`,
+      );
+    }
+
+    // Generic fallback
+    res.redirect(
+      `${process.env.FRONTEND_URL}/login?error=auth_failed&provider=google`,
+    );
   },
 );
 

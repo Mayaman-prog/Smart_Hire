@@ -131,8 +131,80 @@
 .google-btn:hover {
   border-color: #4285f4;
 }
+
 .linkedin-btn:hover {
   border-color: #0077b5;
+}
+
+/* Social loading spinner */
+.spinner-small {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Social error message */
+.social-error-message {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex-direction: column;
+}
+
+.social-error-message .material-symbols-outlined {
+  font-size: 1.25rem;
+}
+
+.link-account-btn {
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.link-account-btn:hover {
+  background: #b91c1c;
+}
+
+/* Disabled social buttons */
+.social-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.social-btn:disabled:hover {
+  background: white;
+  border-color: var(--border-color);
+}
+
+/* LinkedIn disabled styling */
+.linkedin-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.linkedin-btn:disabled:hover {
+  background: white;
+  border-color: var(--border-color);
 }
 
 /* Divider */

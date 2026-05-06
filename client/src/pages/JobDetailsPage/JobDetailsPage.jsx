@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import SalaryComparisonBadge from "../../components/salary/SalaryComparisonBadge";
+import SalaryInsights from "../../components/salary/SalaryInsights";
 import "./JobDetailsPage.css";
 
 const JobDetailsPage = () => {
@@ -579,6 +580,9 @@ const JobDetailsPage = () => {
             </div>
           </aside>
         </div>
+
+        {/* Salary Insights */}
+        <SalaryInsights jobTitle={job.title} location={job.location} />
 
         {similarJobs.length > 0 && (
           <section className="similar-jobs-section">

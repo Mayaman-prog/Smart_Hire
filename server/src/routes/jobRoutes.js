@@ -10,10 +10,14 @@ const router = express.Router();
 router.get('/', searchLogger, jobController.getJobs);
 router.get('/featured', jobController.getFeaturedJobs);
 router.get('/recommended', authMiddleware.protect, jobController.getRecommendedJobs);
+
+// Employer route
+router.get('/me', authMiddleware.protect, jobController.getMyJobs);
+
+// Public param routes
 router.get('/:id', jobController.getJobById);
 
 // Employer routes
-router.get('/me', authMiddleware.protect, jobController.getMyJobs);
 router.post('/', authMiddleware.protect, jobController.createJob);
 router.put('/:id', authMiddleware.protect, jobController.updateJob);
 router.delete('/:id', authMiddleware.protect, jobController.deleteJob);

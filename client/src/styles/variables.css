@@ -1,9 +1,9 @@
 :root {
   /* Colors */
-  --primary-color: #2563eb;
-  --primary-dark: #1d4ed8;
+  --primary-color: #00c48c;
+  --primary-dark: #00a076;
   --primary-light: #60a5fa;
-  --secondary-color: #7c3aed;
+  --secondary-color: #f0fdf4;
   --success-color: #10b981;
   --warning-color: #f59e0b;
   --danger-color: #ef4444;
@@ -14,6 +14,9 @@
   --border-color: #e5e7eb;
   --white: #ffffff;
   --black: #000000;
+  --footer-bg: #f8f9fa;
+  --footer-divider-color: #374151;
+  --social-hover-color: #14539a;
 
   /* Typography */
   --font-family: "Inter", system-ui, -apple-system, sans-serif;

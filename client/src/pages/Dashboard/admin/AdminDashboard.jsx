@@ -52,7 +52,7 @@ const AdminDashboard = () => {
   // MODAL STATE
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
-  const [actionType, setActionType] = useState(null); // 'approved', 'removed', 'dismissed'
+  const [actionType, setActionType] = useState(null);
   const [actionNotes, setActionNotes] = useState("");
   const [processingReportId, setProcessingReportId] = useState(null);
 
@@ -411,15 +411,40 @@ const AdminDashboard = () => {
 
   // Open Report Resolution Modal
   const openReportModal = (report, action) => {
+    console.log("🔍 openReportModal called with:", { report, action });
+    if (!report || !action) {
+      toast.error("Missing report data");
+      return;
+    }
+
     setSelectedReport(report);
     setActionType(action);
     setActionNotes("");
     setIsModalOpen(true);
   };
 
+  // Close Report Resolution Modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => {
+      setSelectedReport(null);
+      setActionType(null);
+      setActionNotes("");
+      setProcessingReportId(null);
+    }, 300);
+  };
+
   // Confirm Report Resolution
   const confirmReportAction = async () => {
-    if (!selectedReport) return;
+    if (!selectedReport) {
+      toast.error("Report data is missing. Please try again.");
+      return;
+    }
+    if (!actionType) {
+      toast.error("Action type is missing. Please try again.");
+      return;
+    }
+
     try {
       setProcessingReportId(selectedReport.id);
       await adminAPI.updateReportStatus(selectedReport.id, {
@@ -429,8 +454,8 @@ const AdminDashboard = () => {
       toast.success(
         `Report ${actionType} successfully. Reporter will be notified.`,
       );
-      setIsModalOpen(false);
-      fetchReportsData(); // Refresh list
+      closeModal();
+      fetchReportsData();
     } catch (err) {
       console.error("Resolve report error:", err);
       toast.error(err.response?.data?.message || "Failed to resolve report");
@@ -497,12 +522,19 @@ const AdminDashboard = () => {
   }, [companies, companySearch]);
 
   const paginate = (items, page) => {
+    if (!items || !Array.isArray(items)) {
+      return [];
+    }
     const start = (page - 1) * PAGE_SIZE;
     return items.slice(start, start + PAGE_SIZE);
   };
 
-  const getTotalPages = (items) =>
-    Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const getTotalPages = (items) => {
+    if (!items || !Array.isArray(items)) {
+      return 1;
+    }
+    return Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  };
 
   const paginatedUsers = paginate(filteredUsers, userPage);
   const paginatedJobs = paginate(filteredJobs, jobPage);
@@ -666,7 +698,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* KPI CARDS - LIVE DATA */}
-              <div className="kpi-grid">
+              <div className="admin-card-grid">
                 {kpiData.length > 0 ? (
                   kpiData.map((item, idx) => (
                     <div className="admin-stat-card" key={idx}>
@@ -1292,85 +1324,118 @@ const AdminDashboard = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {reports.map((report) => (
-                          <tr key={report.id}>
-                            <td>#{report.id}</td>
-                            <td>
-                              <strong>{report.job_title}</strong>
-                              <div
-                                style={{
-                                  fontSize: "0.8rem",
-                                  color: "var(--gray-color)",
-                                }}
-                              >
-                                ID: {report.job_id}
-                              </div>
-                            </td>
-                            <td>{report.reporter_name || "Unknown"}</td>
-                            <td>
-                              <span className="status-badge active">
-                                {(report.reason || "Other").toUpperCase()}
-                              </span>
-                            </td>
-                            <td>
-                              <span
-                                className={`status-badge ${report.status === "pending" ? "inactive" : "active"}`}
-                              >
-                                {report.status.toUpperCase()}
-                              </span>
-                            </td>
+                        {!reports ||
+                        !Array.isArray(reports) ||
+                        reports.length === 0 ? (
+                          <tr>
                             <td
-                              className="actions"
+                              colSpan="6"
                               style={{
-                                display: "flex",
-                                gap: "6px",
-                                flexWrap: "wrap",
+                                textAlign: "center",
+                                color: "var(--gray-color)",
                               }}
                             >
-                              {report.status === "pending" && (
-                                <>
-                                  <button
-                                    className="admin-btn admin-btn-primary"
-                                    onClick={() =>
-                                      openReportModal(report, "approved")
-                                    }
-                                    disabled={processingReportId === report.id}
-                                  >
-                                    Approve
-                                  </button>
-                                  <button
-                                    className="admin-btn admin-btn-neutral"
-                                    onClick={() =>
-                                      openReportModal(report, "dismissed")
-                                    }
-                                    disabled={processingReportId === report.id}
-                                  >
-                                    Dismiss
-                                  </button>
-                                  <button
-                                    className="admin-btn admin-btn-danger"
-                                    onClick={() =>
-                                      openReportModal(report, "removed")
-                                    }
-                                    disabled={processingReportId === report.id}
-                                  >
-                                    Remove Job
-                                  </button>
-                                </>
-                              )}
-                              {report.status !== "pending" && (
-                                <span
+                              No reports found matching your criteria.
+                            </td>
+                          </tr>
+                        ) : (
+                          reports.map((report) => (
+                            <tr key={report.id}>
+                              <td>#{report.id}</td>
+                              <td>
+                                <strong>{report.job_title}</strong>
+                                <div
                                   style={{
-                                    fontSize: "0.85rem",
+                                    fontSize: "0.8rem",
                                     color: "var(--gray-color)",
                                   }}
                                 >
-                                  Resolved
+                                  ID: {report.job_id}
+                                </div>
+                              </td>
+                              <td>{report.reporter_name || "Unknown"}</td>
+                              <td>
+                                <span className="status-badge active">
+                                  {(report.reason || "Other").toUpperCase()}
                                 </span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td>
+                                <span
+                                  className={`status-badge ${report.status === "pending" ? "inactive" : "active"}`}
+                                >
+                                  {report.status.toUpperCase()}
+                                </span>
+                              </td>
+                              <td className="actions">
+                                {report.status === "pending" && (
+                                  <>
+                                    <button
+                                      className="table-action-btn approve"
+                                      onClick={() =>
+                                        openReportModal(report, "approved")
+                                      }
+                                      disabled={
+                                        processingReportId === report.id
+                                      }
+                                    >
+                                      <span
+                                        className="material-symbols-outlined"
+                                        style={{ fontSize: "16px" }}
+                                      >
+                                        check_circle
+                                      </span>
+                                      Approve
+                                    </button>
+                                    <button
+                                      className="table-action-btn dismiss"
+                                      onClick={() =>
+                                        openReportModal(report, "dismissed")
+                                      }
+                                      disabled={
+                                        processingReportId === report.id
+                                      }
+                                    >
+                                      <span
+                                        className="material-symbols-outlined"
+                                        style={{ fontSize: "16px" }}
+                                      >
+                                        block
+                                      </span>
+                                      Dismiss
+                                    </button>
+                                    <button
+                                      className="table-action-btn remove"
+                                      onClick={() =>
+                                        openReportModal(report, "removed")
+                                      }
+                                      disabled={
+                                        processingReportId === report.id
+                                      }
+                                    >
+                                      <span
+                                        className="material-symbols-outlined"
+                                        style={{ fontSize: "16px" }}
+                                      >
+                                        delete
+                                      </span>
+                                      Remove Job
+                                    </button>
+                                  </>
+                                )}
+                                {report.status !== "pending" && (
+                                  <span
+                                    style={{
+                                      fontSize: "0.85rem",
+                                      color: "var(--gray-color)",
+                                    }}
+                                  >
+                                    Resolved
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1386,61 +1451,60 @@ const AdminDashboard = () => {
         </main>
       </div>
 
-      {/* RESOLUTION MODAL */}
-      <div
-        className={`modal-overlay ${isModalOpen ? "active" : ""}`}
-        onClick={() => setIsModalOpen(false)}
-      >
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <h3>Resolve Report</h3>
-          <p style={{ marginBottom: "16px" }}>
-            <strong>Action:</strong>{" "}
-            <span className="capitalize-text">{actionType}</span>
-            <br />
-            <strong>Job:</strong> {selectedReport?.job_title}
-          </p>
-          <div className="form-group">
-            <label htmlFor="notes">Resolution Notes (Optional)</label>
-            <textarea
-              id="notes"
-              rows="3"
-              placeholder="Add internal notes for this resolution..."
-              value={actionNotes}
-              onChange={(e) => setActionNotes(e.target.value)}
+      {/* RESOLUTION MODAL - Only render when data is ready */}
+      {isModalOpen && selectedReport && actionType && (
+        <div className="modal-overlay active" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Resolve Report</h3>
+            <p style={{ marginBottom: "16px" }}>
+              <strong>Action:</strong>{" "}
+              <span className="capitalize-text">{actionType}</span>
+              <br />
+              <strong>Job:</strong> {selectedReport?.job_title}
+            </p>
+            <div className="form-group">
+              <label htmlFor="notes">Resolution Notes (Optional)</label>
+              <textarea
+                id="notes"
+                rows="3"
+                placeholder="Add internal notes for this resolution..."
+                value={actionNotes}
+                onChange={(e) => setActionNotes(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--border-color)",
+                }}
+              />
+            </div>
+            <div
               style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1px solid var(--border-color)",
+                display: "flex",
+                gap: "12px",
+                justifyContent: "flex-end",
+                marginTop: "20px",
               }}
-            />
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              justifyContent: "flex-end",
-              marginTop: "20px",
-            }}
-          >
-            <button
-              className="admin-btn admin-btn-neutral"
-              onClick={() => setIsModalOpen(false)}
             >
-              Cancel
-            </button>
-            <button
-              className={`admin-btn ${actionType === "removed" ? "admin-btn-danger" : "admin-btn-primary"}`}
-              onClick={confirmReportAction}
-              disabled={processingReportId === selectedReport?.id}
-            >
-              {processingReportId === selectedReport?.id
-                ? "Processing..."
-                : `Confirm ${actionType}`}
-            </button>
+              <button
+                className="admin-btn admin-btn-neutral"
+                onClick={closeModal}
+              >
+                Cancel
+              </button>
+              <button
+                className={`admin-btn ${actionType === "removed" ? "admin-btn-danger" : "admin-btn-primary"}`}
+                onClick={confirmReportAction}
+                disabled={processingReportId === selectedReport?.id}
+              >
+                {processingReportId === selectedReport?.id
+                  ? "Processing..."
+                  : `Confirm ${actionType}`}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import api, {
+  userAPI,
   jobAPI,
   applicationAPI,
   savedJobsAPI,
@@ -34,7 +35,8 @@ const JobDetailsPage = () => {
 
   // State for one-click application
   const [hasResume, setHasResume] = useState(false);
-  const [showOneClickConfirmModal, setShowOneClickConfirmModal] = useState(false);
+  const [showOneClickConfirmModal, setShowOneClickConfirmModal] =
+    useState(false);
 
   // Cover letter states
   const [coverLetters, setCoverLetters] = useState([]);
@@ -89,6 +91,8 @@ const JobDetailsPage = () => {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -134,24 +138,28 @@ const JobDetailsPage = () => {
     };
 
     fetchData();
-  }, [id, isAuthenticated, user]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, isAuthenticated, user?.id]);
 
   // Check if user has a primary resume
   useEffect(() => {
     if (isAuthenticated && user?.role === "job_seeker") {
       const checkResume = async () => {
         try {
-          const res = await api.get("/users/resume/primary");
-          if (res.data.data && res.data.data.parsed_data) {
+          const res = await userAPI.getPrimaryResume();
+          if (res.data.data) {
             setHasResume(true);
           }
-        } catch {
-          // No resume – silently ignore
+        } catch (err) {
+          console.error("Resume fetch failed:", err.response?.data || err);
         }
       };
       checkResume();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user?.id]);
 
   // Fetch cover letters for the apply modal
   const fetchCoverLetters = async () => {
@@ -721,12 +729,16 @@ const JobDetailsPage = () => {
 
       {/* NEW: One‑Click Confirmation Modal */}
       {showOneClickConfirmModal && (
-        <div className="modal-overlay" onClick={() => setShowOneClickConfirmModal(false)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowOneClickConfirmModal(false)}
+        >
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>Quick Apply with Resume</h3>
             <p>
               You are about to apply for <strong>{job?.title}</strong> at{" "}
-              <strong>{job?.company_name}</strong> using your stored resume data and default cover letter.
+              <strong>{job?.company_name}</strong> using your stored resume data
+              and default cover letter.
             </p>
             <div className="modal-actions">
               <button

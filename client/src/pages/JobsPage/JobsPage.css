@@ -16,10 +16,10 @@
   align-items: center;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-xl);
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
-/* Search bar takes all remaining space */
+/* Search bar */
 .search-bar {
   flex: 1 1 auto;
   min-width: 0;
@@ -119,7 +119,7 @@
   margin-top: var(--spacing-md);
   padding-top: var(--spacing-md);
   border-top: 1px solid var(--border-color);
-  width: 100%; /* force it to full width when shown */
+  width: 100%;
 }
 
 .filter-count {

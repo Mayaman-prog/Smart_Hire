@@ -1,25 +1,37 @@
 const jwt = require("jsonwebtoken");
 const { pool } = require("../config/database");
 
-// Authentication middleware to protect routes and attach user info to request
 const protect = async (req, res, next) => {
-  let token;
-
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  }
-
-  if (!token) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Not authorized, no token" });
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "No token provided",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired token",
+      });
+    }
+
+    const userId = decoded.id || decoded.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token payload",
+      });
+    }
 
     const [users] = await pool.query(
       `
@@ -29,51 +41,64 @@ const protect = async (req, res, next) => {
         u.name,
         u.role,
         u.company_id,
-        u.is_active,
-        c.name AS company_name
+        u.is_active
       FROM users u
-      LEFT JOIN companies c ON u.company_id = c.id
       WHERE u.id = ?
       `,
-      [decoded.id],
+      [userId]
     );
+
+    if (!users.length) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     const user = users[0];
 
-    if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "User not found" });
+    if (user.is_active === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Account disabled",
+      });
     }
 
-    if (!user.is_active) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Account disabled" });
-    }
+    req.user = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: String(user.role).toLowerCase(),
+      company_id: user.company_id,
+    };
 
-    req.user = user;
     next();
   } catch (error) {
-    console.error("Auth error:", error);
-    return res
-      .status(401)
-      .json({ success: false, message: "Not authorized, token failed" });
+    console.error("Auth middleware error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Authentication failed",
+    });
   }
 };
 
 const roleCheck = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Not authorized" });
+      return res.status(401).json({
+        success: false,
+        message: "Not authorized",
+      });
     }
 
-    if (!roles.includes(req.user.role)) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Forbidden: insufficient role" });
+    const userRole = String(req.user.role).toLowerCase();
+
+    if (!roles.map(r => r.toLowerCase()).includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: insufficient role",
+      });
     }
 
     next();

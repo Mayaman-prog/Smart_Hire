@@ -1,317 +1,222 @@
-// Import validation and hashing libraries
 const { validationResult, body } = require("express-validator");
 const bcrypt = require("bcryptjs");
-// Import database and utilities
 const { pool } = require("../config/database");
 const generateToken = require("../utils/generateToken");
 const { addEmailJob } = require("../queues/emailQueue");
 
-// Validation rules for registration
+// VALIDATION
 const registerValidation = [
-  body("email")
-    .isEmail()
-    .withMessage("Please provide a valid email")
-    .normalizeEmail(),
+  body("email").isEmail().withMessage("Valid email required").normalizeEmail(),
   body("password")
     .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters")
+    .withMessage("Min 6 characters required")
     .matches(/\d/)
-    .withMessage("Password must contain at least one number"),
-  body("name")
-    .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage("Name must be between 2 and 100 characters"),
-  body("role")
-    .isIn(["job_seeker", "employer"])
-    .withMessage("Role must be either job_seeker or employer"),
-  body("companyName")
-    .optional()
-    .if(body("role").equals("employer"))
-    .notEmpty()
-    .withMessage("Company name is required for employers")
-    .trim()
-    .isLength({ min: 2, max: 100 }),
+    .withMessage("Must include a number"),
+  body("name").isLength({ min: 2 }).withMessage("Name required"),
+  body("role").isIn(["job_seeker", "employer"]).withMessage("Invalid role"),
+  body("companyName").optional(),
 ];
 
-// Validation rules for login
-const loginValidation = [
-  body("email")
-    .isEmail()
-    .withMessage("Please provide a valid email")
-    .normalizeEmail(),
-  body("password").notEmpty().withMessage("Password is required"),
-];
+const loginValidation = [body("email").isEmail(), body("password").notEmpty()];
 
-// Register a new user
+// REGISTER
 const register = async (req, res) => {
   let connection;
+
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: "Validation failed",
-        errors: errors.array(),
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    // Get data from request
     const { email, password, name, role, companyName } = req.body;
 
-    // Check if email already exists
+    // check existing user
     const [existing] = await pool.query(
       "SELECT id FROM users WHERE email = ?",
       [email],
     );
+
     if (existing.length > 0) {
-      return res
-        .status(409)
-        .json({ success: false, message: "Email already exists" });
+      return res.status(409).json({
+        success: false,
+        message: "Email already exists",
+      });
     }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Start database transaction
     connection = await pool.getConnection();
     await connection.beginTransaction();
 
-    // Insert user into database
+    // insert user
     const [userResult] = await connection.query(
-      "INSERT INTO users (email, password_hash, name, role, is_active, created_at) VALUES (?, ?, ?, ?, 1, NOW())",
+      `INSERT INTO users (email, password_hash, name, role, is_active, created_at)
+       VALUES (?, ?, ?, ?, 1, NOW())`,
       [email, hashedPassword, name, role],
     );
+
     const userId = userResult.insertId;
 
-    // If employer, create company and employer record
-    let companyId = null;
+    // employer
     if (role === "employer") {
-      const [companyResult] = await connection.query(
+      const [company] = await connection.query(
         "INSERT INTO companies (name, is_verified, created_at) VALUES (?, 0, NOW())",
         [companyName],
       );
-      companyId = companyResult.insertId;
-      await connection.query("UPDATE users SET company_id = ? WHERE id = ?", [
-        companyId,
+
+      await connection.query("UPDATE users SET company_id=? WHERE id=?", [
+        company.insertId,
         userId,
       ]);
+
       await connection.query(
         "INSERT INTO employers (user_id, company_id, is_primary_contact) VALUES (?, ?, 1)",
-        [userId, companyId],
+        [userId, company.insertId],
       );
     } else {
-      // If job seeker, create job seeker record with first_name and last_name
-      const firstName = name.split(" ")[0] || "";
-      const lastName = name.split(" ").slice(1).join(" ") || "";
+      const firstName = name.split(" ")[0];
+      const lastName = name.split(" ").slice(1).join(" ");
+
       await connection.query(
-        "INSERT INTO job_seekers (user_id, first_name, last_name, profile_completeness) VALUES (?, ?, ?, 0)",
+        `INSERT INTO job_seekers (user_id, first_name, last_name, profile_completeness)
+         VALUES (?, ?, ?, 0)`,
         [userId, firstName, lastName],
       );
     }
 
-    // Commit transaction
     await connection.commit();
     connection.release();
 
-    // Fetch the new user data
+    // get user
     const [newUser] = await pool.query(
-      `
-      SELECT 
-        u.id,
-        u.email,
-        u.name,
-        u.role,
-        u.company_id,
-        c.name AS company_name
-      FROM users u
-      LEFT JOIN companies c ON u.company_id = c.id
-      WHERE u.id = ?
-      `,
+      `SELECT u.id, u.email, u.name, u.role, u.company_id, c.name AS company_name
+       FROM users u
+       LEFT JOIN companies c ON u.company_id = c.id
+       WHERE u.id = ?`,
       [userId],
     );
 
-    // Add welcome email job to the queue with rate limit and retry logic and log the job in the database with userId for tracking and auditing purposes and handle potential rate limit errors gracefully and log any unexpected errors without crashing the registration process and ensure that the user registration succeeds even if the email job fails to enqueue (since email sending is a secondary concern and should not block user registration) and provide clear feedback in the response if the email job fails due to rate limiting or other issues, while still returning a successful registration response to the client
+    const user = newUser[0];
+
+    // email job
     try {
       await addEmailJob({
-        userId: userId,
+        userId,
         to: email,
-        subject: "Welcome to SmartHire!",
-        template: "account-verification",
+        subject: "Welcome to SmartHire",
+        template: "welcome",
         templateData: {
           user_name: name,
           dashboard_url: `${process.env.FRONTEND_URL}/dashboard`,
-          jobs_url: `${process.env.FRONTEND_URL}/jobs`,
         },
       });
-    } catch (emailError) {
-      if (emailError.statusCode === 429) {
-        return res
-          .status(429)
-          .json({ success: false, message: emailError.message });
-      }
-      console.error("Failed to enqueue welcome email:", emailError);
+    } catch (err) {
+      console.error("Email job failed:", err.message);
     }
 
-    // Generate token and return response
-    const token = generateToken(newUser[0]);
-    res.status(201).json({
+    const token = generateToken(user);
+
+    return res.status(201).json({
       success: true,
-      message: "User registered successfully",
-      data: { token, user: newUser[0] },
+      data: { token, user },
     });
   } catch (error) {
-    // Rollback transaction if error
     if (connection) {
       await connection.rollback();
       connection.release();
     }
-    console.error("Registration error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
-// User login
+// LOGIN
 const login = async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: "Validation failed",
-        errors: errors.array(),
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    // Get email and password
     const { email, password } = req.body;
-    console.log("Login attempt for email:", email);
 
-    // Query user by email
-    const [users] = await pool.query(
-      `
-      SELECT 
-        u.id,
-        u.email,
-        u.password_hash,
-        u.name,
-        u.role,
-        u.company_id,
-        u.is_active,
-        c.name AS company_name
-      FROM users u
-      LEFT JOIN companies c ON u.company_id = c.id
-      WHERE u.email = ?
-      `,
-      [email],
-    );
-    console.log("User query result:", users.length);
+    const [users] = await pool.query(`SELECT * FROM users WHERE email = ?`, [
+      email,
+    ]);
 
-    // Check if user exists
     if (users.length === 0) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
     }
 
     const user = users[0];
 
-    // Check if account is active
     if (!user.is_active) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Account disabled" });
+      return res.status(403).json({
+        success: false,
+        message: "Account disabled",
+      });
     }
 
-    // Compare password with hash
-    console.log("Comparing password...");
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    console.log("Password match:", isMatch);
+    const match = await bcrypt.compare(password, user.password_hash);
 
-    if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+    if (!match) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
     }
 
-    // Update last login time
-    await pool.query("UPDATE users SET last_login = NOW() WHERE id = ?", [
+    await pool.query("UPDATE users SET last_login = NOW() WHERE id=?", [
       user.id,
     ]);
 
-    // Generate token
+    const { password_hash, ...safeUser } = user;
+
     const token = generateToken(user);
 
-    // Return user data without password
-    const { password_hash, ...userWithoutPassword } = user;
-    res.json({
+    return res.json({
       success: true,
-      message: "Login successful",
-      data: { token, user: userWithoutPassword },
+      data: { token, user: safeUser },
     });
   } catch (error) {
-    console.error("Login error details:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
-// Get logged-in user's profile
+// PROFILE
 const getProfile = async (req, res) => {
   try {
-    // Fetch user data
-    const [userRows] = await pool.query(
-      "SELECT id, name, email, role, company_id, is_active FROM users WHERE id = ?",
+    const [rows] = await pool.query(
+      "SELECT id, name, email, role, company_id FROM users WHERE id=?",
       [req.user.id],
     );
-    if (userRows.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-    const user = userRows[0];
 
-    let jobSeekerData = null;
-    if (user.role === "job_seeker") {
-      const [jobSeekerRows] = await pool.query(
-        "SELECT phone, skills, experience, education FROM job_seekers WHERE user_id = ?",
-        [req.user.id],
-      );
-      if (jobSeekerRows.length > 0) {
-        jobSeekerData = jobSeekerRows[0];
-      } else {
-        // Create default object if no row exists to avoid null reference
-        jobSeekerData = {
-          phone: "",
-          skills: "",
-          experience: "",
-          education: "",
-        };
-      }
+    if (!rows.length) {
+      return res.status(404).json({ success: false });
     }
 
-    // Merge user data with job_seeker data
-    const profile = {
-      ...user,
-      phone: jobSeekerData?.phone || "",
-      skills: jobSeekerData?.skills || "",
-      experience: jobSeekerData?.experience || "",
-      education: jobSeekerData?.education || "",
-    };
-
-    res.json({ success: true, data: { user: profile } });
+    return res.json({
+      success: true,
+      data: { user: rows[0] },
+    });
   } catch (error) {
-    console.error("Profile fetch error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error(error);
+    return res.status(500).json({ success: false });
   }
 };
 
-// Export all functions and validation rules
 module.exports = {
   register,
   registerValidation,

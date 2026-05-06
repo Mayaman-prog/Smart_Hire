@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { employerAPI, jobAPI, applicationAPI } from "../../../services/api";
 import toast from "react-hot-toast";
@@ -18,7 +19,7 @@ const EmployerDashboard = () => {
   const [selectedJobId, setSelectedJobId] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
 
-  const [editingJob, setEditingJob] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [editJobData, setEditJobData] = useState(null);
 
   const [deletingId, setDeletingId] = useState(null);
@@ -37,6 +38,23 @@ const EmployerDashboard = () => {
     job_type: "full-time",
     experience_level: "mid",
   });
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Sync the tab with the URL path
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes("/post-job")) {
+      setActiveTab("post-job");
+    } else if (path.includes("/candidates")) {
+      setActiveTab("candidates");
+    } else if (path.includes("/my-jobs")) {
+      setActiveTab("my-jobs");
+    } else {
+      setActiveTab("overview");
+    }
+  }, [location]);
 
   // Fetch dashboard summary, jobs, and applicants
   const fetchData = async () => {
@@ -158,9 +176,14 @@ const EmployerDashboard = () => {
 
   // When clicking "Edit" on a job, we set that job as the one being edited and pre-fill the edit form with its data
   const handleEditJob = (job) => {
-    setEditingJob(job);
+    setIsEditing(true);
+
     setEditJobData({
-      ...job,
+      id: job.id,
+      title: job.title || "",
+      location: job.location || "",
+      description: job.description || "",
+      requirements: job.requirements || "",
       salary_min: job.salary_min ?? "",
       salary_max: job.salary_max ?? "",
     });
@@ -169,13 +192,40 @@ const EmployerDashboard = () => {
   // Handle changes in the edit form
   const handleUpdateJob = async () => {
     try {
-      await jobAPI.updateJob(editJobData.id, editJobData);
-      toast.success("Job updated");
-      setEditingJob(null);
+      // Safety check
+      if (!editJobData) {
+        toast.error("No job data to update");
+        return;
+      }
+
+      // Get the job ID from any possible field
+      const jobId = editJobData.id || editJobData._id || editJobData.job_id;
+      if (!jobId) {
+        toast.error("Missing job ID — cannot update");
+        return;
+      }
+
+      const payload = {};
+
+      if (editJobData.title !== undefined) payload.title = editJobData.title;
+      if (editJobData.location !== undefined)
+        payload.location = editJobData.location;
+      if (editJobData.description !== undefined)
+        payload.description = editJobData.description;
+      if (editJobData.requirements !== undefined)
+        payload.requirements = editJobData.requirements;
+      if (editJobData.salary_min !== undefined)
+        payload.salary_min = editJobData.salary_min;
+      if (editJobData.salary_max !== undefined)
+        payload.salary_max = editJobData.salary_max;
+      await jobAPI.updateJob(jobId, payload);
+
+      toast.success("Job updated successfully");
+      setIsEditing(false);
       setEditJobData(null);
       await fetchData();
     } catch (error) {
-      console.error(error);
+      console.error("Update error:", error);
       toast.error(error?.response?.data?.message || "Update failed");
     }
   };
@@ -244,65 +294,6 @@ const EmployerDashboard = () => {
   return (
     <div className="employer-dashboard">
       <div className="dashboard-container">
-        <aside className="dashboard-sidebar">
-          <div className="company-info">
-            <div className="company-avatar">
-              <span className="material-symbols-outlined">business</span>
-            </div>
-            <h3>{user?.company_name || "Your Company"}</h3>
-            <p>{user?.email}</p>
-          </div>
-
-          <nav className="sidebar-nav">
-            <button
-              className={activeTab === "overview" ? "active" : ""}
-              onClick={() => setActiveTab("overview")}
-            >
-              <span className="material-symbols-outlined">dashboard</span>{" "}
-              Overview
-            </button>
-
-            <button
-              className={activeTab === "post-job" ? "active" : ""}
-              onClick={() => {
-                resetPostForm();
-                setActiveTab("post-job");
-              }}
-            >
-              <span className="material-symbols-outlined">post_add</span> Post a
-              Job
-            </button>
-
-            <button
-              className={activeTab === "my-jobs" ? "active" : ""}
-              onClick={() => setActiveTab("my-jobs")}
-            >
-              <span className="material-symbols-outlined">work</span> My Jobs
-            </button>
-
-            <button
-              className={activeTab === "applicants" ? "active" : ""}
-              onClick={() => setActiveTab("applicants")}
-            >
-              <span className="material-symbols-outlined">people</span>{" "}
-              Applicants
-            </button>
-          </nav>
-
-          <div className="sidebar-footer">
-            <button
-              className="help-btn"
-              onClick={() => toast.info("Help & Support coming soon")}
-            >
-              <span className="material-symbols-outlined">help</span> Help
-            </button>
-
-            <button className="logout-btn" onClick={logout}>
-              <span className="material-symbols-outlined">logout</span> Logout
-            </button>
-          </div>
-        </aside>
-
         {/* Main Content */}
         <main className="dashboard-main">
           {activeTab === "overview" && (
@@ -354,6 +345,62 @@ const EmployerDashboard = () => {
                   <span className="stat-change positive">Successful hires</span>
                 </div>
               </div>
+
+              {/* Onboarding / Getting Started Card */}
+              {stats.totalApplicants === 0 && stats.activeJobs === 0 && (
+                <div className="onboarding-card">
+                  <div className="onboarding-header">
+                    <span className="material-symbols-outlined">
+                      rocket_launch
+                    </span>
+                    <h3>You're all set to start hiring!</h3>
+                  </div>
+                  <p>
+                    Here's how to get your first job posted and start receiving
+                    applications.
+                  </p>
+                  <div className="onboarding-steps">
+                    <div className="step-item">
+                      <div className="step-number">1</div>
+                      <div className="step-content">
+                        <strong>Post Your First Job</strong>
+                        <p>
+                          Write a compelling job description and set your salary
+                          range.
+                        </p>
+                        <button
+                          className="btn-primary"
+                          onClick={() =>
+                            navigate("/dashboard/employer/post-job")
+                          }
+                        >
+                          Post a Job
+                        </button>
+                      </div>
+                    </div>
+                    <div className="step-item">
+                      <div className="step-number">2</div>
+                      <div className="step-content">
+                        <strong>Review Applications</strong>
+                        <p>
+                          Once candidates apply, you'll see them here. You can
+                          review, shortlist, or reject them.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="step-item">
+                      <div className="step-number">3</div>
+                      <div className="step-content">
+                        <strong>Hire Your Perfect Candidate</strong>
+                        <p>
+                          When you find the right person, mark them as "Hired"
+                          and celebrate your success!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -603,25 +650,17 @@ const EmployerDashboard = () => {
                         >
                           Edit
                         </button>
-
                         <button
-                          className="btn-secondary"
+                          className="btn-warning"
                           onClick={() => handleToggleJob(job.id, job.is_active)}
-                          disabled={updatingStatus === job.id}
                         >
-                          {updatingStatus === job.id
-                            ? "Updating..."
-                            : job.is_active
-                              ? "Deactivate"
-                              : "Activate"}
+                          {job.is_active ? "Deactivate" : "Activate"}
                         </button>
-
                         <button
                           className="btn-danger"
                           onClick={() => handleDeleteJob(job.id)}
-                          disabled={deletingId === job.id}
                         >
-                          {deletingId === job.id ? "Deleting..." : "Delete"}
+                          Delete
                         </button>
                       </div>
                     </div>
@@ -631,13 +670,14 @@ const EmployerDashboard = () => {
             </div>
           )}
 
-          {activeTab === "applicants" && (
+          {activeTab === "candidates" && (
             <div className="applicants-tab">
               <div className="applicants-header">
                 <h2>Applicants</h2>
                 <p>Manage candidates across all your job postings.</p>
               </div>
 
+              {/* Applicants Stats */}
               <div className="applicant-stats-grid">
                 <div className="mini-stat-card">
                   <span className="mini-stat-value">
@@ -707,13 +747,18 @@ const EmployerDashboard = () => {
                 </div>
               </div>
 
+              {/* Applicants List */}
               {filteredApplicants.length === 0 ? (
-                <div className="empty-state-card">
+                <div className="empty-state-illustrated">
+                  <div className="empty-icon-wrapper">
+                    <span className="material-symbols-outlined">group_off</span>
+                  </div>
                   <h3>No applicants found</h3>
                   <p>
-                    There are no applicants matching the current filters. Try
-                    switching the job or status filter.
+                    We haven&apos;t received any applications yet for the
+                    selected filters.
                   </p>
+                  <button className="btn-ghost">Post your first job →</button>
                 </div>
               ) : (
                 <div className="applicants-list">
@@ -724,46 +769,49 @@ const EmployerDashboard = () => {
 
                     return (
                       <div key={applicant.id} className="applicant-card">
-                        <div className="applicant-top">
-                          <div className="applicant-info">
+                        {/* Left: Person Info */}
+                        <div className="applicant-person">
+                          <div className="applicant-avatar">
+                            {(
+                              applicant.applicant_name ||
+                              applicant.candidate_name ||
+                              "?"
+                            )
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+                          <div className="applicant-details">
                             <h4>
                               {applicant.applicant_name ||
                                 applicant.candidate_name ||
                                 "Unnamed Applicant"}
                             </h4>
-
-                            <p className="applicant-job">
-                              {applicant.job_title}
-                            </p>
-
+                            <p>{applicant.job_title || "Unknown Position"}</p>
                             <p>
                               Applied:{" "}
                               {appliedDate
                                 ? new Date(appliedDate).toLocaleDateString()
                                 : "N/A"}
                             </p>
-
                             {applicant.applicant_email && (
                               <p>Email: {applicant.applicant_email}</p>
                             )}
                           </div>
-
-                          <div className="applicant-status-wrap">
-                            <span
-                              className={`status-badge status-${applicant.status}`}
-                            >
-                              {applicant.status}
-                            </span>
-                          </div>
                         </div>
 
+                        {/* Middle: Status */}
+                        <div className="applicant-status">
+                          <span
+                            className={`status-badge status-${applicant.status}`}
+                          >
+                            {applicant.status}
+                          </span>
+                        </div>
+
+                        {/* Right: Actions */}
                         <div className="applicant-actions">
                           <button
-                            className={
-                              applicant.status === "reviewed"
-                                ? "active-action"
-                                : ""
-                            }
+                            className="btn-review"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "reviewed")
                             }
@@ -772,16 +820,12 @@ const EmployerDashboard = () => {
                             }
                           >
                             {isUpdating && applicant.status !== "reviewed"
-                              ? "Updating..."
+                              ? "..."
                               : "Review"}
                           </button>
 
                           <button
-                            className={
-                              applicant.status === "shortlisted"
-                                ? "active-action"
-                                : ""
-                            }
+                            className="btn-shortlist"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "shortlisted")
                             }
@@ -790,16 +834,12 @@ const EmployerDashboard = () => {
                             }
                           >
                             {isUpdating && applicant.status !== "shortlisted"
-                              ? "Updating..."
+                              ? "..."
                               : "Shortlist"}
                           </button>
 
                           <button
-                            className={
-                              applicant.status === "rejected"
-                                ? "active-action"
-                                : ""
-                            }
+                            className="btn-reject"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "rejected")
                             }
@@ -808,16 +848,12 @@ const EmployerDashboard = () => {
                             }
                           >
                             {isUpdating && applicant.status !== "rejected"
-                              ? "Updating..."
+                              ? "..."
                               : "Reject"}
                           </button>
 
                           <button
-                            className={
-                              applicant.status === "hired"
-                                ? "active-action"
-                                : ""
-                            }
+                            className="btn-hire"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "hired")
                             }
@@ -826,7 +862,7 @@ const EmployerDashboard = () => {
                             }
                           >
                             {isUpdating && applicant.status !== "hired"
-                              ? "Updating..."
+                              ? "..."
                               : "Hire"}
                           </button>
                         </div>
@@ -838,8 +874,8 @@ const EmployerDashboard = () => {
             </div>
           )}
 
-          {editingJob && editJobData && (
-            <div className="modal-overlay" onClick={() => setEditingJob(null)}>
+          {isEditing && editJobData && (
+            <div className="modal-overlay" onClick={() => setIsEditing(false)}>
               <div
                 className="modal-content"
                 onClick={(e) => e.stopPropagation()}
@@ -939,7 +975,7 @@ const EmployerDashboard = () => {
                   <button onClick={handleUpdateJob}>Save</button>
                   <button
                     onClick={() => {
-                      setEditingJob(null);
+                      setIsEditing(false);
                       setEditJobData(null);
                     }}
                   >

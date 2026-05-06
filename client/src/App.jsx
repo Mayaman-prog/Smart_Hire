@@ -6,6 +6,7 @@ import Navbar from "./components/common/Navbar/Navbar";
 import Footer from "./components/common/Footer/Footer";
 import ScrollToTop from "./components/common/ScrollToTop";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { SavedSearchProvider } from "./contexts/SavedSearchContext";
 
 // Import all pages
 import HomePage from "./pages/HomePage/HomePage";
@@ -19,11 +20,11 @@ import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 import JobSeekerDashboard from "./pages/Dashboard/jobseeker/JobSeekerDashboard";
 import EmployerDashboard from "./pages/Dashboard/employer/EmployerDashboard";
 import AdminDashboard from "./pages/Dashboard/admin/AdminDashboard";
+import ProfilePage from "./pages/ProfilePage/ProfilePage";
 
 function App() {
   const location = useLocation();
-  const isDashboardRoute = location.pathname.startsWith("/dashboard");
-  
+
   return (
     <div className="app">
       {/* Toast Notifications - Using CSS classes from globals.css */}
@@ -55,53 +56,299 @@ function App() {
       />
 
       <ScrollToTop />
-      {!isDashboardRoute && <Navbar />}
 
-      <main className="main-content">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/jobs" element={<JobsPage />} />
-          <Route path="/jobs/:id" element={<JobDetailsPage />} />
-          <Route path="/companies" element={<CompaniesPage />} />
-          <Route path="/companies/:id" element={<CompanyDetailsPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+      <SavedSearchProvider>
+        <main className="main-content">
+          <Routes>
+            {/* Public Routes */}
+            <Route
+              path="/"
+              element={
+                <>
+                  <Navbar />
+                  <HomePage />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
+              path="/jobs"
+              element={
+                <>
+                  <Navbar />
+                  <JobsPage />
+                  <Footer />
+                </>
+              }
+            />
 
-          {/* Protected Routes - Role based */}
-          <Route
-            path="/dashboard/seeker"
-            element={
-              <ProtectedRoute allowedRoles={["job_seeker"]}>
-                <JobSeekerDashboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/jobs/:id"
+              element={
+                <>
+                  <Navbar />
+                  <JobDetailsPage />
+                  <Footer />
+                </>
+              }
+            />
 
-          <Route
-            path="/dashboard/employer"
-            element={
-              <ProtectedRoute allowedRoles={["employer"]}>
-                <EmployerDashboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/companies"
+              element={
+                <>
+                  <Navbar />
+                  <CompaniesPage />
+                  <Footer />
+                </>
+              }
+            />
 
-          <Route
-            path="/dashboard/admin"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/companies/:id"
+              element={
+                <>
+                  <Navbar />
+                  <CompanyDetailsPage />
+                  <Footer />
+                </>
+              }
+            />
 
-          {/* 404 Page - Must be last */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </main>
+            <Route
+              path="/login"
+              element={
+                <>
+                  <Navbar />
+                  <LoginPage />
+                  <Footer />
+                </>
+              }
+            />
 
-      {!isDashboardRoute && <Footer />}
+            <Route
+              path="/register"
+              element={
+                <>
+                  <Navbar />
+                  <RegisterPage />
+                  <Footer />
+                </>
+              }
+            />
+
+            {/* Protected Routes - Role based */}
+
+            {/* Job Seeker Dashboard & Sub‑routes */}
+            <Route
+              path="/dashboard/seeker"
+              element={
+                <ProtectedRoute allowedRoles={["job_seeker"]}>
+                  <>
+                    <Navbar />
+                    <JobSeekerDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/seeker/applied-jobs"
+              element={
+                <ProtectedRoute allowedRoles={["job_seeker"]}>
+                  <>
+                    <Navbar />
+                    <JobSeekerDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/seeker/saved-jobs"
+              element={
+                <ProtectedRoute allowedRoles={["job_seeker"]}>
+                  <>
+                    <Navbar />
+                    <JobSeekerDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/seeker/cover-letters"
+              element={
+                <ProtectedRoute allowedRoles={["job_seeker"]}>
+                  <>
+                    <Navbar />
+                    <JobSeekerDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/seeker/profile"
+              element={
+                <ProtectedRoute allowedRoles={["job_seeker"]}>
+                  <>
+                    <Navbar />
+                    <ProfilePage />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Employer Dashboard & Sub‑routes */}
+            <Route
+              path="/dashboard/employer/profile"
+              element={
+                <ProtectedRoute allowedRoles={["employer"]}>
+                  <>
+                    <Navbar />
+                    <ProfilePage />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/employer/post-job"
+              element={
+                <ProtectedRoute allowedRoles={["employer"]}>
+                  <>
+                    <Navbar />
+                    <EmployerDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/employer/my-jobs"
+              element={
+                <ProtectedRoute allowedRoles={["employer"]}>
+                  <>
+                    <Navbar />
+                    <EmployerDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/employer/candidates"
+              element={
+                <ProtectedRoute allowedRoles={["employer"]}>
+                  <>
+                    <Navbar />
+                    <EmployerDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/employer"
+              element={
+                <ProtectedRoute allowedRoles={["employer"]}>
+                  <>
+                    <Navbar />
+                    <EmployerDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Admin Dashboard & Sub‑routes */}
+            <Route
+              path="/dashboard/admin"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <>
+                    <Navbar />
+                    <AdminDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/admin/profile"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <>
+                    <Navbar />
+                    <ProfilePage />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <>
+                    <Navbar />
+                    <AdminDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/admin/jobs"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <>
+                    <Navbar />
+                    <AdminDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/admin/reports"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <>
+                    <Navbar />
+                    <AdminDashboard />
+                    <Footer />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 404 PAGE */}
+            <Route
+              path="*"
+              element={
+                <>
+                  <Navbar />
+                  <NotFoundPage />
+                  <Footer />
+                </>
+              }
+            />
+          </Routes>
+        </main>
+      </SavedSearchProvider>
     </div>
   );
 }

@@ -1,66 +1,108 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { jobAPI } from "../../services/api";
+import { savedSearchAPI } from "../../services/api";
+import { useAuth } from "../../contexts/AuthContext";
 import Button from "../common/Button/Button";
 import Input from "../common/Input/Input";
 import "./SaveSearchModal.css";
 
-// This component is a popup (modal) that lets users save their job searches
-export default function SaveSearchModal({ isOpen, onClose, queryParams }) {
-  // Keep track of what the user types as the search name
+export default function SaveSearchModal({
+  isOpen,
+  onClose,
+  queryParams,
+  initialData = null,
+  mode = "create",
+  onSubmit,
+  onSaveSuccess,
+}) {
+  const { isAuthenticated } = useAuth();
   const [name, setName] = useState("");
-
-  // Keep track of how often user wants job alerts (Daily or Weekly)
   const [frequency, setFrequency] = useState("Daily");
+  const [keyword, setKeyword] = useState("");
+  const [location, setLocation] = useState("");
+  const [jobType, setJobType] = useState("");
+  const [salaryMin, setSalaryMin] = useState("");
+  const [salaryMax, setSalaryMax] = useState("");
 
-  // When the modal opens, set a default name for the search based on today's date
+  // Load initial data for edit mode
   useEffect(() => {
     if (isOpen) {
-      const today = new Date().toISOString().slice(0, 10);
-      setName(`Search on ${today}`);
-      setFrequency("Daily");
+      if (mode === "edit" && initialData) {
+        setName(initialData.name || "");
+        setFrequency(
+          initialData.alert_frequency
+            ? initialData.alert_frequency.charAt(0).toUpperCase() +
+                initialData.alert_frequency.slice(1)
+            : "Daily",
+        );
+        setKeyword(initialData.keyword || "");
+        setLocation(initialData.location || "");
+        setJobType(initialData.job_type || "");
+        setSalaryMin(
+          initialData.salary_min !== null ? String(initialData.salary_min) : "",
+        );
+        setSalaryMax(
+          initialData.salary_max !== null ? String(initialData.salary_max) : "",
+        );
+      } else {
+        // Create mode: default name based on date
+        const today = new Date().toISOString().slice(0, 10);
+        setName(`Search on ${today}`);
+        setFrequency("Daily");
+        // Populate from queryParams if provided
+        if (queryParams) {
+          setKeyword(queryParams.keyword?.trim() || "");
+          setLocation(queryParams.location?.trim() || "");
+          setJobType(queryParams.job_type?.trim() || "");
+          setSalaryMin(
+            queryParams.salary_min ? String(queryParams.salary_min) : "",
+          );
+          setSalaryMax(
+            queryParams.salary_max ? String(queryParams.salary_max) : "",
+          );
+        }
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, mode, initialData, queryParams]);
 
-  // When the user submits the form to save the search
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prepare the data to send to the server
+    if (!isAuthenticated) {
+      toast.error("Please log in.");
+      return;
+    }
+
     const payload = {
-      name: name.trim(),
-      keyword: queryParams.keyword || "",
-      location: queryParams.location || "",
-      job_type: queryParams.job_type || "",
-      salary_min: queryParams.salary_min
-        ? Number(queryParams.salary_min)
-        : undefined,
-      salary_max: queryParams.salary_max
-        ? Number(queryParams.salary_max)
-        : undefined,
+      name: name.trim() || "Untitled Search",
+      keyword: keyword.trim() || null,
+      location: location.trim() || null,
+      job_type: jobType.trim() || null,
+      salary_min: salaryMin ? Number(salaryMin) : null,
+      salary_max: salaryMax ? Number(salaryMax) : null,
       alert_frequency: frequency.toLowerCase(),
     };
 
     try {
-      // Send the search data to the server
-      await jobAPI.post("/api/saved-searches", payload);
-      toast.success("Search saved!");
-      onClose();
+      if (mode === "edit" && onSubmit) {
+        await onSubmit(payload);
+      } else {
+        await savedSearchAPI.createSavedSearch(payload);
+        toast.success("Search saved!");
+        if (onSaveSuccess) onSaveSuccess();
+        onClose();
+      }
     } catch (err) {
-      // If something went wrong, show error message
-      const message = err.response?.data?.message || "Could not save search.";
-      toast.error(message);
+      toast.error(err.response?.data?.message || "Could not save search.");
     }
   };
 
-  // Only show the modal if isOpen is true
   if (!isOpen) return null;
 
-  // Show the modal popup
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h3>Save This Search</h3>
+        <h3>{mode === "edit" ? "Edit Saved Search" : "Save This Search"}</h3>
         <form onSubmit={handleSubmit}>
           <Input
             label="Search Name"
@@ -69,12 +111,72 @@ export default function SaveSearchModal({ isOpen, onClose, queryParams }) {
             required
           />
 
+          {/* Additional fields for edit mode - show all criteria */}
+          {mode === "edit" && (
+            <>
+              <div className="form-group">
+                <label>Keyword</label>
+                <input
+                  type="text"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  className="form-input"
+                />
+              </div>
+              <div className="form-group">
+                <label>Location</label>
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="form-input"
+                />
+              </div>
+              <div className="form-group">
+                <label>Job Type</label>
+                <select
+                  value={jobType}
+                  onChange={(e) => setJobType(e.target.value)}
+                  className="form-select"
+                >
+                  <option value="">All</option>
+                  <option value="full-time">Full Time</option>
+                  <option value="part-time">Part Time</option>
+                  <option value="remote">Remote</option>
+                  <option value="contract">Contract</option>
+                  <option value="internship">Internship</option>
+                </select>
+              </div>
+              <div className="form-group salary-group">
+                <label>Salary Range</label>
+                <div className="salary-inputs">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={salaryMin}
+                    onChange={(e) => setSalaryMin(e.target.value)}
+                    className="form-input"
+                  />
+                  <span>to</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={salaryMax}
+                    onChange={(e) => setSalaryMax(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
           <div className="form-group">
             <label htmlFor="frequency">Alert Frequency</label>
             <select
               id="frequency"
               value={frequency}
               onChange={(e) => setFrequency(e.target.value)}
+              className="form-select"
             >
               <option value="Daily">Daily</option>
               <option value="Weekly">Weekly</option>
@@ -86,7 +188,7 @@ export default function SaveSearchModal({ isOpen, onClose, queryParams }) {
               Cancel
             </Button>
             <Button type="submit" variant="primary">
-              Save
+              {mode === "edit" ? "Update" : "Save"}
             </Button>
           </div>
         </form>

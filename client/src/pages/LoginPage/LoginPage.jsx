@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useEffect } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
@@ -10,6 +10,7 @@ import "./LoginPage.css";
 const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState(null);
   const [socialError, setSocialError] = useState(null);
@@ -33,7 +34,6 @@ const LoginPage = () => {
     const token = params.get("token");
     const social = params.get("social");
     const error = params.get("error");
-    const email = params.get("email");
 
     if (token) {
       // Store token

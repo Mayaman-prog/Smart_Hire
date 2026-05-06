@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useEffect } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
@@ -38,11 +38,13 @@ const LoginPage = () => {
     if (token) {
       // Store token
       localStorage.setItem("token", token);
+
       // Decode token to get role for redirection
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
         const role = decoded.role || "job_seeker";
         toast.success(`Logged in with ${social || "social"} account`);
+
         // Redirect based on role
         const dashboardPath =
           role === "admin"

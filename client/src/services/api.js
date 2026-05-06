@@ -126,6 +126,9 @@ export const userAPI = {
     }),
 
   getPrimaryResume: () => api.get("/users/resume/primary"),
+
+  // Unlink Social Account
+  unlinkSocial: (provider) => api.delete(`/users/me/social/${provider}`),
 };
 
 // Admin APIs

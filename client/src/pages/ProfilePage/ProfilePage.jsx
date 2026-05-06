@@ -1,10 +1,31 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
+import ConnectedAccounts from "./ConnectedAccounts";
 import "./ProfilePage.css";
 
 const ProfilePage = () => {
   const { user } = useAuth();
+
+  // Handle OAuth Redirect URL Parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const linkStatus = params.get('link');
+
+    if (linkStatus === 'success') {
+      toast.success('Account successfully linked!');
+    } else if (linkStatus === 'error') {
+      toast.error('Failed to link account. Try again.');
+    } else if (linkStatus === 'duplicate_error') {
+      toast.error('This social account is already linked to another user.');
+    }
+
+    // Clean up the URL so the toast doesn't persist on page refresh
+    if (linkStatus) {
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
 
   const handleAdd = (section) => {
     toast.success(`Add ${section} feature coming soon!`);
@@ -158,6 +179,8 @@ const ProfilePage = () => {
               Share your expertise or notable skills with recruiters, such as Java, Python, Project Management, etc.
             </p>
           </div>
+          {/* Render the connected accounts block here */}
+          <ConnectedAccounts />
         </div>
 
         {/* RIGHT COLUMN (WIDGETS) */}

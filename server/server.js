@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const session = require("express-session");
 
 // Import pool from database config
 const { pool } = require('./src/config/database');
@@ -81,11 +82,11 @@ app.get('/api/test', (req, res) => {
     });
 });
 
-// Auth routes
-app.use('/api/auth', authRoutes);
-
 // Initialize Passport middleware
 app.use(passport.initialize());
+
+// Auth routes
+app.use('/api/auth', authRoutes);
 
 // Job routes
 app.use('/api/jobs', jobRoutes);

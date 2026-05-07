@@ -17,14 +17,14 @@ const protect = async (req, res, next) => {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch {
+    } catch (err) {
       return res.status(401).json({
         success: false,
         message: "Invalid or expired token",
       });
     }
 
-    const userId = decoded.id || decoded.userId;
+    const userId = decoded?.id || decoded?.userId;
 
     if (!userId) {
       return res.status(401).json({
@@ -33,29 +33,19 @@ const protect = async (req, res, next) => {
       });
     }
 
-    const [users] = await pool.query(
-      `
-      SELECT 
-        u.id,
-        u.email,
-        u.name,
-        u.role,
-        u.company_id,
-        u.is_active
-      FROM users u
-      WHERE u.id = ?
-      `,
-      [userId]
+    const [rows] = await pool.query(
+      `SELECT id, email, name, role, company_id, is_active FROM users WHERE id = ?`,
+      [userId],
     );
 
-    if (!users.length) {
+    if (!rows.length) {
       return res.status(401).json({
         success: false,
         message: "User not found",
       });
     }
 
-    const user = users[0];
+    const user = rows[0];
 
     if (user.is_active === 0) {
       return res.status(403).json({
@@ -64,6 +54,7 @@ const protect = async (req, res, next) => {
       });
     }
 
+    // IMPORTANT: normalize user object
     req.user = {
       id: user.id,
       email: user.email,
@@ -72,7 +63,7 @@ const protect = async (req, res, next) => {
       company_id: user.company_id,
     };
 
-    next();
+    return next();
   } catch (error) {
     console.error("Auth middleware error:", error);
 
@@ -80,6 +71,32 @@ const protect = async (req, res, next) => {
       success: false,
       message: "Authentication failed",
     });
+  }
+};
+
+const optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      return next(); // allow anonymous
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const [rows] = await pool.query(
+      "SELECT id, email, name, role, company_id FROM users WHERE id = ?",
+      [decoded.id || decoded.userId],
+    );
+
+    if (rows.length) {
+      req.user = rows[0];
+    }
+
+    next();
+  } catch {
+    next();
   }
 };
 
@@ -94,7 +111,7 @@ const roleCheck = (...roles) => {
 
     const userRole = String(req.user.role).toLowerCase();
 
-    if (!roles.map(r => r.toLowerCase()).includes(userRole)) {
+    if (!roles.map((r) => r.toLowerCase()).includes(userRole)) {
       return res.status(403).json({
         success: false,
         message: "Forbidden: insufficient role",

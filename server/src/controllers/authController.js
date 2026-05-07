@@ -195,17 +195,25 @@ const login = async (req, res) => {
   }
 };
 
-// PROFILE
+// PROFILE (UPDATED)
 const getProfile = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, name, email, role, company_id FROM users WHERE id=?",
+      `SELECT id, name, email, role, company_id, google_id, linkedin_id, is_active, created_at
+       FROM users WHERE id = ?`,
       [req.user.id],
     );
 
     if (!rows.length) {
-      return res.status(404).json({ success: false });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
+
+    // Prevent caching to ensure fresh data (fixes 304 Not Modified)
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
 
     return res.json({
       success: true,
@@ -213,7 +221,7 @@ const getProfile = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

@@ -183,6 +183,23 @@ export const AuthProvider = ({ children }) => {
     saveUser(updatedUser);
   };
 
+  const refreshUser = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const response = await authAPI.getMe();
+      const freshUser = response.data?.data?.user;
+
+      if (freshUser?.id) {
+        setUser(freshUser);
+        saveUser(freshUser);
+      }
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -192,6 +209,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        refreshUser,
         getUserRole,
         hasRole,
         isJobSeeker,

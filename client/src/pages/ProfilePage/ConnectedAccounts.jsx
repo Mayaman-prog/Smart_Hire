@@ -9,38 +9,39 @@ const ConnectedAccounts = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLink = (provider) => {
-    if (provider === "linkedin") {
-      toast.error("LinkedIn integration is currently under maintenance.");
-      return;
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+
+    if (!token) {
+      return toast.error("Login required");
     }
-    // Hard redirect to backend to initiate OAuth flow without logging out
+
     const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-    window.location.assign(`${baseUrl}/auth/link/${provider}`);
+
+    const url = `${baseUrl}/auth/link/${provider}?token=${encodeURIComponent(token)}`;
+
+    console.log("REDIRECT:", url);
+
+    window.location.href = url;
   };
 
   const handleUnlink = async (provider) => {
-    const confirm = window.confirm(
-      `Are you sure you want to unlink your ${provider} account? You will no longer be able to log in with it.`,
-    );
-    if (!confirm) return;
-
+  try {
     setIsLoading(true);
-    try {
-      await userAPI.unlinkSocial(provider);
 
-      if (refreshUser) await refreshUser(); // Fetch updated user data into context
-      toast.success(
-        `${provider.charAt(0).toUpperCase() + provider.slice(1)} unlinked successfully.`,
-      );
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to unlink account. Ensure you have a password set before removing social logins.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const res = await userAPI.unlinkSocial(provider);
+
+    toast.success(res.data.message || "Unlinked successfully");
+
+    await refreshUser();
+  } catch (err) {
+    toast.error(
+      err?.response?.data?.message || "Failed to unlink account"
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="profile-card connected-accounts-card">

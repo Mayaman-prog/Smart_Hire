@@ -79,7 +79,7 @@ const LoginPage = () => {
     setSocialLoading(provider);
     setSocialError(null);
     const backendUrl =
-      import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+      import.meta.env.VITE_API_URL;
     window.location.href = `${backendUrl}/auth/${provider}`;
   };
 

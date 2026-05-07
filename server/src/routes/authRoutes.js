@@ -9,6 +9,7 @@ const {
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 const { loginLimiter, authLimiter } = require("../middleware/rateLimiter");
+const userService = require("../services/userService");
 
 const router = express.Router();
 
@@ -30,10 +31,10 @@ router.get("/me", protect, getProfile);
 // Google OAuth Routes (Active)
 router.get(
   "/google",
-  passport.authenticate("google", { 
-    scope:["profile", "email"],
-    prompt: 'consent select_account'
-   })
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt: "consent select_account",
+  }),
 );
 
 router.get(
@@ -88,6 +89,78 @@ router.get("/linkedin/callback", (req, res) => {
     success: false,
     message: "LinkedIn OAuth is not configured yet.",
   });
+});
+
+// Middleware to accept token via query param for OAuth initiation
+// This avoids CORS issues when redirecting from frontend
+const allowTokenViaQuery = (req, res, next) => {
+  const token = req.query.token;
+  console.log("Token from query:", token ? "present" : "missing");
+  if (token && token !== "null" && token !== "undefined") {
+    req.headers.authorization = `Bearer ${token}`;
+    console.log("Authorization header set");
+  }
+  next();
+};
+
+// Google Linking Flow (authenticated user only)
+router.get("/link/google", allowTokenViaQuery, protect, (req, res, next) => {
+  passport.authenticate("google-link", {
+    accessType: "offline",
+    prompt: "consent",
+    state: JSON.stringify({ userId: req.user.id }),
+  })(req, res, next);
+});
+
+// Google Linking Callback
+router.get(
+  "/link/google/callback",
+  passport.authenticate("google-link", {
+    session: false,
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=link_failed`,
+  }),
+  async (req, res) => {
+    const role = req.user.role;
+
+    const redirectPath =
+      role === "employer"
+        ? "/dashboard/employer/profile"
+        : role === "admin"
+          ? "/dashboard/admin/profile"
+          : "/dashboard/seeker/profile";
+
+    return res.redirect(
+      `${process.env.FRONTEND_URL}${redirectPath}?success=google_linked`,
+    );
+  },
+);
+
+// Unlink Social provider (Googlr or LinkedIn)
+router.delete("/me/social/:provider", protect, async (req, res) => {
+  const { provider } = req.params;
+  const userId = req.user.id;
+  const ip = req.ip;
+  const userAgent = req.headers["user-agent"];
+
+  if (!["google", "linkedin"].includes(provider)) {
+    return res
+      .status(400)
+      .json({ message: 'Invalid provider. Use "google" or "linkedin".' });
+  }
+
+  try {
+    const result = await userService.unlinkSocialAccount(
+      userId,
+      provider,
+      ip,
+      userAgent,
+    );
+    res.json({ success: true, message: `Successfully unlinked ${provider}.` });
+  } catch (error) {
+    console.error("Error unlinking social account:", error);
+    const status = error.message.includes("only login method") ? 400 : 500;
+    res.status(status).json({ message: error.message });
+  }
 });
 
 console.log("Auth routes registered:");

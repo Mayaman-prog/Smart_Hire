@@ -1106,13 +1106,15 @@ LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret_here
 ## API Endpoints
 
 ### Authentication Routes (/api/auth)
-| Method | Endpoint           | Description                                  | Access  |
-| ------ | ------------------ | -------------------------------------------- | ------- |
-| POST   | `/register`        | Register a new user (job_seeker or employer) | Public  |
-| POST   | `/login`           | Login user, returns JWT token                | Public  |
-| GET    | `/profile`         | Get current user profile (requires JWT)      | Private |
-| GET    | `/google`          | Initiate Google OAuth login                  | Public  |
-| GET    | `/google/callback` | Google OAuth callback                        | Public  |
+| Method | Endpoint               | Description                                  | Access  |
+| ------ | ---------------------- | -------------------------------------------- | ------- |
+| POST   | `/register`            | Register a new user (job_seeker or employer) | Public  |
+| POST   | `/login`               | Login user, returns JWT token                | Public  |
+| GET    | `/profile`             | Get current user profile (requires JWT)      | Private |
+| GET    | `/google`              | Initiate Google OAuth login                  | Public  |
+| GET    | `/google/callback`     | Google OAuth callback                        | Public  |
+| GET    | `link/google`          | Link Google to existing account              | Private |
+| Delete | `/me/social/:provider` | Unlink social provider                       | Private |
 
 ### Register (Job Seeker)
 **POST** `/api/auth/register`

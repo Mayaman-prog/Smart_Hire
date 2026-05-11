@@ -521,7 +521,7 @@ const JobDetailsPage = () => {
             <span className="material-symbols-outlined">attach_money</span>
             <div>
               <label>Salary Range</label>
-              <p className="salary-display">
+              <div className="salary-display">
                 {formatSalary(job.salary_min, job.salary_max)}
                 <SalaryComparisonBadge
                   jobTitle={job.title}
@@ -529,7 +529,7 @@ const JobDetailsPage = () => {
                   salaryMin={job.salary_min}
                   salaryMax={job.salary_max}
                 />
-              </p>
+              </div>
             </div>
           </div>
         </div>

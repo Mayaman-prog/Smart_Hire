@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     job_type_id INT NULL,
     location_id INT NULL,
     company_id INT NOT NULL,
-    posted_by INT NULL,   -- allow NULL, and ON DELETE SET NULL
+    posted_by INT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     is_featured BOOLEAN DEFAULT FALSE,
     deadline DATE NULL,

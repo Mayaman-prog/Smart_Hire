@@ -24,6 +24,7 @@ const reportRoutes = require('./src/routes/reportRoutes');
 const coverLetterRoutes = require('./src/routes/coverLetterRoutes');
 const searchSuggestionRoutes = require('./src/routes/searchSuggestionRoutes');
 const passport = require('./src/config/passport');
+const salaryRoutes = require('./src/routes/salaryRoutes');
 
 dotenv.config();
 
@@ -90,6 +91,9 @@ app.use('/api/auth', authRoutes);
 
 // Job routes
 app.use('/api/jobs', jobRoutes);
+
+// Salary routes
+app.use('/api/salary', salaryRoutes);
 
 // Company routes
 app.use('/api/companies', companyRoutes);

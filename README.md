@@ -134,6 +134,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - **Search Term Logging & Keyword Highlighting** – Every search term is logged with user/IP data for analytics. Matching terms in job titles and descriptions are highlighted with a yellow background in search results.
 - Salary Comparison Badge – On the job details page, a colored pill indicates if the job’s salary is above, average, or below market, with a tooltip showing market stats (average, median, percentiles, sample count).
 - Salary Trend Chart & Percentiles – On the job details page, a collapsible "Salary Insights" section displays a line chart of monthly average salaries over the last 6 months and horizontal bars for the 25th, 50th (median), and 75th percentiles, with a tooltip on the chart.
+- **Theme toggle button** to switch between **light** and **dark** modes
 
 ### Backend Features
 - JWT authentication (register, login, profile)
@@ -218,6 +219,29 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
   - Middleware: `searchLogger.js` automatically logs each search before passing to the controller.
   - Controller: `jobController.js` updates the `result_count` in the log after the query runs.
   - Frontend: `highlightText.js` utility function is used in `JobCard.jsx` to wrap matches.
+
+### Theme System (Light/Dark Mode)
+SmartHire includes a complete light/dark theme system with persistent user preference.
+
+**Implementation Details:**
+- **Context API:** `ThemeContext.jsx` manages the theme state (`light`/`dark`), toggles between themes, and persists the choice in `localStorage`.
+- **CSS Variables:** All theme-related colors, shadows, and backgrounds are defined in `variables.css` using `:root` (light theme) and `[data-theme="dark"]` selector.
+- **HTML Attribute:** The current theme is applied to the `<html>` tag via `document.documentElement.setAttribute("data-theme", theme)`, which triggers the CSS variable overrides.
+- **Toggle Button:** Located in the `Navbar` component (right side, next to user menu). It displays a sun icon (light mode) or moon icon (dark mode) and calls `toggleTheme()` from the context.
+- **Global Styles:** `globals.css` imports `variables.css` and applies smooth transitions for background and text colors.
+- **Scope:** All components (Navbar, Footer, Job Cards, Dashboard, Forms, Modals, etc.) automatically inherit the theme because they use the CSS variables defined in `variables.css`. No component-specific theme logic is required.
+
+**File Locations:**
+- `client/src/contexts/ThemeContext.jsx` – ThemeProvider and custom hook for consuming the theme.
+- `client/src/styles/variables.css` – Light and dark CSS variable definitions.
+- `client/src/styles/globals.css` – Global reset and theme transition.
+- `client/src/components/common/Navbar/Navbar.jsx` – Theme toggle button integration.
+- `client/src/App.jsx` – Wraps entire app with `<ThemeProvider>`.
+
+**How to Use:**
+- Users click the sun/moon icon in the navbar to switch themes.
+- The selected theme is saved to `localStorage` and persists across page reloads.
+- The theme is applied globally to the entire application (including dynamic content loaded via API).
 
 ### Saved Searches Feature
 - Job seekers can create, read, update, and delete saved search criteria.
@@ -777,6 +801,7 @@ Make sure you have the following installed:
 - **Redis** (for the email queue)
 
 ## Project Structure
+```
 SmartHire/
 ├── client/                           # React (Vite) frontend
 │   ├── src/
@@ -825,6 +850,10 @@ SmartHire/
 │   │   │   └── SaveSearchModal/
 │   │   │       ├── SaveSearchModal.jsx
 │   │   │       └── SaveSearchModal.css
+│   │   ├── contexts/
+│   │   │   ├── AuthContext.jsx
+│   │   │   ├── SavedSearchContext.jsx
+│   │   │   └── ThemeContext.jsx
 │   │   ├── pages/
 │   │   │   ├── HomePage/
 │   │   │   │   ├── HomePage.jsx
@@ -981,6 +1010,7 @@ SmartHire/
 |   |   ├── TestCardsPage.jsx
 |   |   └── TestCardsPage.css
 └── README.md
+```
 
 ## Setup Instructions
 
@@ -2205,6 +2235,9 @@ client/src/pages/NotFoundPage/
 | Last refresh timestamp not updating               | Ensure timestamp update within `fetchData()`                                    |
 | Profile incomplete on Apply with Resume           | Complete required profile fields in dashboard                                   |
 | Salary Insights chart not showing                 | Verify `chart.js` and `react-chartjs-2` installation and backend data integrity |
+| Theme not persisting after page reload            | Check `localStorage` integration in `ThemeContext.jsx`                          |
+| Theme toggle button not visible                   | Verify `ThemeContext` is imported and used in `Navbar.jsx`                      |
+| Dark mode colors not applying                     | Ensure `data-theme` attribute is set on `<html>` and CSS variables are correct  |
 
 
 ## Contributing
@@ -2281,6 +2314,7 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Automatic retry with exponential backoff (1min, 5min, 15min) and admin alert on final failure
 - Daily job alert cron job (node-cron) – scans active saved searches at 8 AM, sends digests with unsubscribe links
 - Notify reporter on resolution – email sent when admin resolves a job report
+- **Theme System** – Light/dark mode toggle with persistent user preference using React Context API and CSS variables.
 
 **Advanced Features:**
 

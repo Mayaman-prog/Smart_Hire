@@ -14,13 +14,14 @@ html {
 body {
   font-family: var(--font-family);
   font-size: var(--font-md);
-  color: var(--dark-color);
-  background-color: var(--light-gray);
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   width: 100%;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -37,6 +38,7 @@ h5,
 h6 {
   font-weight: 600;
   line-height: 1.2;
+  color: var(--text-primary);
 }
 
 a {
@@ -78,7 +80,7 @@ button {
 }
 
 .bg-white {
-  background-color: var(--white);
+  background-color: var(--bg-primary);
 }
 
 /* Full width sections */
@@ -100,8 +102,7 @@ button {
   position: fixed;
   z-index: 9999;
 }
-
-/* Base Toast Styles */
+ 
 .react-hot-toast {
   border-radius: var(--radius-md);
   font-family: var(--font-family);
@@ -112,60 +113,49 @@ button {
   animation: toastSlideIn 0.3s ease-out;
   backdrop-filter: blur(10px);
 }
-
-/* Success Toast */
+ 
 .react-hot-toast-success {
   background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
-  color: var(--white);
+  color: #ffffff;
   border-left: 4px solid #34d399;
 }
-
-/* Error Toast */
+ 
 .react-hot-toast-error {
   background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
-  color: var(--white);
+  color: #ffffff;
   border-left: 4px solid #f87171;
 }
-
-/* Info Toast */
+ 
 .react-hot-toast-info {
-  background: linear-gradient(
-    135deg,
-    var(--primary-color) 0%,
-    var(--primary-dark) 100%
-  );
-  color: var(--white);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: #ffffff;
   border-left: 4px solid var(--primary-light);
 }
-
-/* Loading Toast */
+ 
 .react-hot-toast-loading {
-  background: var(--dark-color);
-  color: var(--white);
+  background: var(--toast-loading-bg);
+  color: #ffffff;
   border-left: 4px solid var(--primary-color);
 }
-
-/* Toast Icons */
+ 
 .react-hot-toast-icon {
   margin-right: var(--spacing-sm);
   width: 20px;
   height: 20px;
 }
-
-/* Toast Close Button */
+ 
 .react-hot-toast-close {
   background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-sm);
   padding: 2px;
   transition: all 0.2s;
 }
-
+ 
 .react-hot-toast-close:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
 }
-
-/* Toast Animations */
+ 
 @keyframes toastSlideIn {
   from {
     transform: translateX(100%);
@@ -176,7 +166,7 @@ button {
     opacity: 1;
   }
 }
-
+ 
 @keyframes toastSlideOut {
   from {
     transform: translateX(0);
@@ -187,69 +177,60 @@ button {
     opacity: 0;
   }
 }
-
-/* Toast Positions */
+ 
 .react-hot-toast-top-right {
   top: var(--spacing-lg);
   right: var(--spacing-lg);
 }
-
+ 
 .react-hot-toast-top-left {
   top: var(--spacing-lg);
   left: var(--spacing-lg);
 }
-
+ 
 .react-hot-toast-bottom-right {
   bottom: var(--spacing-lg);
   right: var(--spacing-lg);
 }
-
+ 
 .react-hot-toast-bottom-left {
   bottom: var(--spacing-lg);
   left: var(--spacing-lg);
 }
-
+ 
 .react-hot-toast-top-center {
   top: var(--spacing-lg);
   left: 50%;
   transform: translateX(-50%);
 }
-
+ 
 .react-hot-toast-bottom-center {
   bottom: var(--spacing-lg);
   left: 50%;
   transform: translateX(-50%);
 }
-
-/* Responsive Toast Styles */
+ 
 @media (max-width: 768px) {
   .react-hot-toast {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: 0.8125rem;
     max-width: 90vw;
   }
-
+ 
   .react-hot-toast-top-right {
     top: var(--spacing-sm);
     right: var(--spacing-sm);
   }
-
+ 
   .react-hot-toast-bottom-right {
     bottom: var(--spacing-sm);
     right: var(--spacing-sm);
   }
-
+ 
   .react-hot-toast-top-center,
   .react-hot-toast-bottom-center {
     width: 90%;
     left: 5%;
     transform: translateX(0);
-  }
-}
-
-/* Dark mode support for toasts */
-@media (prefers-color-scheme: dark) {
-  .react-hot-toast-loading {
-    background: var(--gray-color);
   }
 }

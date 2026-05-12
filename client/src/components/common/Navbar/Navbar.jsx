@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { ThemeContext } from "../../../contexts/ThemeContext";
 import toast from "react-hot-toast";
 import "./Navbar.css";
 
@@ -10,6 +11,7 @@ const Navbar = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const { theme, toggleTheme } = useContext(ThemeContext);
 
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
@@ -319,6 +321,19 @@ const Navbar = () => {
                 </Link>
               </div>
             )}
+
+            {/* Theme Toggle Button */}
+            <div className="theme-toggle">
+              <button onClick={toggleTheme} className="theme-toggle-btn">
+                {theme === "light" ? (
+                  <span className="material-symbols-outlined">light_mode</span>
+                ) : theme === "dark" ? (
+                  <span className="material-symbols-outlined">dark_mode</span>
+                ) : (
+                  <span className="material-symbols-outlined">light_mode</span>
+                )}
+              </button>
+            </div>
 
             <button
               className="mobile-menu-btn"

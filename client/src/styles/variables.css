@@ -1,6 +1,7 @@
 /* Light Theme */
 :root,
-[data-theme="light"] {
+[data-theme="light"],
+.light {
   /* Brand */
   --primary-color: #00c48c;
   --primary-dark: #00a076;
@@ -100,7 +101,8 @@
 }
  
 /* DARK THEME */
-[data-theme="dark"] {
+[data-theme="dark"],
+.dark {
   /* Brand stays the same */
   --primary-color: #00c48c;
   --primary-dark: #00a076;

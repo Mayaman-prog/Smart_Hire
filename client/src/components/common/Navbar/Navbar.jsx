@@ -13,6 +13,13 @@ const Navbar = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useContext(ThemeContext);
 
+  const isSystemDark = window.matchMedia(
+    "(prefers-color-scheme: dark)",
+  ).matches;
+
+  const activeTheme =
+    theme === "system" ? (isSystemDark ? "dark" : "light") : theme;
+
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -325,13 +332,9 @@ const Navbar = () => {
             {/* Theme Toggle Button */}
             <div className="theme-toggle">
               <button onClick={toggleTheme} className="theme-toggle-btn">
-                {theme === "light" ? (
-                  <span className="material-symbols-outlined">light_mode</span>
-                ) : theme === "dark" ? (
-                  <span className="material-symbols-outlined">dark_mode</span>
-                ) : (
-                  <span className="material-symbols-outlined">light_mode</span>
-                )}
+                <span className="material-symbols-outlined">
+                  {activeTheme === "light" ? "light_mode" : "dark_mode"}
+                </span>
               </button>
             </div>
 

@@ -370,7 +370,7 @@ const JobDetailsPage = () => {
           <div className="match-insights">
             <div className="match-icon">⭐</div>
             <div className="match-content">
-              <h4>SmartHire Match Insights</h4>
+              <h2>SmartHire Match Insights</h2>
               <p>
                 Based on your profile, you are a strong match for this role.
               </p>
@@ -688,7 +688,7 @@ const JobDetailsPage = () => {
 
                 <div className="cover-letter-preview">
                   <div className="preview-header">
-                    <h4>Preview</h4>
+                    <h3>Preview</h3>
                     <button
                       type="button"
                       className="btn-edit-toggle"

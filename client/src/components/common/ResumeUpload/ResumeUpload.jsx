@@ -161,7 +161,7 @@ const ResumeUpload = ({
               {decodeURIComponent(currentResumeUrl.split("/").pop())}
             </a>
           </p>
-          <button className="btn-delete" onClick={handleDelete} type="button">
+          <button className="btn-delete" onClick={handleDelete} type="button" aria-label="Delete uploaded resume">
             Delete Resume
           </button>
         </div>
@@ -215,6 +215,8 @@ const ResumeUpload = ({
             className="btn-reset"
             onClick={resetFile}
             disabled={uploading}
+            type="button"
+            aria-label="Cancel resume upload"
           >
             Cancel
           </button>

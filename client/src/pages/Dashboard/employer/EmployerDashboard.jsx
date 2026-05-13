@@ -287,7 +287,15 @@ const EmployerDashboard = () => {
 
   // Extra loading state while we verify authentication and fetch data
   if (authLoading || loading) {
-    return <div className="employer-dashboard-loading">Loading...</div>;
+    return (
+      <div
+        className="employer-dashboard-loading"
+        role="status"
+        aria-live="polite"
+      >
+        Loading...
+      </div>
+    );
   }
 
   // Extra protection in case user role is not correct
@@ -350,7 +358,10 @@ const EmployerDashboard = () => {
               {stats.totalApplicants === 0 && stats.activeJobs === 0 && (
                 <div className="onboarding-card">
                   <div className="onboarding-header">
-                    <span className="material-symbols-outlined">
+                    <span
+                      className="material-symbols-outlined"
+                      aria-hidden="true"
+                    >
                       rocket_launch
                     </span>
                     <h3>You're all set to start hiring!</h3>
@@ -370,6 +381,8 @@ const EmployerDashboard = () => {
                         </p>
                         <button
                           className="btn-primary"
+                          type="button"
+                          aria-label="Post a new job"
                           onClick={() =>
                             navigate("/dashboard/employer/post-job")
                           }
@@ -424,8 +437,9 @@ const EmployerDashboard = () => {
                 {postStep === 1 && (
                   <div className="form-step">
                     <div className="form-group">
-                      <label>Job Title *</label>
+                      <label htmlFor="job-title">Job Title *</label>
                       <input
+                        id="job-title"
                         type="text"
                         value={newJob.title}
                         onChange={(e) =>
@@ -436,8 +450,9 @@ const EmployerDashboard = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>Location *</label>
+                      <label htmlFor="job-location">Location *</label>
                       <input
+                        id="job-location"
                         type="text"
                         value={newJob.location}
                         onChange={(e) =>
@@ -449,8 +464,9 @@ const EmployerDashboard = () => {
 
                     <div className="form-row">
                       <div className="form-group">
-                        <label>Salary Min</label>
+                        <label htmlFor="salary-min">Salary Min</label>
                         <input
+                          id="salary-min"
                           type="number"
                           value={newJob.salary_min}
                           onChange={(e) =>
@@ -461,8 +477,9 @@ const EmployerDashboard = () => {
                       </div>
 
                       <div className="form-group">
-                        <label>Salary Max</label>
+                        <label htmlFor="salary-max">Salary Max</label>
                         <input
+                          id="salary-max"
                           type="number"
                           value={newJob.salary_max}
                           onChange={(e) =>
@@ -475,8 +492,9 @@ const EmployerDashboard = () => {
 
                     <div className="form-row">
                       <div className="form-group">
-                        <label>Job Type</label>
+                        <label htmlFor="job-type">Job Type</label>
                         <select
+                          id="job-type"
                           value={newJob.job_type}
                           onChange={(e) =>
                             handlePostJobChange("job_type", e.target.value)
@@ -491,8 +509,11 @@ const EmployerDashboard = () => {
                       </div>
 
                       <div className="form-group">
-                        <label>Experience Level</label>
+                        <label htmlFor="experience-level">
+                          Experience Level
+                        </label>
                         <select
+                          id="experience-level"
                           value={newJob.experience_level}
                           onChange={(e) =>
                             handlePostJobChange(
@@ -514,8 +535,9 @@ const EmployerDashboard = () => {
                 {postStep === 2 && (
                   <div className="form-step">
                     <div className="form-group">
-                      <label>Job Description *</label>
+                      <label htmlFor="job-description">Job Description *</label>
                       <textarea
+                        id="job-description"
                         rows="4"
                         value={newJob.description}
                         onChange={(e) =>
@@ -526,8 +548,9 @@ const EmployerDashboard = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>Requirements *</label>
+                      <label htmlFor="job-requirements">Requirements *</label>
                       <textarea
+                        id="job-requirements"
                         rows="4"
                         value={newJob.requirements}
                         onChange={(e) =>
@@ -538,8 +561,11 @@ const EmployerDashboard = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>Responsibilities (Optional)</label>
+                      <label htmlFor="job-responsibilities">
+                        Responsibilities (Optional)
+                      </label>
                       <textarea
+                        id="job-responsibilities"
                         rows="3"
                         value={newJob.responsibilities}
                         onChange={(e) =>
@@ -591,14 +617,17 @@ const EmployerDashboard = () => {
 
                 <div className="form-actions">
                   {postStep > 1 && (
-                    <button onClick={handlePostJobPrev}>Previous</button>
+                    <button type="button" onClick={handlePostJobPrev}>
+                      Previous
+                    </button>
                   )}
 
-                  <button onClick={handlePostJobNext}>
+                  <button type="button" onClick={handlePostJobNext}>
                     {postStep === 3 ? "Post Job" : "Next"}
                   </button>
 
                   <button
+                    type="button"
                     onClick={() => {
                       resetPostForm();
                       setActiveTab("overview");
@@ -645,18 +674,28 @@ const EmployerDashboard = () => {
 
                       <div className="job-actions">
                         <button
+                          type="button"
+                          aria-label={`Edit ${job.title}`}
                           className="btn-secondary"
                           onClick={() => handleEditJob(job)}
                         >
                           Edit
                         </button>
                         <button
+                          type="button"
+                          aria-label={
+                            job.is_active
+                              ? `Deactivate ${job.title}`
+                              : `Activate ${job.title}`
+                          }
                           className="btn-warning"
                           onClick={() => handleToggleJob(job.id, job.is_active)}
                         >
                           {job.is_active ? "Deactivate" : "Activate"}
                         </button>
                         <button
+                          type="button"
+                          aria-label={`Delete ${job.title}`}
                           className="btn-danger"
                           onClick={() => handleDeleteJob(job.id)}
                         >
@@ -713,8 +752,9 @@ const EmployerDashboard = () => {
 
               <div className="filter-bar">
                 <div className="filter-group">
-                  <label>Filter by Job:</label>
+                  <label htmlFor="filter-job">Filter by Job:</label>
                   <select
+                    id="filter-job"
                     value={selectedJobId || ""}
                     onChange={(e) =>
                       setSelectedJobId(
@@ -732,8 +772,9 @@ const EmployerDashboard = () => {
                 </div>
 
                 <div className="filter-group">
-                  <label>Filter by Status:</label>
+                  <label htmlFor="filter-status">Filter by Status:</label>
                   <select
+                    id="filter-status"
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
                   >
@@ -751,14 +792,26 @@ const EmployerDashboard = () => {
               {filteredApplicants.length === 0 ? (
                 <div className="empty-state-illustrated">
                   <div className="empty-icon-wrapper">
-                    <span className="material-symbols-outlined">group_off</span>
+                    <span
+                      className="material-symbols-outlined"
+                      aria-hidden="true"
+                    >
+                      group_off
+                    </span>
                   </div>
                   <h3>No applicants found</h3>
                   <p>
                     We haven&apos;t received any applications yet for the
                     selected filters.
                   </p>
-                  <button className="btn-ghost">Post your first job →</button>
+                  <button
+                    type="button"
+                    aria-label="Post your first job"
+                    className="btn-ghost"
+                    onClick={() => navigate("/dashboard/employer/post-job")}
+                  >
+                    Post your first job →
+                  </button>
                 </div>
               ) : (
                 <div className="applicants-list">
@@ -771,7 +824,7 @@ const EmployerDashboard = () => {
                       <div key={applicant.id} className="applicant-card">
                         {/* Left: Person Info */}
                         <div className="applicant-person">
-                          <div className="applicant-avatar">
+                          <div className="applicant-avatar" aria-hidden="true">
                             {(
                               applicant.applicant_name ||
                               applicant.candidate_name ||
@@ -781,11 +834,11 @@ const EmployerDashboard = () => {
                               .toUpperCase()}
                           </div>
                           <div className="applicant-details">
-                            <h4>
+                            <h3>
                               {applicant.applicant_name ||
                                 applicant.candidate_name ||
                                 "Unnamed Applicant"}
-                            </h4>
+                            </h3>
                             <p>{applicant.job_title || "Unknown Position"}</p>
                             <p>
                               Applied:{" "}
@@ -811,6 +864,8 @@ const EmployerDashboard = () => {
                         {/* Right: Actions */}
                         <div className="applicant-actions">
                           <button
+                            type="button"
+                            aria-label="Mark applicant as reviewed"
                             className="btn-review"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "reviewed")
@@ -825,6 +880,8 @@ const EmployerDashboard = () => {
                           </button>
 
                           <button
+                            type="button"
+                            aria-label="Shortlist applicant"
                             className="btn-shortlist"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "shortlisted")
@@ -839,6 +896,8 @@ const EmployerDashboard = () => {
                           </button>
 
                           <button
+                            type="button"
+                            aria-label="Reject applicant"
                             className="btn-reject"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "rejected")
@@ -853,7 +912,9 @@ const EmployerDashboard = () => {
                           </button>
 
                           <button
+                            type="button"
                             className="btn-hire"
+                            aria-label="Hire applicant"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "hired")
                             }
@@ -878,13 +939,17 @@ const EmployerDashboard = () => {
             <div className="modal-overlay" onClick={() => setIsEditing(false)}>
               <div
                 className="modal-content"
+                role="dialog"
                 onClick={(e) => e.stopPropagation()}
+                aria-modal="true"
+                aria-labelledby="edit-job-title"
               >
-                <h3>Edit Job</h3>
+                <h3 id="edit-job-title">Edit Job</h3>
 
                 <div className="form-group">
-                  <label>Title</label>
+                  <label htmlFor="edit-title">Title</label>
                   <input
+                    id="edit-title"
                     type="text"
                     value={editJobData.title}
                     onChange={(e) =>
@@ -894,8 +959,9 @@ const EmployerDashboard = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Location</label>
+                  <label htmlFor="edit-location">Location</label>
                   <input
+                    id="edit-location"
                     type="text"
                     value={editJobData.location}
                     onChange={(e) =>
@@ -909,8 +975,9 @@ const EmployerDashboard = () => {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Salary Min</label>
+                    <label htmlFor="edit-salary-min">Salary Min</label>
                     <input
+                      id="edit-salary-min"
                       type="number"
                       value={editJobData.salary_min}
                       onChange={(e) =>
@@ -926,8 +993,9 @@ const EmployerDashboard = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>Salary Max</label>
+                    <label htmlFor="edit-salary-max">Salary Max</label>
                     <input
+                      id="edit-salary-max"
                       type="number"
                       value={editJobData.salary_max}
                       onChange={(e) =>
@@ -944,8 +1012,9 @@ const EmployerDashboard = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Description</label>
+                  <label htmlFor="edit-description">Description</label>
                   <textarea
+                    id="edit-description"
                     value={editJobData.description}
                     onChange={(e) =>
                       setEditJobData({
@@ -958,8 +1027,9 @@ const EmployerDashboard = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Requirements</label>
+                  <label htmlFor="edit-requirements">Requirements</label>
                   <textarea
+                    id="edit-requirements"
                     value={editJobData.requirements}
                     onChange={(e) =>
                       setEditJobData({
@@ -972,8 +1042,11 @@ const EmployerDashboard = () => {
                 </div>
 
                 <div className="modal-actions">
-                  <button onClick={handleUpdateJob}>Save</button>
+                  <button type="button" onClick={handleUpdateJob}>
+                    Save
+                  </button>
                   <button
+                    type="button"
                     onClick={() => {
                       setIsEditing(false);
                       setEditJobData(null);

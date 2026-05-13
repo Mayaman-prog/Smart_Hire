@@ -552,8 +552,10 @@ const AdminDashboard = () => {
     return (
       <div className="pagination">
         <button
+          type="button"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={currentPage === 1}
+          aria-label="Go to previous page"
         >
           Previous
         </button>
@@ -561,8 +563,10 @@ const AdminDashboard = () => {
           Page {currentPage} of {totalPages}
         </span>
         <button
+          type="button"
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
+          aria-label="Go to next page"
         >
           Next
         </button>
@@ -572,7 +576,9 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="admin-dashboard-loading">Loading admin dashboard...</div>
+      <div className="admin-dashboard-loading" role="status" aria-live="polite">
+        Loading admin dashboard...
+      </div>
     );
   }
 
@@ -583,7 +589,9 @@ const AdminDashboard = () => {
         <aside className="dashboard-sidebar">
           <div className="admin-info">
             <div className="admin-avatar">
-              <span className="material-symbols-outlined">shield_person</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                shield_person
+              </span>
             </div>
             <h3>Admin Panel</h3>
             <p>System control center</p>
@@ -606,8 +614,13 @@ const AdminDashboard = () => {
                     key={tab}
                     className={activeTab === tab ? "active" : ""}
                     onClick={() => setActiveTab(tab)}
+                    type="button"
+                    aria-label={`Open ${tab} section`}
                   >
-                    <span className="material-symbols-outlined">
+                    <span
+                      className="material-symbols-outlined"
+                      aria-hidden="true"
+                    >
                       {iconMap[tab]}
                     </span>
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -618,8 +631,15 @@ const AdminDashboard = () => {
           </nav>
 
           <div className="sidebar-footer">
-            <button className="logout-btn" onClick={logout}>
-              <span className="material-symbols-outlined">logout</span>
+            <button
+              className="logout-btn"
+              onClick={logout}
+              type="button"
+              aria-label="Logout from admin dashboard"
+            >
+              <span className="material-symbols-outlined" aria-hidden="true">
+                logout
+              </span>
               Logout
             </button>
             <div className="copyright">SmartHire Admin</div>
@@ -642,8 +662,11 @@ const AdminDashboard = () => {
                 <div className="controls-left">
                   {/* Date Range Picker */}
                   <div className="date-range-group">
-                    <label>Date Range:</label>
+                    <label htmlFor="date-range-select" className="sr-only">
+                      Select analytics date range
+                    </label>
                     <select
+                      id="date-range-select"
                       value={
                         datePickerMode === "custom"
                           ? "custom"
@@ -658,21 +681,38 @@ const AdminDashboard = () => {
                     </select>
                     {datePickerMode === "custom" && (
                       <div className="custom-date-inputs">
-                        <input
-                          type="date"
-                          value={customDateRange.start}
-                          onChange={(e) =>
-                            handleCustomDateChange("start", e.target.value)
-                          }
-                        />
-                        <span>to</span>
-                        <input
-                          type="date"
-                          value={customDateRange.end}
-                          onChange={(e) =>
-                            handleCustomDateChange("end", e.target.value)
-                          }
-                        />
+                        <>
+                          <label
+                            htmlFor="custom-start-date"
+                            className="sr-only"
+                          >
+                            Start date
+                          </label>
+
+                          <input
+                            id="custom-start-date"
+                            type="date"
+                            value={customDateRange.start}
+                            onChange={(e) =>
+                              handleCustomDateChange("start", e.target.value)
+                            }
+                          />
+                        </>
+                        <span aria-hidden="true">to</span>
+                        <>
+                          <label htmlFor="custom-end-date" className="sr-only">
+                            End date
+                          </label>
+
+                          <input
+                            id="custom-end-date"
+                            type="date"
+                            value={customDateRange.end}
+                            onChange={(e) =>
+                              handleCustomDateChange("end", e.target.value)
+                            }
+                          />
+                        </>
                       </div>
                     )}
                   </div>
@@ -682,10 +722,11 @@ const AdminDashboard = () => {
                     <label className="toggle-switch">
                       <input
                         type="checkbox"
+                        aria-label="Enable auto refresh"
                         checked={autoRefresh}
                         onChange={() => setAutoRefresh(!autoRefresh)}
                       />
-                      <span className="slider"></span>
+                      <span className="slider" aria-hidden="true"></span>
                     </label>
                     <span>Auto-refresh (5 min)</span>
                     {lastRefresh && (
@@ -733,8 +774,16 @@ const AdminDashboard = () => {
                       <div className="chart-card-header">
                         <h3>User Growth</h3>
                         <p>New users per day</p>
-                        <button className="export-btn" onClick={exportUsersCSV}>
-                          <span className="material-symbols-outlined">
+                        <button
+                          className="export-btn"
+                          onClick={exportUsersCSV}
+                          type="button"
+                          aria-label="Download users CSV"
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            aria-hidden="true"
+                          >
                             download
                           </span>{" "}
                           CSV
@@ -777,8 +826,16 @@ const AdminDashboard = () => {
                       <div className="chart-card-header">
                         <h3>Jobs Posted per Day</h3>
                         <p>New jobs per day</p>
-                        <button className="export-btn" onClick={exportJobsCSV}>
-                          <span className="material-symbols-outlined">
+                        <button
+                          className="export-btn"
+                          onClick={exportJobsCSV}
+                          type="button"
+                          aria-label="Download jobs CSV"
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            aria-hidden="true"
+                          >
                             download
                           </span>{" "}
                           CSV
@@ -822,8 +879,13 @@ const AdminDashboard = () => {
                         <button
                           className="export-btn"
                           onClick={exportJobTypesCSV}
+                          type="button"
+                          aria-label="Download job type analytics CSV"
                         >
-                          <span className="material-symbols-outlined">
+                          <span
+                            className="material-symbols-outlined"
+                            aria-hidden="true"
+                          >
                             download
                           </span>{" "}
                           CSV
@@ -877,8 +939,13 @@ const AdminDashboard = () => {
                     <button
                       className="export-btn"
                       onClick={exportUsersTableCSV}
+                      type="button"
+                      aria-label="Download users CSV"
                     >
-                      <span className="material-symbols-outlined">
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
                         download
                       </span>{" "}
                       CSV
@@ -921,8 +988,16 @@ const AdminDashboard = () => {
                 <section className="admin-section overview-panel">
                   <div className="admin-section-header">
                     <h2>Recent Jobs</h2>
-                    <button className="export-btn" onClick={exportJobsTableCSV}>
-                      <span className="material-symbols-outlined">
+                    <button
+                      className="export-btn"
+                      onClick={exportJobsTableCSV}
+                      type="button"
+                      aria-label="Download jobs CSV"
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
                         download
                       </span>{" "}
                       CSV
@@ -981,13 +1056,21 @@ const AdminDashboard = () => {
                 </span>
               </div>
               <div className="table-controls admin-filters">
+                <label htmlFor="user-search" className="sr-only">
+                  Search users by name or email
+                </label>
                 <input
                   type="text"
+                  id="user-search"
                   placeholder="Search by name or email"
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                 />
+                <label htmlFor="user-role-filter" className="sr-only">
+                  Filter users by role
+                </label>
                 <select
+                  id="user-role-filter"
                   value={userRoleFilter}
                   onChange={(e) => setUserRoleFilter(e.target.value)}
                 >
@@ -996,7 +1079,11 @@ const AdminDashboard = () => {
                   <option value="employer">Employer</option>
                   <option value="admin">Admin</option>
                 </select>
+                <label htmlFor="user-status-filter" className="sr-only">
+                  Filter users by status
+                </label>
                 <select
+                  id="user-status-filter"
                   value={userStatusFilter}
                   onChange={(e) => setUserStatusFilter(e.target.value)}
                 >
@@ -1045,7 +1132,13 @@ const AdminDashboard = () => {
                             </td>
                             <td className="actions">
                               <button
-                                className={`admin-btn ${Number(u.is_active) === 1 ? "admin-btn-danger" : "admin-btn-primary"}`}
+                                className={`admin-btn`}
+                                type="button"
+                                aria-label={
+                                  Number(u.is_active) === 1
+                                    ? `Deactivate ${u.name}`
+                                    : `Activate ${u.name}`
+                                }
                                 onClick={() => toggleUser(u.id)}
                                 disabled={togglingUserId === u.id}
                               >
@@ -1081,13 +1174,21 @@ const AdminDashboard = () => {
                 </span>
               </div>
               <div className="table-controls admin-filters">
+                <label htmlFor="job-search" className="sr-only">
+                  Search jobs
+                </label>
                 <input
                   type="text"
+                  id="job-search"
                   placeholder="Search title, company, or location"
                   value={jobSearch}
                   onChange={(e) => setJobSearch(e.target.value)}
                 />
+                <label htmlFor="job-status-filter" className="sr-only">
+                  Filter jobs by status
+                </label>
                 <select
+                  id="job-status-filter"
                   value={jobStatusFilter}
                   onChange={(e) => setJobStatusFilter(e.target.value)}
                 >
@@ -1095,7 +1196,11 @@ const AdminDashboard = () => {
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
+                <label htmlFor="job-type-filter" className="sr-only">
+                  Filter jobs by type
+                </label>
                 <select
+                  id="job-type-filter"
                   value={jobTypeFilter}
                   onChange={(e) => setJobTypeFilter(e.target.value)}
                 >
@@ -1150,6 +1255,8 @@ const AdminDashboard = () => {
                             <td className="actions">
                               <button
                                 className="admin-btn admin-btn-danger"
+                                type="button"
+                                aria-label={`Delete ${j.title}`}
                                 onClick={() => deleteJob(j.id)}
                                 disabled={deletingJobId === j.id}
                               >
@@ -1181,8 +1288,15 @@ const AdminDashboard = () => {
                 <button
                   className="export-btn"
                   onClick={exportCompaniesTableCSV}
+                  type="button"
+                  aria-label="Download companies CSV"
                 >
-                  <span className="material-symbols-outlined">download</span>{" "}
+                  <span
+                    className="material-symbols-outlined"
+                    aria-hidden="true"
+                  >
+                    download
+                  </span>{" "}
                   CSV
                 </button>
                 <span className="admin-count">
@@ -1191,8 +1305,12 @@ const AdminDashboard = () => {
                 </span>
               </div>
               <div className="table-controls admin-filters">
+                <label htmlFor="company-search" className="sr-only">
+                  Search companies
+                </label>
                 <input
                   type="text"
+                  id="company-search"
                   placeholder="Search company or location"
                   value={companySearch}
                   onChange={(e) => setCompanySearch(e.target.value)}
@@ -1241,8 +1359,18 @@ const AdminDashboard = () => {
             <section className="admin-section">
               <div className="admin-section-header">
                 <h2>Reports Queue</h2>
-                <button className="export-btn" onClick={exportReportsTableCSV}>
-                  <span className="material-symbols-outlined">download</span>{" "}
+                <button
+                  className="export-btn"
+                  onClick={exportReportsTableCSV}
+                  type="button"
+                  aria-label="Download reports CSV"
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    aria-hidden="true"
+                  >
+                    download
+                  </span>{" "}
                   CSV
                 </button>
                 <span className="admin-count">
@@ -1268,7 +1396,11 @@ const AdminDashboard = () => {
                     flex: 1,
                   }}
                 >
+                  <label htmlFor="report-status-filter" className="sr-only">
+                    Filter reports by status
+                  </label>
                   <select
+                    id="report-status-filter"
                     value={reportStatusFilter}
                     onChange={(e) => {
                       setReportStatusFilter(e.target.value);
@@ -1282,7 +1414,11 @@ const AdminDashboard = () => {
                     <option value="dismissed">Dismissed</option>
                   </select>
 
+                  <label htmlFor="report-reason-filter" className="sr-only">
+                    Filter reports by reason
+                  </label>
                   <select
+                    id="report-reason-filter"
                     value={reportReasonFilter}
                     onChange={(e) => {
                       setReportReasonFilter(e.target.value);
@@ -1371,6 +1507,8 @@ const AdminDashboard = () => {
                                   <>
                                     <button
                                       className="table-action-btn approve"
+                                      type="button"
+                                      aria-label={`Approve report for ${report.job_title}`}
                                       onClick={() =>
                                         openReportModal(report, "approved")
                                       }
@@ -1380,6 +1518,7 @@ const AdminDashboard = () => {
                                     >
                                       <span
                                         className="material-symbols-outlined"
+                                        aria-hidden="true"
                                         style={{ fontSize: "16px" }}
                                       >
                                         check_circle
@@ -1388,6 +1527,8 @@ const AdminDashboard = () => {
                                     </button>
                                     <button
                                       className="table-action-btn dismiss"
+                                      type="button"
+                                      aria-label={`Dismiss report for ${report.job_title}`}
                                       onClick={() =>
                                         openReportModal(report, "dismissed")
                                       }
@@ -1397,6 +1538,7 @@ const AdminDashboard = () => {
                                     >
                                       <span
                                         className="material-symbols-outlined"
+                                        aria-hidden="true"
                                         style={{ fontSize: "16px" }}
                                       >
                                         block
@@ -1405,6 +1547,8 @@ const AdminDashboard = () => {
                                     </button>
                                     <button
                                       className="table-action-btn remove"
+                                      type="button"
+                                      aria-label={`Remove reported job ${report.job_title}`}
                                       onClick={() =>
                                         openReportModal(report, "removed")
                                       }
@@ -1414,6 +1558,7 @@ const AdminDashboard = () => {
                                     >
                                       <span
                                         className="material-symbols-outlined"
+                                        aria-hidden="true"
                                         style={{ fontSize: "16px" }}
                                       >
                                         delete
@@ -1453,9 +1598,19 @@ const AdminDashboard = () => {
 
       {/* RESOLUTION MODAL - Only render when data is ready */}
       {isModalOpen && selectedReport && actionType && (
-        <div className="modal-overlay active" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Resolve Report</h3>
+        <div
+          className="modal-overlay active"
+          aria-hidden="true"
+          onClick={closeModal}
+        >
+          <div
+            className="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="resolve-report-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="resolve-report-title">Resolve Report</h3>
             <p style={{ marginBottom: "16px" }}>
               <strong>Action:</strong>{" "}
               <span className="capitalize-text">{actionType}</span>
@@ -1488,12 +1643,14 @@ const AdminDashboard = () => {
             >
               <button
                 className="admin-btn admin-btn-neutral"
+                type="button"
                 onClick={closeModal}
               >
                 Cancel
               </button>
               <button
                 className={`admin-btn ${actionType === "removed" ? "admin-btn-danger" : "admin-btn-primary"}`}
+                type="button"
                 onClick={confirmReportAction}
                 disabled={processingReportId === selectedReport?.id}
               >

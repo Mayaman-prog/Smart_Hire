@@ -54,11 +54,23 @@ export const ToastProvider = ({ children }) => {
         position="top-right"
         toastOptions={{
           className: "custom-toast",
+          ariaProps: {
+            role: "status",
+            "aria-live": "polite",
+          },
           success: {
             className: "custom-toast-success",
+            ariaProps: {
+              role: "status",
+              "aria-live": "polite",
+            },
           },
           error: {
             className: "custom-toast-error",
+            ariaProps: {
+              role: "alert",
+              "aria-live": "assertive",
+            },
           },
         }}
       />

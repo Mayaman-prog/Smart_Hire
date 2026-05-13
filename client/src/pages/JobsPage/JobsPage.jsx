@@ -194,44 +194,60 @@ const JobsPage = () => {
   return (
     <div className="jobs-page">
       <div className="container">
+        <h1 className="sr-only">Find Jobs</h1>
         <div className="search-section">
           <div className="search-bar">
             <div className="search-input-group">
               <span className="material-symbols-outlined search-icon">
                 search
               </span>
-              <input
-                type="text"
-                placeholder="Job title, keyword, or company"
-                value={keyword}
-                onChange={(e) => {
-                  setKeyword(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="search-input"
-              />
+              <>
+                <label htmlFor="jobs-keyword-search" className="sr-only">
+                  Search jobs by title, keyword, or company
+                </label>
+
+                <input
+                  id="jobs-keyword-search"
+                  type="text"
+                  placeholder="Job title, keyword, or company"
+                  value={keyword}
+                  onChange={(e) => {
+                    setKeyword(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="search-input"
+                />
+              </>
             </div>
 
             <div className="search-input-group">
               <span className="material-symbols-outlined search-icon">
                 location_on
               </span>
-              <input
-                type="text"
-                placeholder="City, state, or remote"
-                value={location}
-                onChange={(e) => {
-                  setLocation(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="search-input"
-              />
+              <>
+                <label htmlFor="jobs-location-search" className="sr-only">
+                  Search jobs by location
+                </label>
+
+                <input
+                  id="jobs-location-search"
+                  type="text"
+                  placeholder="City, state, or remote"
+                  value={location}
+                  onChange={(e) => {
+                    setLocation(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="search-input"
+                />
+              </>
             </div>
 
             <button
               className="search-btn"
               onClick={() => setCurrentPage(1)}
               type="button"
+              aria-label="Search jobs"
             >
               <span className="material-symbols-outlined">search</span>
               Search
@@ -245,6 +261,7 @@ const JobsPage = () => {
               type="button"
               onClick={handleSaveSearchClick}
               title="Save this search"
+              aria-label="Save current job search"
             >
               <span className="material-symbols-outlined">bookmark</span>
               Save this search
@@ -266,7 +283,11 @@ const JobsPage = () => {
                     className={`active-filter-tag ${opt?.colorClass || ""}`}
                   >
                     {opt?.label || type}
-                    <button type="button" onClick={() => toggleJobType(type)}>
+                    <button
+                      type="button"
+                      onClick={() => toggleJobType(type)}
+                      aria-label={`Remove ${opt?.label || type} filter`}
+                    >
                       x
                     </button>
                   </span>
@@ -299,7 +320,7 @@ const JobsPage = () => {
             </div>
 
             <div className="filter-group">
-              <h4>Job Type</h4>
+              <h3>Job Type</h3>
               <div className="job-type-buttons">
                 {jobTypeOptions.map((opt) => (
                   <button
@@ -320,7 +341,7 @@ const JobsPage = () => {
             </div>
 
             <div className="filter-group">
-              <h4>Location</h4>
+              <h3>Location</h3>
               <input
                 type="text"
                 placeholder="City or remote"
@@ -334,12 +355,13 @@ const JobsPage = () => {
             </div>
 
             <div className="filter-group">
-              <h4>Salary Range</h4>
+              <h3>Salary Range</h3>
               <div className="salary-inputs">
                 <div className="salary-input">
-                  <label>Min ($)</label>
+                  <label htmlFor="salary-min-desktop">Min ($)</label>
                   <input
                     type="number"
+                    id="salary-min-desktop"
                     placeholder="0"
                     value={salaryRange.min}
                     onChange={(e) => {
@@ -352,9 +374,11 @@ const JobsPage = () => {
                   />
                 </div>
                 <div className="salary-input">
-                  <label>Max ($)</label>
+                  <label htmlFor="salary-max-desktop">Max ($)</label>
+
                   <input
                     type="number"
+                    id="salary-max-desktop"
                     placeholder="200000"
                     value={salaryRange.max}
                     onChange={(e) => {
@@ -394,6 +418,7 @@ const JobsPage = () => {
             className="mobile-filter-btn"
             onClick={() => setIsFilterOpen(true)}
             type="button"
+            aria-label="Open filters"
           >
             <span className="material-symbols-outlined">filter_list</span>
             Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
@@ -411,13 +436,17 @@ const JobsPage = () => {
               >
                 <div className="drawer-header">
                   <h3>Filters</h3>
-                  <button onClick={() => setIsFilterOpen(false)} type="button">
+                  <button
+                    onClick={() => setIsFilterOpen(false)}
+                    type="button"
+                    aria-label="Close filters"
+                  >
                     <span className="material-symbols-outlined">close</span>
                   </button>
                 </div>
                 <div className="drawer-body">
                   <div className="filter-group">
-                    <h4>Job Type</h4>
+                    <h3>Job Type</h3>
                     <div className="job-type-buttons">
                       {jobTypeOptions.map((opt) => (
                         <button
@@ -439,7 +468,7 @@ const JobsPage = () => {
                     </div>
                   </div>
                   <div className="filter-group">
-                    <h4>Location</h4>
+                    <h3>Location</h3>
                     <input
                       type="text"
                       placeholder="City or remote"
@@ -452,32 +481,46 @@ const JobsPage = () => {
                     />
                   </div>
                   <div className="filter-group">
-                    <h4>Salary Range</h4>
+                    <h3>Salary Range</h3>
                     <div className="salary-inputs">
-                      <input
-                        type="number"
-                        placeholder="Min"
-                        value={salaryRange.min}
-                        onChange={(e) => {
-                          setSalaryRange({
-                            ...salaryRange,
-                            min: parseInt(e.target.value, 10) || 0,
-                          });
-                          setCurrentPage(1);
-                        }}
-                      />
-                      <input
-                        type="number"
-                        placeholder="Max"
-                        value={salaryRange.max}
-                        onChange={(e) => {
-                          setSalaryRange({
-                            ...salaryRange,
-                            max: parseInt(e.target.value, 10) || 200000,
-                          });
-                          setCurrentPage(1);
-                        }}
-                      />
+                      <>
+                        <label htmlFor="salary-min-mobile" className="sr-only">
+                          Minimum salary
+                        </label>
+
+                        <input
+                          id="salary-min-mobile"
+                          type="number"
+                          placeholder="Min"
+                          value={salaryRange.min}
+                          onChange={(e) => {
+                            setSalaryRange({
+                              ...salaryRange,
+                              min: parseInt(e.target.value, 10) || 0,
+                            });
+                            setCurrentPage(1);
+                          }}
+                        />
+                      </>
+                      <>
+                        <label htmlFor="salary-max-mobile" className="sr-only">
+                          Maximum salary
+                        </label>
+
+                        <input
+                          id="salary-max-mobile"
+                          type="number"
+                          placeholder="Max"
+                          value={salaryRange.max}
+                          onChange={(e) => {
+                            setSalaryRange({
+                              ...salaryRange,
+                              max: parseInt(e.target.value, 10) || 200000,
+                            });
+                            setCurrentPage(1);
+                          }}
+                        />
+                      </>
                     </div>
                   </div>
                 </div>
@@ -507,18 +550,25 @@ const JobsPage = () => {
               <p>
                 Showing {showingStart}-{showingEnd} of {total} jobs
               </p>
-              <select
-                className="sort-select"
-                value={sortBy}
-                onChange={(e) => {
-                  setSortBy(e.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                <option value="recent">Most recent</option>
-                <option value="salary_high">Salary: High to Low</option>
-                <option value="salary_low">Salary: Low to High</option>
-              </select>
+              <>
+                <label htmlFor="jobs-sort" className="sr-only">
+                  Sort jobs
+                </label>
+
+                <select
+                  id="jobs-sort"
+                  className="sort-select"
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="recent">Most recent</option>
+                  <option value="salary_high">Salary: High to Low</option>
+                  <option value="salary_low">Salary: Low to High</option>
+                </select>
+              </>
             </div>
 
             {loading ? (
@@ -547,7 +597,7 @@ const JobsPage = () => {
                       onClick={() => goToPage(currentPage - 1)}
                       type="button"
                     >
-                      <span className="material-symbols-outlined">
+                      <span className="material-symbols-outlined" aria-label="Go to previous page">
                         chevron_left
                       </span>
                       Previous
@@ -561,6 +611,7 @@ const JobsPage = () => {
                             className={`pagination-page ${currentPage === page ? "active" : ""}`}
                             onClick={() => goToPage(page)}
                             type="button"
+                            aria-label={`Go to page ${page}`}
                           >
                             {page}
                           </button>
@@ -572,6 +623,7 @@ const JobsPage = () => {
                       disabled={currentPage === totalPages}
                       onClick={() => goToPage(currentPage + 1)}
                       type="button"
+                      aria-label="Go to next page"
                     >
                       Next
                       <span className="material-symbols-outlined">

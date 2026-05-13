@@ -153,7 +153,12 @@ const HomePage = () => {
               <span className="material-symbols-outlined search-icon">
                 search
               </span>
+              <label htmlFor="home-keyword-search" className="sr-only">
+                Search jobs by title, skill or company
+              </label>
+
               <input
+                id="home-keyword-search"
                 type="text"
                 placeholder="Search jobs by title, skill or company"
                 value={keyword}
@@ -162,15 +167,26 @@ const HomePage = () => {
             </div>
             <span className="search-divider">|</span>
             <div className="search-input-wrapper">
-              <span className="material-symbols-outlined search-icon">location_on</span>
+              <span className="material-symbols-outlined search-icon">
+                location_on
+              </span>
+              <label htmlFor="home-location-search" className="sr-only">
+                Search jobs by location
+              </label>
+
               <input
+                id="home-location-search"
                 type="text"
                 placeholder="Kathmandu, Nepal"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
             </div>
-            <button type="submit" className="search-btn">
+            <button
+              type="submit"
+              className="search-btn"
+              aria-label="Search jobs"
+            >
               <span className="material-symbols-outlined">search</span>
               Search
             </button>
@@ -223,7 +239,11 @@ const HomePage = () => {
         <div className="container">
           <div className="section-header">
             <h2 className="section-title">Trending Jobs</h2>
-            <button onClick={() => navigate("/jobs")} className="view-all-link">
+            <button
+              onClick={() => navigate("/jobs")}
+              className="view-all-link"
+              aria-label="View all jobs"
+            >
               View all
             </button>
           </div>
@@ -244,6 +264,7 @@ const HomePage = () => {
               <button
                 onClick={() => navigate("/jobs")}
                 className="view-all-link"
+                aria-label="View all jobs"
               >
                 View all
               </button>

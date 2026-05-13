@@ -10,14 +10,14 @@ const ProfilePage = () => {
   // Handle OAuth Redirect URL Parameters
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const linkStatus = params.get('link');
+    const linkStatus = params.get("link");
 
-    if (linkStatus === 'success') {
-      toast.success('Account successfully linked!');
-    } else if (linkStatus === 'error') {
-      toast.error('Failed to link account. Try again.');
-    } else if (linkStatus === 'duplicate_error') {
-      toast.error('This social account is already linked to another user.');
+    if (linkStatus === "success") {
+      toast.success("Account successfully linked!");
+    } else if (linkStatus === "error") {
+      toast.error("Failed to link account. Try again.");
+    } else if (linkStatus === "duplicate_error") {
+      toast.error("This social account is already linked to another user.");
     }
 
     // Clean up the URL so the toast doesn't persist on page refresh
@@ -39,7 +39,8 @@ const ProfilePage = () => {
     location: "Not Available",
     phone: "9707921003",
     salaryExpectation: "Not Available",
-    about: "Completing your profile is vital as it serves as your professional introduction. A well-crafted bio enhances your visibility, credibility, and networking opportunities.",
+    about:
+      "Completing your profile is vital as it serves as your professional introduction. A well-crafted bio enhances your visibility, credibility, and networking opportunities.",
   };
 
   return (
@@ -47,7 +48,6 @@ const ProfilePage = () => {
       <div className="profile-container container">
         {/* LEFT COLUMN */}
         <div className="profile-left">
-
           {/* Profile Header (Banner + Avatar) */}
           <div className="profile-card profile-header-card">
             <div className="profile-banner"></div>
@@ -56,8 +56,10 @@ const ProfilePage = () => {
                 <span className="material-symbols-outlined">person</span>
               </div>
               <div className="profile-header-actions">
-                <button className="btn-edit-profile">
-                  <span className="material-symbols-outlined">edit</span>
+                <button className="btn-edit-profile"
+                type="button"
+                aria-label="Edit profile">
+                  <span className="material-symbols-outlined" aria-hidden="true">edit</span>
                   Edit
                 </button>
               </div>
@@ -81,34 +83,49 @@ const ProfilePage = () => {
           <div className="profile-card">
             <div className="card-header">
               <h2>Personal Information</h2>
-              <button className="icon-btn" onClick={() => handleAdd("Personal Info")}>
-                <span className="material-symbols-outlined">edit</span>
+              <button
+                className="icon-btn"
+                type="button"
+                onClick={() => handleAdd("Personal Info")}
+                aria-label="Edit personal information"
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">edit</span>
               </button>
             </div>
             <div className="info-grid">
               <div className="info-item">
-                <span className="info-icon"><span className="material-symbols-outlined">mail</span></span>
+                <span className="info-icon">
+                  <span className="material-symbols-outlined">mail</span>
+                </span>
                 <div>
                   <label>Email</label>
                   <p>{userData.email}</p>
                 </div>
               </div>
               <div className="info-item">
-                <span className="info-icon"><span className="material-symbols-outlined">call</span></span>
+                <span className="info-icon">
+                  <span className="material-symbols-outlined">call</span>
+                </span>
                 <div>
                   <label>Phone Number</label>
                   <p>{userData.phone}</p>
                 </div>
               </div>
               <div className="info-item">
-                <span className="info-icon"><span className="material-symbols-outlined">location_on</span></span>
+                <span className="info-icon">
+                  <span className="material-symbols-outlined">location_on</span>
+                </span>
                 <div>
                   <label>Location</label>
                   <p>{userData.location}</p>
                 </div>
               </div>
               <div className="info-item">
-                <span className="info-icon"><span className="material-symbols-outlined">attach_money</span></span>
+                <span className="info-icon">
+                  <span className="material-symbols-outlined">
+                    attach_money
+                  </span>
+                </span>
                 <div>
                   <label>Salary Expectation</label>
                   <p>{userData.salaryExpectation}</p>
@@ -120,9 +137,16 @@ const ProfilePage = () => {
           {/* About */}
           <div className="profile-card">
             <div className="card-header">
-              <h2>About <span className="required-asterisk">*</span></h2>
-              <button className="icon-btn" onClick={() => handleAdd("About")}>
-                <span className="material-symbols-outlined">add</span>
+              <h2>
+                About <span className="required-asterisk">*</span>
+              </h2>
+              <button
+                className="icon-btn"
+                onClick={() => handleAdd("About")}
+                type="button"
+                aria-label="Add about"
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">add</span>
               </button>
             </div>
             <p className="card-content">{userData.about}</p>
@@ -132,51 +156,83 @@ const ProfilePage = () => {
           <div className="profile-card">
             <div className="card-header">
               <h2>Resume</h2>
-              <button className="icon-btn" onClick={() => handleAdd("Resume")}>
-                <span className="material-symbols-outlined">add</span>
+              <button
+                className="icon-btn"
+                onClick={() => handleAdd("Resume")}
+                type="button"
+                aria-label="Add resume"
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">add</span>
               </button>
             </div>
             <p className="card-placeholder">
-              The resume stands as the most crucial document that recruiters prioritize, often disregarding profiles lacking this essential component.
+              The resume stands as the most crucial document that recruiters
+              prioritize, often disregarding profiles lacking this essential
+              component.
             </p>
           </div>
 
           {/* Experience */}
           <div className="profile-card">
             <div className="card-header">
-              <h2>Experience <span className="required-asterisk">*</span></h2>
-              <button className="icon-btn" onClick={() => handleAdd("Experience")}>
-                <span className="material-symbols-outlined">add</span>
+              <h2>
+                Experience <span className="required-asterisk">*</span>
+              </h2>
+              <button
+                className="icon-btn"
+                onClick={() => handleAdd("Experience")}
+                type="button"
+                aria-label="Add experience"
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">add</span>
               </button>
             </div>
             <p className="card-placeholder">
-              Outline your employment particulars encompassing both your present role and past professional experiences.
+              Outline your employment particulars encompassing both your present
+              role and past professional experiences.
             </p>
           </div>
 
           {/* Education */}
           <div className="profile-card">
             <div className="card-header">
-              <h2>Education <span className="required-asterisk">*</span></h2>
-              <button className="icon-btn" onClick={() => handleAdd("Education")}>
-                <span className="material-symbols-outlined">add</span>
+              <h2>
+                Education <span className="required-asterisk">*</span>
+              </h2>
+              <button
+                className="icon-btn"
+                onClick={() => handleAdd("Education")}
+                type="button"
+                aria-label="Add education"
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">add</span>
               </button>
             </div>
             <p className="card-placeholder">
-              Kindly provide information about your educational background, including details about your schooling, college attendance, and degrees earned.
+              Kindly provide information about your educational background,
+              including details about your schooling, college attendance, and
+              degrees earned.
             </p>
           </div>
 
           {/* Skills */}
           <div className="profile-card">
             <div className="card-header">
-              <h2>Skills <span className="required-asterisk">*</span></h2>
-              <button className="icon-btn" onClick={() => handleAdd("Skills")}>
-                <span className="material-symbols-outlined">add</span>
+              <h2>
+                Skills <span className="required-asterisk">*</span>
+              </h2>
+              <button
+                className="icon-btn"
+                onClick={() => handleAdd("Skills")}
+                type="button"
+                aria-label="Add skills"
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">add</span>
               </button>
             </div>
             <p className="card-placeholder">
-              Share your expertise or notable skills with recruiters, such as Java, Python, Project Management, etc.
+              Share your expertise or notable skills with recruiters, such as
+              Java, Python, Project Management, etc.
             </p>
           </div>
           {/* Render the connected accounts block here */}
@@ -185,24 +241,44 @@ const ProfilePage = () => {
 
         {/* RIGHT COLUMN (WIDGETS) */}
         <div className="profile-right">
-          
           {/* AI Profile Completion Widget */}
           <div className="profile-card widget-card">
             <h2>Your AI Personal Recruiter</h2>
             <p className="widget-subtitle">
-              Dear {userData.fullName.split(" ")[0]}, your profile is only <strong>8.33 %</strong> complete. Please fill in all required details.
+              Dear {userData.fullName.split(" ")[0]}, your profile is only{" "}
+              <strong>8.33 %</strong> complete. Please fill in all required
+              details.
             </p>
             <div className="progress-bar-container">
-              <div className="progress-fill" style={{width: "8.33%"}}></div>
+              <div className="progress-fill" style={{ width: "8.33%" }}></div>
             </div>
             <div className="widget-list">
-              <div className="widget-item"><span className="material-symbols-outlined">add_circle</span> Add Experience</div>
-              <div className="widget-item"><span className="material-symbols-outlined">add_circle</span> Add Skills</div>
-              <div className="widget-item"><span className="material-symbols-outlined">add_circle</span> Add Education</div>
-              <div className="widget-item"><span className="material-symbols-outlined">add_circle</span> Add About you</div>
-              <div className="widget-item"><span className="material-symbols-outlined">add_circle</span> Add information</div>
+              <div className="widget-item">
+                <span className="material-symbols-outlined">add_circle</span>{" "}
+                Add Experience
+              </div>
+              <div className="widget-item">
+                <span className="material-symbols-outlined">add_circle</span>{" "}
+                Add Skills
+              </div>
+              <div className="widget-item">
+                <span className="material-symbols-outlined">add_circle</span>{" "}
+                Add Education
+              </div>
+              <div className="widget-item">
+                <span className="material-symbols-outlined">add_circle</span>{" "}
+                Add About you
+              </div>
+              <div className="widget-item">
+                <span className="material-symbols-outlined">add_circle</span>{" "}
+                Add information
+              </div>
             </div>
-            <button className="btn-primary-full" onClick={() => handleAdd("Resume")}>
+            <button
+              className="btn-primary-full"
+              onClick={() => handleAdd("Resume")}
+              aria-label="Generate resume"
+            >
               Generate Resume
             </button>
           </div>
@@ -214,7 +290,6 @@ const ProfilePage = () => {
             </div>
             <p className="card-placeholder">Not available, add more skills.</p>
           </div>
-
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,10 +8,10 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { salaryAPI } from '../../services/api';
-import './SalaryInsights.css';
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+import { salaryAPI } from "../../services/api";
+import "./SalaryInsights.css";
 
 // Register Chart.js components
 ChartJS.register(
@@ -21,7 +21,7 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 const SalaryInsights = ({ jobTitle, location }) => {
@@ -41,7 +41,7 @@ const SalaryInsights = ({ jobTitle, location }) => {
         setTrendData(response.data.trend);
         setPercentiles(response.data.percentiles);
       } catch (err) {
-        console.error('Failed to fetch salary trend:', err);
+        console.error("Failed to fetch salary trend:", err);
         setError(true);
       } finally {
         setLoading(false);
@@ -56,14 +56,14 @@ const SalaryInsights = ({ jobTitle, location }) => {
     labels: trendData?.map((d) => d.month) || [],
     datasets: [
       {
-        label: 'Average Salary ($)',
+        label: "Average Salary ($)",
         data: trendData?.map((d) => d.avg) || [],
-        borderColor: '#00c48c',
-        backgroundColor: 'rgba(0, 196, 140, 0.1)',
+        borderColor: "#00c48c",
+        backgroundColor: "rgba(0, 196, 140, 0.1)",
         tension: 0.3,
         fill: true,
-        pointBackgroundColor: '#00c48c',
-        pointBorderColor: '#ffffff',
+        pointBackgroundColor: "#00c48c",
+        pointBorderColor: "#ffffff",
         pointBorderWidth: 2,
         pointRadius: 4,
         pointHoverRadius: 6,
@@ -87,7 +87,7 @@ const SalaryInsights = ({ jobTitle, location }) => {
         ticks: {
           callback: (value) => `$${value.toLocaleString()}`,
         },
-        grid: { color: 'rgba(0,0,0,0.05)' },
+        grid: { color: "rgba(0,0,0,0.05)" },
       },
       x: {
         grid: { display: false },
@@ -111,10 +111,11 @@ const SalaryInsights = ({ jobTitle, location }) => {
         className="insights-toggle"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
+        aria-label={isOpen ? "Hide salary insights" : "Show salary insights"}
         type="button"
       >
-        <span className="material-symbols-outlined">
-          {isOpen ? 'expand_less' : 'expand_more'}
+        <span className="material-symbols-outlined" aria-hidden="true">
+          {isOpen ? "expand_less" : "expand_more"}
         </span>
         Salary Insights
       </button>
@@ -122,13 +123,13 @@ const SalaryInsights = ({ jobTitle, location }) => {
       {isOpen && (
         <div className="insights-content">
           {loading && (
-            <div className="insights-loading">
+            <div className="insights-loading" role="status" aria-live="polite">
               <span className="spinner"></span> Loading salary data...
             </div>
           )}
 
           {error && (
-            <div className="insights-error">
+            <div className="insights-error" role="alert" aria-live="assertlive">
               <span className="material-symbols-outlined">error_outline</span>
               Could not load salary insights.
             </div>
@@ -138,7 +139,7 @@ const SalaryInsights = ({ jobTitle, location }) => {
             <div className="insights-grid">
               {/* Chart section */}
               <div className="chart-container">
-                <h4>Salary Trend (Last 6 Months)</h4>
+                <h3>Salary Trend (Last 6 Months)</h3>
                 <div className="chart-wrapper">
                   <Line data={chartData} options={chartOptions} />
                 </div>
@@ -146,17 +147,19 @@ const SalaryInsights = ({ jobTitle, location }) => {
 
               {/* Percentiles section */}
               <div className="percentiles-container">
-                <h4>Percentile Distribution</h4>
+                <h3>Percentile Distribution</h3>
                 <div className="percentile-item">
                   <span className="percentile-label">25th</span>
                   <div className="percentile-bar-bg">
                     <div
                       className="percentile-bar"
-                      style={{ width: `${getBarWidth(percentiles.p25, maxPercentile)}%` }}
+                      style={{
+                        width: `${getBarWidth(percentiles.p25, maxPercentile)}%`,
+                      }}
                     />
                   </div>
                   <span className="percentile-value">
-                    ${percentiles.p25?.toLocaleString() || 'N/A'}
+                    ${percentiles.p25?.toLocaleString() || "N/A"}
                   </span>
                 </div>
 
@@ -165,11 +168,13 @@ const SalaryInsights = ({ jobTitle, location }) => {
                   <div className="percentile-bar-bg">
                     <div
                       className="percentile-bar median"
-                      style={{ width: `${getBarWidth(percentiles.p50, maxPercentile)}%` }}
+                      style={{
+                        width: `${getBarWidth(percentiles.p50, maxPercentile)}%`,
+                      }}
                     />
                   </div>
                   <span className="percentile-value">
-                    ${percentiles.p50?.toLocaleString() || 'N/A'}
+                    ${percentiles.p50?.toLocaleString() || "N/A"}
                   </span>
                 </div>
 
@@ -178,11 +183,13 @@ const SalaryInsights = ({ jobTitle, location }) => {
                   <div className="percentile-bar-bg">
                     <div
                       className="percentile-bar"
-                      style={{ width: `${getBarWidth(percentiles.p75, maxPercentile)}%` }}
+                      style={{
+                        width: `${getBarWidth(percentiles.p75, maxPercentile)}%`,
+                      }}
                     />
                   </div>
                   <span className="percentile-value">
-                    ${percentiles.p75?.toLocaleString() || 'N/A'}
+                    ${percentiles.p75?.toLocaleString() || "N/A"}
                   </span>
                 </div>
               </div>

@@ -206,36 +206,64 @@ const JobSeekerDashboard = () => {
           <form className="dashboard-search-bar" onSubmit={handleSearch}>
             <div className="search-wrapper">
               <div className="search-input-wrapper">
-                <span className="material-symbols-outlined search-icon">
+                <span
+                  className="material-symbols-outlined search-icon"
+                  aria-hidden="true"
+                >
                   search
                 </span>
-                <input
-                  type="text"
-                  placeholder="Search jobs by title, skill or company"
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                />
+                <>
+                  <label htmlFor="dashboard-keyword-search" className="sr-only">
+                    Search jobs by keyword
+                  </label>
+
+                  <input
+                    id="dashboard-keyword-search"
+                    type="text"
+                    placeholder="Search jobs by title, skill or company"
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                  />
+                </>
               </div>
-              <div className="search-divider">|</div>
+              <div className="search-divider" aria-hidden="true">
+                |
+              </div>
               <div className="search-input-wrapper location-input">
                 <span className="material-symbols-outlined">location_on</span>
-                <input
-                  type="text"
-                  placeholder="Kathmandu, Nepal"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
+                <>
+                  <label
+                    htmlFor="dashboard-location-search"
+                    className="sr-only"
+                  >
+                    Search jobs by location
+                  </label>
+
+                  <input
+                    id="dashboard-location-search"
+                    type="text"
+                    placeholder="Kathmandu, Nepal"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                </>
               </div>
             </div>
-            <button type="submit" className="search-btn-black">
+            <button
+              type="submit"
+              className="search-btn-black"
+              aria-label="Search jobs"
+            >
               Search
             </button>
           </form>
 
           {/* Quick Action Cards */}
           <div className="quick-actions-grid">
-            <div
+            <button
+              type="button"
               className={`quick-action-card ${expandedCard === "applications" ? "active" : ""}`}
+              aria-label="View applications summary"
               onClick={() =>
                 setExpandedCard(
                   expandedCard === "applications" ? null : "applications",
@@ -243,13 +271,17 @@ const JobSeekerDashboard = () => {
               }
             >
               <div className="icon-circle">
-                <span className="material-symbols-outlined">description</span>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  description
+                </span>
               </div>
               <div className="action-label">My Applications</div>
               <div className="action-count">{stats.applications}</div>
-            </div>
-            <div
-              className={`quick-action-card ${expandedCard === "savedJobs" ? "active" : ""}`}
+            </button>
+            <button
+              type="button"
+              className={`quick-action-card ${expandedCard === "interviews" ? "active" : ""}`}
+              aria-label="View interviews summary"
               onClick={() =>
                 setExpandedCard(
                   expandedCard === "savedJobs" ? null : "savedJobs",
@@ -257,11 +289,13 @@ const JobSeekerDashboard = () => {
               }
             >
               <div className="icon-circle">
-                <span className="material-symbols-outlined">favorite</span>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  favorite
+                </span>
               </div>
               <div className="action-label">Saved Jobs</div>
               <div className="action-count">{stats.savedJobs}</div>
-            </div>
+            </button>
             <div
               className={`quick-action-card ${expandedCard === "interviews" ? "active" : ""}`}
               onClick={() =>
@@ -271,15 +305,17 @@ const JobSeekerDashboard = () => {
               }
             >
               <div className="icon-circle">
-                <span className="material-symbols-outlined">
+                <span className="material-symbols-outlined" aria-hidden="true">
                   question_answer
                 </span>
               </div>
               <div className="action-label">Interview</div>
               <div className="action-count">{stats.interviews}</div>
             </div>
-            <div
+            <button
+              type="button"
               className={`quick-action-card ${expandedCard === "connections" ? "active" : ""}`}
+              aria-label="View connections summary"
               onClick={() =>
                 setExpandedCard(
                   expandedCard === "connections" ? null : "connections",
@@ -287,11 +323,13 @@ const JobSeekerDashboard = () => {
               }
             >
               <div className="icon-circle">
-                <span className="material-symbols-outlined">group</span>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  group
+                </span>
               </div>
               <div className="action-label">My Connections</div>
               <div className="action-count">{stats.connections}</div>
-            </div>
+            </button>
           </div>
 
           {/* Expanded Card Details */}
@@ -299,7 +337,7 @@ const JobSeekerDashboard = () => {
             <div className="expanded-card-details">
               {expandedCard === "applications" && (
                 <div className="detail-content">
-                  <h4>Your Applications</h4>
+                  <h3>Your Applications</h3>
                   <p>
                     You have applied to <strong>{stats.applications}</strong>{" "}
                     jobs.
@@ -310,6 +348,7 @@ const JobSeekerDashboard = () => {
                     <p>Start applying to jobs to see them here!</p>
                   )}
                   <button
+                    type="button"
                     className="btn-primary"
                     onClick={() => navigate("/jobs")}
                   >
@@ -319,12 +358,13 @@ const JobSeekerDashboard = () => {
               )}
               {expandedCard === "savedJobs" && (
                 <div className="detail-content">
-                  <h4>Your Saved Jobs</h4>
+                  <h3>Your Saved Jobs</h3>
                   <p>
                     You have saved <strong>{stats.savedJobs}</strong> jobs.
                   </p>
                   {stats.savedJobs > 0 ? (
                     <button
+                      type="button"
                       className="btn-primary"
                       onClick={() => navigate("/dashboard/saved-jobs")}
                     >
@@ -337,7 +377,7 @@ const JobSeekerDashboard = () => {
               )}
               {expandedCard === "interviews" && (
                 <div className="detail-content">
-                  <h4>Your Interviews</h4>
+                  <h3>Your Interviews</h3>
                   <p>
                     You have <strong>{stats.interviews}</strong> upcoming
                     interviews.
@@ -347,7 +387,7 @@ const JobSeekerDashboard = () => {
               )}
               {expandedCard === "connections" && (
                 <div className="detail-content">
-                  <h4>Your Connections</h4>
+                  <h3>Your Connections</h3>
                   <p>
                     You have <strong>{stats.connections}</strong> connections.
                   </p>
@@ -368,17 +408,20 @@ const JobSeekerDashboard = () => {
             </p>
 
             {loadingSearches ? (
-              <div className="loading-grid">Loading saved searches...</div>
+              <div className="loading-grid" role="status" aria-live="polite">
+                Loading saved searches...
+              </div>
             ) : savedSearches.length > 0 ? (
               <div className="saved-searches-grid">
                 {savedSearches.map((search) => (
                   <div key={search.id} className="saved-search-card">
                     <div className="saved-search-header">
-                      <h4 className="search-name">{search.name}</h4>
+                      <h3 className="search-name">{search.name}</h3>
                       <div className="search-actions">
                         {/* Active toggle */}
                         <label className="toggle-switch">
                           <input
+                            aria-label={`Toggle alerts for ${search.name}`}
                             type="checkbox"
                             checked={
                               search.is_active === 1 ||
@@ -392,28 +435,40 @@ const JobSeekerDashboard = () => {
                               )
                             }
                           />
-                          <span className="toggle-slider"></span>
+                          <span
+                            className="toggle-slider"
+                            aria-hidden="true"
+                          ></span>
                         </label>
                         {/* Edit button */}
                         <button
+                          type="button"
                           className="icon-btn edit-btn"
                           onClick={() => handleEditSearch(search)}
-                          aria-label="Edit search"
+                          aria-label={`Edit saved search ${search.name}`}
                         >
-                          <span className="material-symbols-outlined">
+                          <span
+                            className="material-symbols-outlined"
+                            aria-hidden="true"
+                          >
                             edit
                           </span>
                         </button>
                         {/* Delete button */}
                         <button
+                          type="button"
                           className="icon-btn delete-btn"
+                          aria-label={`Delete saved search ${search.name}`}
                           onClick={() => {
                             setDeletingSearchId(search.id);
                             setIsDeleteModalOpen(true);
                           }}
                           aria-label="Delete search"
                         >
-                          <span className="material-symbols-outlined">
+                          <span
+                            className="material-symbols-outlined"
+                            aria-hidden="true"
+                          >
                             delete
                           </span>
                         </button>
@@ -461,7 +516,12 @@ const JobSeekerDashboard = () => {
             ) : (
               <div className="empty-state-container">
                 <div className="empty-state-icon">
-                  <span className="material-symbols-outlined">search</span>
+                  <span
+                    className="material-symbols-outlined"
+                    aria-hidden="true"
+                  >
+                    search
+                  </span>
                 </div>
                 <h3>No Saved Searches</h3>
                 <p>
@@ -475,11 +535,15 @@ const JobSeekerDashboard = () => {
           {/* Trending Jobs */}
           <div className="jobs-section">
             <div className="section-header">
-              <span className="fire-icon">🔥</span>
+              <span className="fire-icon" aria-hidden="true">
+                🔥
+              </span>
               <h2 className="section-title">Trending Jobs</h2>
             </div>
             {loadingDashboard ? (
-              <div className="loading-grid">Loading jobs...</div>
+              <div className="loading-grid" role="status" aria-live="polite">
+                Loading jobs...
+              </div>
             ) : trendingJobs.length > 0 ? (
               <div className="jobs-grid">
                 {trendingJobs.map((job) => (
@@ -491,6 +555,7 @@ const JobSeekerDashboard = () => {
             )}
             <div className="load-more-container">
               <button
+                type="button"
                 className="load-more-btn"
                 onClick={() => navigate("/jobs")}
               >
@@ -502,11 +567,15 @@ const JobSeekerDashboard = () => {
           {/* Premium Jobs */}
           <div className="jobs-section">
             <div className="section-header">
-              <span className="star-icon">⭐</span>
+              <span className="star-icon" aria-hidden="true">
+                ⭐
+              </span>
               <h2 className="section-title">Premium Jobs</h2>
             </div>
             {loadingDashboard ? (
-              <div className="loading-grid">Loading jobs...</div>
+              <div className="loading-grid" role="status" aria-live="polite">
+                Loading jobs...
+              </div>
             ) : premiumJobs.length > 0 ? (
               <div className="jobs-grid">
                 {premiumJobs.map((job) => (
@@ -543,21 +612,29 @@ const JobSeekerDashboard = () => {
         >
           <div
             className="modal-content delete-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-search-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3>Delete Saved Search</h3>
+            <h3 id="delete-search-title">Delete Saved Search</h3>
             <p>
               Are you sure you want to delete this saved search? This action
               cannot be undone.
             </p>
             <div className="modal-actions">
               <button
+                type="button"
                 className="btn-secondary"
                 onClick={() => setIsDeleteModalOpen(false)}
               >
                 Cancel
               </button>
-              <button className="btn-danger" onClick={handleDeleteSearch}>
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={handleDeleteSearch}
+              >
                 Delete
               </button>
             </div>

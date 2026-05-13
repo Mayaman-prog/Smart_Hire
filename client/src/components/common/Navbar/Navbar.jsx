@@ -250,7 +250,11 @@ const Navbar = () => {
               <div className="user-menu">
                 {/* Notification Bell */}
                 <div className="nav-icons">
-                  <button className="icon-btn">
+                  <button
+                    className="icon-btn"
+                    type="button"
+                    aria-label="View notifications"
+                  >
                     <span className="material-symbols-outlined">
                       notifications
                     </span>
@@ -259,10 +263,13 @@ const Navbar = () => {
 
                 {/* User Trigger Button */}
                 <button
-                  ref={buttonRef}
                   className="user-trigger-btn"
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                   aria-expanded={isUserDropdownOpen}
+                  aria-haspopup="menu"
+                  aria-label={
+                    isUserDropdownOpen ? "Close user menu" : "Open user menu"
+                  }
                 >
                   <span className="user-trigger-icon">
                     <span className="material-symbols-outlined">
@@ -331,7 +338,12 @@ const Navbar = () => {
 
             {/* Theme Toggle Button */}
             <div className="theme-toggle">
-              <button onClick={toggleTheme} className="theme-toggle-btn">
+              <button
+                onClick={toggleTheme}
+                className="theme-toggle-btn"
+                type="button"
+                aria-label={`Switch theme. Current theme is ${activeTheme}`}
+              >
                 <span className="material-symbols-outlined">
                   {activeTheme === "light" ? "light_mode" : "dark_mode"}
                 </span>
@@ -341,6 +353,9 @@ const Navbar = () => {
             <button
               className="mobile-menu-btn"
               onClick={() => setIsMobileMenuOpen(true)}
+              type="button"
+              aria-label="Open navigation menu"
+              aria-expanded={isMobileMenuOpen}
             >
               <span className="material-symbols-outlined">menu</span>
             </button>
@@ -369,6 +384,8 @@ const Navbar = () => {
             <button
               className="close-btn"
               onClick={() => setIsMobileMenuOpen(false)}
+              type="button"
+              aria-label="Close navigation menu"
             >
               <span className="material-symbols-outlined">close</span>
             </button>

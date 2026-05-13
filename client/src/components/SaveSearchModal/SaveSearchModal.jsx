@@ -102,7 +102,7 @@ export default function SaveSearchModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h3>{mode === "edit" ? "Edit Saved Search" : "Save This Search"}</h3>
+        <h2>{mode === "edit" ? "Edit Saved Search" : "Save This Search"}</h2>
         <form onSubmit={handleSubmit}>
           <Input
             label="Search Name"
@@ -115,29 +115,32 @@ export default function SaveSearchModal({
           {mode === "edit" && (
             <>
               <div className="form-group">
-                <label>Keyword</label>
+                <label htmlFor="saved-search-keyword">Keyword</label>
                 <input
                   type="text"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   className="form-input"
+                  id="saved-search-keyword"
                 />
               </div>
               <div className="form-group">
-                <label>Location</label>
+                <label htmlFor="saved-search-location">Location</label>
                 <input
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className="form-input"
+                  id="saved-search-location"
                 />
               </div>
               <div className="form-group">
-                <label>Job Type</label>
+                <label htmlFor="saved-search-job-type">Job Type</label>
                 <select
                   value={jobType}
                   onChange={(e) => setJobType(e.target.value)}
                   className="form-select"
+                  id="saved-search-job-type"
                 >
                   <option value="">All</option>
                   <option value="full-time">Full Time</option>
@@ -148,23 +151,39 @@ export default function SaveSearchModal({
                 </select>
               </div>
               <div className="form-group salary-group">
-                <label>Salary Range</label>
+                <span className="form-label">Salary Range</span>
                 <div className="salary-inputs">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={salaryMin}
-                    onChange={(e) => setSalaryMin(e.target.value)}
-                    className="form-input"
-                  />
+                  <div>
+                    <label htmlFor="salary-min" className="sr-only">
+                      Minimum salary
+                    </label>
+
+                    <input
+                      id="salary-min"
+                      type="number"
+                      placeholder="Min"
+                      value={salaryMin}
+                      onChange={(e) => setSalaryMin(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
                   <span>to</span>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={salaryMax}
-                    onChange={(e) => setSalaryMax(e.target.value)}
-                    className="form-input"
-                  />
+
+                  <div>
+                    <label htmlFor="salary-max" className="sr-only">
+                      Maximum salary
+                    </label>
+
+                    <input
+                      id="salary-max"
+                      type="number"
+                      placeholder="Max"
+                      value={salaryMax}
+                      onChange={(e) => setSalaryMax(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
                 </div>
               </div>
             </>

@@ -7,9 +7,11 @@
   z-index: 1000;
   width: 100%;
   border-bottom: 1px solid var(--navbar-border);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
- 
+
 .navbar-container {
   max-width: 1280px;
   margin: 0 auto;
@@ -19,7 +21,7 @@
   align-items: center;
   height: 70px;
 }
- 
+
 /* LOGO */
 .logo {
   display: flex;
@@ -30,23 +32,23 @@
   font-weight: 700;
   color: var(--text-primary);
 }
- 
+
 .logo .material-symbols-outlined {
   font-size: 28px;
   color: var(--primary-color);
 }
- 
+
 .logo-highlight {
   color: var(--primary-color);
 }
- 
+
 /* NAV LINKS */
 .nav-links {
   display: flex;
   gap: 32px;
   align-items: center;
 }
- 
+
 .nav-link {
   display: flex;
   align-items: center;
@@ -59,15 +61,15 @@
   padding: 4px 0 12px 0;
   transition: color 0.2s ease;
 }
- 
+
 .nav-link:hover {
   color: var(--primary-color);
 }
- 
+
 .nav-link.active {
   color: var(--primary-color);
 }
- 
+
 .nav-link.active::after {
   content: "";
   position: absolute;
@@ -77,7 +79,7 @@
   height: 3px;
   background-color: var(--primary-color);
 }
- 
+
 .nav-link:not(.active):hover::after {
   content: "";
   position: absolute;
@@ -88,20 +90,20 @@
   background-color: var(--primary-color);
   opacity: 0.5;
 }
- 
+
 /* RIGHT SECTION */
 .nav-right {
   display: flex;
   align-items: center;
   gap: 16px;
 }
- 
+
 /* Icons */
 .nav-icons {
   display: flex;
   gap: 12px;
 }
- 
+
 .icon-btn {
   background: none;
   border: none;
@@ -111,18 +113,18 @@
   align-items: center;
   justify-content: center;
 }
- 
+
 .icon-btn:hover {
   color: var(--primary-color);
 }
- 
+
 /* USER MENU */
 .user-menu {
   position: relative;
   display: flex;
   align-items: center;
 }
- 
+
 .user-trigger-btn {
   display: flex;
   align-items: center;
@@ -132,7 +134,7 @@
   background: none;
   border: none;
 }
- 
+
 .user-trigger-icon {
   display: flex;
   align-items: center;
@@ -144,21 +146,21 @@
   color: var(--text-secondary);
   transition: background 0.2s ease;
 }
- 
+
 .user-trigger-btn:hover .user-trigger-icon {
   background: var(--user-icon-hover);
 }
- 
+
 .arrow-icon {
   font-size: 20px;
   color: var(--text-muted);
   transition: transform 0.2s;
 }
- 
+
 .user-trigger-btn[aria-expanded="true"] .arrow-icon {
   transform: rotate(180deg);
 }
- 
+
 /* DROPDOWN MENU */
 .dropdown-menu {
   position: absolute;
@@ -170,28 +172,30 @@
   border-radius: 12px;
   box-shadow: var(--shadow-dropdown);
   padding: 8px 0;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
- 
+
 .dropdown-user-info {
   padding: 12px 16px;
   border-bottom: 1px solid var(--divider-color);
   display: flex;
   gap: 10px;
 }
- 
+
 .dropdown-user-name {
   font-weight: 600;
   font-size: 14px;
   color: var(--text-primary);
 }
- 
+
 .dropdown-user-email {
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 2px;
 }
- 
+
 .user-avatar-circle {
   display: flex;
   align-items: center;
@@ -203,13 +207,13 @@
   color: var(--text-secondary);
   flex-shrink: 0;
 }
- 
+
 .dropdown-divider {
   height: 1px;
   background: var(--divider-color);
   margin: 4px 0;
 }
- 
+
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -225,17 +229,17 @@
   background: none;
   border: none;
 }
- 
+
 .dropdown-item:hover {
   background-color: var(--bg-hover);
   color: var(--text-primary);
 }
- 
+
 .dropdown-item .material-symbols-outlined {
   font-size: 20px;
   color: var(--text-muted);
 }
- 
+
 .dropdown-item.logout {
   margin-top: 4px;
   padding-top: 12px;
@@ -244,33 +248,33 @@
   border: none !important;
   border-radius: 0;
 }
- 
+
 .dropdown-item.logout .material-symbols-outlined {
   color: var(--danger-color);
 }
- 
+
 .dropdown-item.logout:hover {
-  background-color: rgba(239, 68, 68, 0.08);
-  color: #dc2626;
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--danger-color);
 }
- 
+
 /* AUTH BUTTONS */
 .auth-buttons {
   display: flex;
   gap: 12px;
 }
- 
+
 .btn-link {
   color: var(--text-secondary);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
 }
- 
+
 .btn-link:hover {
   color: var(--text-primary);
 }
- 
+
 .btn-primary {
   background: var(--primary-color);
   color: #ffffff;
@@ -280,11 +284,11 @@
   font-weight: 500;
   transition: background 0.2s ease;
 }
- 
+
 .btn-primary:hover {
   background: var(--primary-dark);
 }
- 
+
 /* THEME TOGGLE */
 .theme-toggle-btn {
   background: none;
@@ -296,22 +300,24 @@
   justify-content: center;
   padding: 8px;
   border-radius: 8px;
-  transition: color 0.2s ease, background 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
 }
- 
+
 .theme-toggle-btn:hover {
   color: var(--primary-color);
   background: var(--bg-hover);
 }
- 
+
 .theme-toggle-btn:focus {
   outline: none;
 }
- 
+
 .theme-toggle-btn .material-symbols-outlined {
   font-size: 22px;
 }
- 
+
 /* ROLE BADGES */
 .role-badge {
   display: inline-block;
@@ -319,21 +325,21 @@
   border-radius: 20px;
   font-size: 10px;
   font-weight: 600;
-  background: #e0e7ff;
-  color: #4f46e5;
+  background: rgba(96, 165, 250, 0.15);
+  color: var(--primary-light);
   margin-top: 4px;
 }
- 
+
 .role-badge.employer {
   background: rgba(0, 196, 140, 0.15);
   color: var(--primary-dark);
 }
- 
+
 .role-badge.admin {
   background: rgba(239, 68, 68, 0.12);
   color: var(--danger-color);
 }
- 
+
 /* MOBILE BUTTON */
 .mobile-menu-btn {
   display: none;
@@ -341,7 +347,7 @@
   border: none;
   color: var(--text-secondary);
 }
- 
+
 /* MOBILE DRAWER */
 .mobile-drawer {
   position: fixed;
@@ -352,11 +358,11 @@
   z-index: 9999;
   visibility: hidden;
 }
- 
+
 .mobile-drawer.open {
   visibility: visible;
 }
- 
+
 .drawer-backdrop {
   position: absolute;
   top: 0;
@@ -368,11 +374,11 @@
   opacity: 0;
   transition: opacity 0.3s;
 }
- 
+
 .mobile-drawer.open .drawer-backdrop {
   opacity: 1;
 }
- 
+
 .drawer-content {
   position: absolute;
   top: 0;
@@ -385,15 +391,17 @@
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform 0.3s ease, background-color 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    background-color 0.3s ease;
   z-index: 10;
   box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
 }
- 
+
 .mobile-drawer.open .drawer-content {
   transform: translateX(0);
 }
- 
+
 /* Drawer Header */
 .drawer-header {
   display: flex;
@@ -401,7 +409,7 @@
   align-items: center;
   margin-bottom: 32px;
 }
- 
+
 .drawer-logo {
   display: flex;
   align-items: center;
@@ -411,18 +419,18 @@
   font-weight: 700;
   color: var(--text-primary);
 }
- 
+
 .close-btn {
   background: none;
   border: none;
   cursor: pointer;
 }
- 
+
 .close-btn .material-symbols-outlined {
   font-size: 24px;
   color: var(--text-muted);
 }
- 
+
 /* Drawer User Info */
 .drawer-user-info {
   padding: 12px 0;
@@ -430,18 +438,18 @@
   border-bottom: 1px solid var(--border-color);
   background: transparent;
 }
- 
+
 .drawer-user-name {
   font-weight: 600;
   font-size: 16px;
   color: var(--text-primary);
 }
- 
+
 .drawer-user-email {
   font-size: 12px;
   color: var(--text-muted);
 }
- 
+
 /* Drawer Links */
 .drawer-links {
   display: flex;
@@ -449,7 +457,7 @@
   gap: 4px;
   margin-bottom: auto;
 }
- 
+
 .drawer-link {
   display: flex;
   align-items: center;
@@ -461,25 +469,25 @@
   transition: background 0.2s;
   font-size: 15px;
 }
- 
+
 .drawer-link:hover {
   background: var(--bg-hover);
 }
- 
+
 .drawer-link.active {
   background: rgba(0, 196, 140, 0.1);
   color: var(--primary-color);
 }
- 
+
 .drawer-link .material-symbols-outlined {
   font-size: 22px;
   color: var(--text-muted);
 }
- 
+
 .drawer-link.active .material-symbols-outlined {
   color: var(--primary-color);
 }
- 
+
 /* Drawer Auth Buttons */
 .drawer-auth-buttons {
   display: flex;
@@ -487,7 +495,7 @@
   gap: 10px;
   margin-top: 24px;
 }
- 
+
 .drawer-btn-link {
   display: block;
   text-align: center;
@@ -498,12 +506,12 @@
   border: 1px solid var(--border-color);
   transition: all 0.2s ease;
 }
- 
+
 .drawer-btn-link:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
- 
+
 .drawer-btn-primary {
   display: block;
   text-align: center;
@@ -514,16 +522,16 @@
   font-weight: 500;
   transition: background 0.2s ease;
 }
- 
+
 .drawer-btn-primary:hover {
   background: var(--primary-dark);
 }
- 
+
 /* Drawer Footer / Logout */
 .drawer-footer {
   margin-top: 16px;
 }
- 
+
 .drawer-logout-btn {
   display: flex;
   align-items: center;
@@ -542,7 +550,8 @@
 }
 
 .drawer-logout-btn:hover {
-  background: rgba(239, 68, 68, 0.08);
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--danger-color);
 }
 
 .drawer-logout-btn .material-symbols-outlined {

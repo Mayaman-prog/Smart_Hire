@@ -4,19 +4,19 @@
 }
 
 .company-card {
-    background-color: white;
+    background-color: var(--bg-card);
     border-radius: 12px;
     padding: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--bg-card);
     height: 100%;
 }
 
 .company-card:hover {
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-lg);
     transform: scale(1.02);
-    border-color: #3b82f6;
+    border-color: var(--primary-color);
 }
 
 .company-card-header {
@@ -34,13 +34,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #ffffff;
     font-weight: bold;
     font-size: 20px;
 }
 
 .verified-badge {
-    background-color: #dbeafe;
+    background-color: rgba(96, 165, 250, 0.15);
     border-radius: 9999px;
     padding: 4px;
     display: flex;
@@ -50,7 +50,7 @@
 
 .verified-badge .material-symbols-outlined {
     font-size: 16px;
-    color: #2563eb;
+    color: var(--primary-light);
 }
 
 .company-card-content {
@@ -69,7 +69,7 @@
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    color: #6b7280;
+    color: var(--text-secondary);
     margin-bottom: 6px;
 }
 

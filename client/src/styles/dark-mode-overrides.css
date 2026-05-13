@@ -1,0 +1,246 @@
+/* Green Brand Identity */
+:root,
+[data-theme="light"],
+.light {
+  --primary-color: #00c48c;
+  --primary-dark: #009b72;
+  --primary-light: #5eead4;
+  --secondary-color: #ecfdf5;
+
+  --success-color: #00c48c;
+
+  --footer-bg: #f0fdf4;
+}
+
+[data-theme="dark"],
+.dark {
+  --primary-color: #00c48c;
+  --primary-dark: #00a67a;
+  --primary-light: #5eead4;
+  --secondary-color: #052e2b;
+
+  --success-color: #00c48c;
+
+  --footer-bg: #071a16;
+}
+
+/* HERO SECTION */
+.hero-section,
+.hero-banner,
+.hero-container {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(0, 196, 140, 0.15),
+      transparent 40%
+    ),
+    linear-gradient(135deg, #052e2b 0%, #064e3b 50%, #00c48c 100%) !important;
+}
+
+.hero-highlight,
+.gradient-text,
+.logo-highlight {
+  color: #6ee7b7 !important;
+}
+
+/* LOGO / ICONS */
+.company-logo,
+.profile-avatar,
+.admin-avatar,
+.company-avatar,
+.icon-circle,
+.step-number,
+.feature-icon,
+.dashboard-icon,
+.stat-icon,
+.quick-action-icon {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--primary-dark)
+  ) !important;
+
+  color: #ffffff !important;
+}
+
+/* BUTTONS */
+.btn-primary,
+.search-btn,
+.search-btn-black,
+.drawer-btn-primary,
+.detail-content .btn-primary,
+.admin-btn-primary,
+.role-btn.active,
+.btn-black-pill,
+.save-search-btn:hover {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--primary-dark)
+  ) !important;
+
+  border-color: var(--primary-color) !important;
+  color: #ffffff !important;
+
+  box-shadow: 0 10px 25px rgba(0, 196, 140, 0.18);
+}
+
+.btn-primary:hover,
+.search-btn:hover,
+.search-btn-black:hover,
+.drawer-btn-primary:hover,
+.detail-content .btn-primary:hover,
+.admin-btn-primary:hover,
+.role-btn.active:hover,
+.btn-black-pill:hover {
+  transform: translateY(-1px);
+
+  box-shadow: 0 14px 30px rgba(0, 196, 140, 0.25);
+}
+
+/* LINKS / ACTIVE STATES */
+.nav-link.active,
+.drawer-link.active,
+.dropdown-item:hover,
+.view-all-link,
+.clear-all-link,
+.text-primary,
+.login-link a,
+.footer-link:hover,
+.active-link {
+  color: var(--primary-color) !important;
+}
+
+.nav-link.active::after,
+.drawer-link.active::after,
+.app-tab.active::after {
+  background-color: var(--primary-color) !important;
+}
+
+/* CARDS */
+.job-card,
+.company-card,
+.profile-card,
+.admin-stat-card,
+.quick-action-card,
+.saved-search-card,
+.application-card,
+.stat-card,
+.chart-card,
+.salary-card,
+.ai-feature-card,
+.step-card,
+.testimonial-card {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.job-card:hover,
+.company-card:hover,
+.profile-card:hover,
+.admin-stat-card:hover,
+.quick-action-card:hover,
+.saved-search-card:hover,
+.application-card:hover,
+.stat-card:hover,
+.chart-card:hover,
+.salary-card:hover,
+.ai-feature-card:hover,
+.step-card:hover,
+.testimonial-card:hover {
+  border-color: rgba(0, 196, 140, 0.35) !important;
+
+  box-shadow:
+    0 12px 30px rgba(0, 196, 140, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.05);
+
+  transform: translateY(-2px);
+}
+
+/* INPUTS */
+input:focus,
+textarea:focus,
+select:focus,
+.form-input:focus,
+.form-select:focus,
+.search-input:focus,
+.filter-input:focus {
+  border-color: var(--primary-color) !important;
+
+  box-shadow: 0 0 0 4px rgba(0, 196, 140, 0.14) !important;
+}
+
+/* BADGES */
+.verified-badge,
+.role-badge,
+.tag-primary,
+.job-type-remote,
+.active-filter-tag.job-type-remote {
+  background: rgba(0, 196, 140, 0.14) !important;
+
+  color: var(--primary-dark) !important;
+
+  border: 1px solid rgba(0, 196, 140, 0.22);
+}
+
+.verified-badge .material-symbols-outlined {
+  color: var(--primary-color) !important;
+}
+
+/* DASHBOARD ELEMENTS */
+.kpi-change.positive,
+.status-badge.linked,
+.success-badge {
+  background: rgba(0, 196, 140, 0.14) !important;
+  color: var(--primary-dark) !important;
+}
+
+.bar,
+.progress-fill,
+.salary-range-fill,
+.chart-line,
+.recharts-bar-rectangle path {
+  fill: var(--primary-color) !important;
+  background: var(--primary-color) !important;
+}
+
+/* TOASTS / ALERTS */
+.toast-success,
+.alert-success {
+  background: rgba(0, 196, 140, 0.14) !important;
+  border-color: rgba(0, 196, 140, 0.25) !important;
+  color: var(--primary-dark) !important;
+}
+
+/* FOOTER */
+.footer {
+  background:
+    linear-gradient(180deg, rgba(0, 196, 140, 0.03), transparent),
+    var(--footer-bg) !important;
+}
+
+/* SELECTION */
+::selection {
+  background: rgba(0, 196, 140, 0.25);
+  color: var(--text-primary);
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 196, 140, 0.45);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 196, 140, 0.7);
+}

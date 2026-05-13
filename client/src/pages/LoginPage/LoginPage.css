@@ -1,7 +1,7 @@
 /* Page Container */
 .login-page {
   min-height: 100vh;
-  background: #f9fafb;
+  background: var(--bg-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,7 +12,8 @@
   display: flex;
   width: 100%;
   max-width: 1100px;
-  background: white;
+  background: var(--bg-card);
+  color: var(--text-primary);
   border-radius: var(--radius-xl);
   overflow: hidden;
   box-shadow: var(--shadow-xl);
@@ -45,7 +46,7 @@
 
 .hero-content {
   max-width: 400px;
-  color: var(--dark-color);
+  color: var(--text-primary);
 }
 
 .hero-icon .material-symbols-outlined {
@@ -63,14 +64,15 @@
 
 .login-hero p {
   font-size: 1rem;
-  color: var(--gray-color);
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
 /* Right Panel (Form) */
 .login-form-panel {
   flex: 1;
-  background: white;
+  background: var(--bg-card);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -90,12 +92,12 @@
 .form-header h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--dark-color);
+  color: var(--text-primary);
   margin-bottom: var(--spacing-sm);
 }
 
 .form-header p {
-  color: var(--gray-color);
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
@@ -113,10 +115,10 @@
   justify-content: center;
   gap: var(--spacing-sm);
   padding: 0.75rem;
+  background: var(--bg-card);
+  color: var(--text-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: white;
-  color: var(--gray-color);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -124,8 +126,8 @@
 }
 
 .social-btn:hover {
-  background: var(--light-gray);
-  border-color: var(--gray-light);
+  background: var(--bg-hover);
+  border-color: var(--text-muted);
 }
 
 .google-btn:hover {
@@ -153,12 +155,12 @@
 
 /* Social error message */
 .social-error-message {
-  background: #fef2f2;
-  border: 1px solid #fee2e2;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--danger-color);
   border-radius: 6px;
   padding: 0.75rem;
   margin-bottom: 1rem;
-  color: #dc2626;
   font-size: 0.875rem;
   display: flex;
   align-items: flex-start;
@@ -173,8 +175,8 @@
 .link-account-btn {
   margin-top: 0.5rem;
   padding: 0.25rem 0.75rem;
-  background: #dc2626;
-  color: white;
+  background: var(--danger-color);
+  color: #ffffff;
   border: none;
   border-radius: 4px;
   font-size: 0.8rem;
@@ -192,7 +194,7 @@
 }
 
 .social-btn:disabled:hover {
-  background: white;
+  background: var(--bg-card);
   border-color: var(--border-color);
 }
 
@@ -203,7 +205,7 @@
 }
 
 .linkedin-btn:disabled:hover {
-  background: white;
+  background: var(--bg-card);
   border-color: var(--border-color);
 }
 
@@ -224,7 +226,7 @@
 
 .divider span {
   padding: 0 var(--spacing-md);
-  color: var(--gray-color);
+  color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -253,7 +255,7 @@
   align-items: center;
   gap: var(--spacing-sm);
   cursor: pointer;
-  color: var(--gray-color);
+  color: var(--text-secondary);
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -274,7 +276,8 @@
 
 /* Submit Button (Black Pill) */
 .btn-black-pill {
-  background: #111827 !important;
+  background: var(--primary-color) !important;
+  color: #ffffff !important;
   border-radius: 9999px !important;
   padding: var(--spacing-md) !important;
   font-weight: 600 !important;
@@ -282,7 +285,7 @@
 }
 
 .btn-black-pill:hover {
-  background: #1f2937 !important;
+  background: var(--primary-dark) !important;
 }
 
 /* Register Link */

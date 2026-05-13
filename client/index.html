@@ -3,6 +3,28 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    (function () {
+      try {
+        const savedTheme = localStorage.getItem("theme") || "system";
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        const activeTheme =
+          savedTheme === "system"
+            ? systemDark
+              ? "dark"
+              : "light"
+            : savedTheme;
+
+        document.documentElement.setAttribute("data-theme", activeTheme);
+        document.documentElement.classList.remove("light", "dark");
+        document.documentElement.classList.add(activeTheme);
+      } catch (error) {
+        document.documentElement.setAttribute("data-theme", "light");
+        document.documentElement.classList.add("light");
+      }
+    })();
+  </script>
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"

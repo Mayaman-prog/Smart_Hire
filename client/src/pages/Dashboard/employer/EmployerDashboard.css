@@ -1011,7 +1011,7 @@
 }
 
 /* Edit Job Modal */
-/* .modal-overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1025,14 +1025,14 @@
 }
 
 .modal-content {
-  background: white;
+  background: var(--bg-card);
   padding: var(--spacing-xl);
   border-radius: var(--radius-lg);
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
-} */
+}
 
 .modal-actions {
   display: flex;

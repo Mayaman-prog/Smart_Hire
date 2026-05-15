@@ -6,6 +6,8 @@
 ![GitHub issues](https://img.shields.io/github/issues/Mayaman-prog/Smart_Hire)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Accessibility](https://img.shields.io/badge/accessibility-WCAG%202.1-green)
+![Keyboard Navigation](https://img.shields.io/badge/keyboard-navigation%20supported-brightgreen)
+![Modal Focus Trap](https://img.shields.io/badge/modal-focus%20trap-brightgreen)
 ![Theme](https://img.shields.io/badge/theme-light%20%7C%20dark%20%7C%20system-blue)
 
 SmartHire is a full-stack job portal web application connecting job seekers, employers, and administrators. It is designed to be scalable, SEO-friendly, and production-ready.
@@ -16,6 +18,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
 - [Features](#features)
   - [Core Features](#core-features)
   - [Backend Features](#backend-features)
+    - [Keyboard Navigation & Modal Focus Trap](#keyboard-navigation--modal-focus-trap)
     - [Cover Letters](#cover-letters)
     - [FULLTEXT Search](#fulltext-search)
     - [Typo Tolerance & Autocomplete](#typo-tolerance-autocomplete)
@@ -78,11 +81,15 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [SaveSearchModal Component](#savesearchmodal-component)
   - [ResumeUpload Component](#resumeupload-component)
   - [Daily Job Alert Cron](#daily-job-alert-cron)
+  - [KeyboardShortcuts Component](#keyboardshortcuts-component)
+  - [useFocusTrap Hook](#usefocustrap-hook)
 - [Routing System](#routing-system)
 - [Validation Utilities](#validation-utilities)
 - [Database Schema](#database-schema)
 - [Contributing](#contributing)
 - [Future Improvements](#future-improvements)
+- [Accessibility Testing Checklist](#accessibility-testing-checklist)
+- [Troubleshooting](#troubleshooting)
 - [License](#license)
 - [Goal](#goal)
 
@@ -144,6 +151,13 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - WCAG-friendly color contrast improvements across all pages and components
 - Centralized dark mode architecture using CSS variables and semantic theme tokens
 - Fully accessible UI with ARIA labels, semantic HTML structure, and keyboard navigation support
+- Keyboard navigation support across the main application
+- Skip to content link for faster keyboard navigation
+- Global keyboard shortcuts for Home, Jobs, Dashboard, and Job Search
+- Visible keyboard focus indicators using `:focus-visible`
+- Reusable modal focus trap hook using `keydown` listener
+- Modal focus returns to the triggering element after close
+- Mobile filter drawer, Save Search modal, Report Job modal, Apply modal, and Quick Apply modal updated for keyboard accessibility
 
 ### Backend Features
 
@@ -332,18 +346,26 @@ transition:
   color 0.3s ease;
 ```
 
-Global accessibility focus styles are also applied:
+Global accessibility focus styles are also applied using shared focus ring variables::
 
 ```css
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
-select:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+select:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 ```
+The focus ring variables are stored in variables.css so the accessibility focus style remains consistent across light mode, dark mode, and modal components.
 
 #### Navbar Theme Toggle
 
@@ -395,34 +417,81 @@ This allows:
 
 SmartHire was enhanced with a complete accessibility and dark mode optimization pass to improve usability, responsiveness, and visual consistency across the platform.
 
-#### Accessibility Improvements
-
-The frontend was updated to follow semantic HTML and accessibility best practices.
+The frontend was updated to follow semantic HTML and accessibility best practices. The latest accessibility work focused on keyboard navigation, visible focus indicators, modal focus trapping, and improved screen reader support.
 
 ##### Implemented Accessibility Features
 
 - Added `aria-label` attributes to icon-only buttons
-- Added proper `<label>` associations for all form fields
-- Added `role="dialog"` and `aria-modal="true"` to modals
-- Added `role="status"` and `role="alert"` for loading and error states
-- Added `aria-hidden="true"` to decorative icons
-- Improved heading hierarchy consistency (`h1 → h2 → h3`)
-- Added global `lang="en"` attribute
-- Added reusable `sr-only` utility class for screen-reader-only content
-- Replaced clickable `<div>` elements with semantic `<button>` elements
-- Added keyboard focus visibility styles using `:focus-visible`
-- Improved screen reader support across navigation and forms
+- Added proper `<label>` associations for form fields
+- Added `role="dialog"` and `aria-modal="true"` to modal components
+- Added `aria-labelledby` to modal headings
+- Added `role="status"` and `aria-live="polite"` for dynamic status updates
+- Added `aria-hidden="true"` to decorative Google Material Symbols icons
+- Improved heading hierarchy consistency using `h1 → h2 → h3`
+- Added global `lang="en"` attribute in `index.html`
+- Added reusable `sr-only` utility class for screen-reader-only text
+- Added keyboard-visible focus indicators using `:focus-visible`
+- Added Skip to Content link before navigation
+- Added global keyboard shortcuts for common navigation actions
+- Added reusable `useFocusTrap.js` hook for modal focus management
+- Moved focus to the first interactive element when a modal opens
+- Trapped Tab and Shift + Tab inside active modals
+- Returned focus to the triggering element when a modal closes
+- Improved modal accessibility for Save Search, Report Job, Apply, Quick Apply, and mobile filter drawer
+- Improved keyboard support for JobsPage search and filters
+
+##### Keyboard Navigation Shortcuts
+
+| Shortcut | Action |
+| -------- | ------ |
+| `Alt + H` | Go to Home page |
+| `Alt + J` | Go to Jobs page |
+| `Alt + S` | Go to Jobs page and focus the job search input |
+| `Alt + D` | Go to the correct dashboard based on the logged-in user role |
+| `Esc` | Close open modal/help panel or remove focus |
+| `?` | Show or hide the keyboard shortcuts help panel |
+
+The keyboard shortcut help is implemented as a floating help panel, not as a separate Help page route.
+
+##### Modal Focus Trap Behaviour
+
+The modal focus trap follows these rules:
+
+- When a modal opens, focus moves inside the modal
+- If an element has `data-autofocus`, focus moves to that element first
+- If no autofocus element exists, focus moves to the first focusable element
+- Pressing `Tab` on the last focusable element loops focus back to the first element
+- Pressing `Shift + Tab` on the first focusable element loops focus to the last element
+- Pressing `Esc` closes the modal
+- When the modal closes, focus returns to the button or element that opened it
+
+##### Files Updated for Accessibility
+
+| File                                                                   | Accessibility Update                                                                              |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `client/src/styles/variables.css`                                      | Added focus ring variables                                                                        |
+| `client/src/styles/globals.css`                                        | Added global `:focus-visible` and modal focus styles                                              |
+| `client/src/hooks/useFocusTrap.js`                                     | Added reusable focus trap hook                                                                    |
+| `client/src/components/common/KeyboardShortcuts/KeyboardShortcuts.jsx` | Added keyboard shortcuts and help panel                                                           |
+| `client/src/components/common/KeyboardShortcuts/KeyboardShortcuts.css` | Added shortcut help panel styling                                                                 |
+| `client/src/components/SaveSearchModal/SaveSearchModal.jsx`            | Added modal focus trap and modal ARIA attributes                                                  |
+| `client/src/pages/JobsPage/JobsPage.jsx`                               | Added search focus target, ARIA labels, filter drawer accessibility, and mobile drawer focus trap |
+| `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`                   | Added focus trap for Report, Apply, and Quick Apply modals                                        |
 
 ##### Accessibility Testing
 
 The application was manually tested for:
 
-- Keyboard navigation
-- Screen reader compatibility
+- Keyboard-only navigation
+- Skip to content behaviour
 - Focus visibility
-- Form labeling
-- Modal accessibility
-- Responsive accessibility behavior
+- Form label association
+- Modal focus trapping
+- Tab and Shift + Tab focus looping
+- Escape key modal closing
+- Focus return after modal close
+- Screen reader-friendly modal labels
+- Responsive accessibility on mobile drawer
 - Semantic heading structure consistency
 
 #### Dark Mode Optimization
@@ -497,6 +566,66 @@ The following improvements were applied:
 - Improved dashboard card readability
 - Accessible modal overlays
 - Improved focus ring visibility for keyboard users
+
+### Keyboard Navigation & Modal Focus Trap
+
+SmartHire includes keyboard navigation improvements to support users who rely on the keyboard instead of a mouse. This work improves accessibility, usability, and WCAG alignment.
+
+#### Main Keyboard Features
+
+- Global `:focus-visible` styling for clear keyboard focus indication
+- Skip to Content link for bypassing navigation
+- Keyboard shortcuts for fast page navigation
+- Search input focus shortcut on JobsPage
+- Escape key support for closing modals and dialogs
+- Reusable modal focus trap hook
+- Focus return to triggering element after modal close
+
+#### Focus Ring Variables
+
+The focus ring is controlled using CSS variables inside:
+
+`client/src/styles/variables.css`
+
+```css
+--focus-ring-color: #3b82f6;
+--focus-ring-width: 2px;
+--focus-ring-offset: 3px;
+```
+
+These variables are used in:
+`client/src/styles/globals.css`
+
+```css
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+```
+
+#### Focus Trap Hook
+
+The reusable focus trap hook is located at:
+`client/src/hooks/useFocusTrap.js`
+
+It is used by modal components to:
+
+- Save the previously focused element
+- Move focus into the modal on open
+- Keep focus inside the modal while it is open
+- Close the modal using Esc
+- Return focus to the trigger element after close
+
+#### Modals Updated
+| Modal / Dialog               | File                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------- |
+| Save Search modal            | `client/src/components/SaveSearchModal/SaveSearchModal.jsx`            |
+| Mobile filter drawer         | `client/src/pages/JobsPage/JobsPage.jsx`                               |
+| Report Job modal             | `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`                   |
+| Apply modal                  | `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`                   |
+| Quick Apply modal            | `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`                   |
+| Keyboard shortcut help panel | `client/src/components/common/KeyboardShortcuts/KeyboardShortcuts.jsx` |
+
 
 ### Saved Searches Feature
 
@@ -1127,6 +1256,9 @@ SmartHire/
 │   │   │   │   ├── Toast
 │   │   │   │   │   ├── Toast.jsx
 │   │   │   │   │   └── Toast.css
+│   │   │   │   ├── KeyboardShortcuts/
+│   │   │   │   │   ├── KeyboardShortcuts.jsx
+│   │   │   │   │   └── KeyboardShortcuts.css
 │   │   │   │   ├── ResumeUpload/
 │   │   │   │   │   ├── ResumeUpload.jsx
 │   │   │   │   │   └── ResumeUpload.css
@@ -1153,6 +1285,8 @@ SmartHire/
 │   │   │   ├── AuthContext.jsx
 │   │   │   ├── SavedSearchContext.jsx
 │   │   │   └── ThemeContext.jsx
+│   │   ├── hooks/
+│   │   │   └── useFocusTrap.js
 │   │   ├── pages/
 │   │   │   ├── HomePage/
 │   │   │   │   ├── HomePage.jsx
@@ -1939,9 +2073,9 @@ Based on 42 salaries
 
 - Line chart: average salary from Dec 2025 to May 2026 (monthly points with tooltips)
 - Percentile bars:
-  25th ████████░░░░░░ $85,000
-  50th (Median) ██████████░░░░ $94,000
-  75th ██████████████░░░ $102,000
+  - 25th ████████░░░░░░ $85,000
+  - 50th (Median) ██████████░░░░ $94,000
+  - 75th ██████████████░░░ $102,000
 
 **Implementation details:**
 
@@ -2460,6 +2594,48 @@ client/src/pages/NotFoundPage/
 - Builds an HTML digest email and enqueues it via the Bull email queue.
 - Emails include an unsubscribe link (`/api/saved-searches/unsubscribe/:token`) that deactivates the search.
 
+### KeyboardShortcuts Component
+
+**Location:** `client/src/components/common/KeyboardShortcuts/KeyboardShortcuts.jsx`
+
+**File Structure:**
+
+```text
+client/src/components/common/KeyboardShortcuts/
+├── KeyboardShortcuts.jsx
+└── KeyboardShortcuts.css
+```
+
+**Features:**
+
+- Global keyboard shortcut listener using window.addEventListener("keydown", ...)
+- Uses React Router useNavigate() for route navigation
+- Uses useLocation() to detect the current route
+- Uses useAuth() so dashboard navigation matches the logged-in user role
+- Prevents shortcut activation while typing inside inputs, textareas, selects, or editable content
+- Supports keyboard shortcut help panel using the ? key
+- Supports Escape key to close help panel, close active modal, or blur the active element
+- Uses simple helper functions for readable student-friendly code
+
+**Supported Shortcuts:**
+| Shortcut  | Action                                          |
+| --------- | ----------------------------------------------- |
+| `Alt + S` | Opens Jobs page and focuses job search input    |
+| `Alt + J` | Opens Jobs page                                 |
+| `Alt + H` | Opens Home page                                 |
+| `Alt + D` | Opens correct dashboard based on logged-in role |
+| `Esc`     | Closes modal/help panel or removes focus        |
+| `?`       | Opens or closes keyboard shortcut help panel    |
+
+**Dashboard Route Mapping:**
+| Role                    | Route                 |
+| ----------------------- | --------------------- |
+| `job_seeker`            | `/dashboard/seeker`   |
+| `employer`              | `/dashboard/employer` |
+| `admin`                 | `/dashboard/admin`    |
+| Guest / unauthenticated | `/login`              |
+
+
 ## ResumeUpload Component
 
 **Location:** `client/src/components/common/ResumeUpload/ResumeUpload.jsx`
@@ -2632,23 +2808,23 @@ client/src/pages/NotFoundPage/
 ## Future Improvements
 
 - Add Docker support
-- Cloud deployment (Vercel + Render)
-- Real-time notification system (Socket.io)
-- Advanced search filters with debouncing
+- Cloud deployment using Vercel, Render, or Railway
+- Real-time notification system using Socket.io
 - Email verification and password reset
 - Chat between employers and job seekers
-- Job application tracking with timeline
-- Dark mode support
+- Job application tracking with a timeline view
 - AI-powered job recommendations
-- Smart matching score between candidate and job
+- Smart matching score between candidate profile and job requirements
 - Interview scheduling system
-- Mobile native apps (React Native)
-- Structured resume API (e.g., Affinda) for higher‑accuracy parsing
-- Advanced accessibility auditing using Lighthouse and Axe DevTools
-- Additional theme customization options
-- High contrast accessibility mode
-- Reduced motion accessibility preferences
-- Theme customization per user profile
+- Mobile native app using React Native
+- Structured resume API integration such as Affinda for higher-accuracy parsing
+- Automated accessibility testing using Lighthouse and Axe DevTools
+- Unit and integration tests for keyboard shortcuts
+- Unit tests for `useFocusTrap.js`
+- Customizable keyboard shortcuts for user preference
+- More advanced admin analytics and downloadable reports
+- User-level theme customization options
+- More advanced high contrast mode options
 
 ## License
 
@@ -2714,6 +2890,18 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 - Social Login – LinkedIn button disabled (backend pending, frontend UI present with tooltip)
 - Salary Comparison Badge – On the job details page, a colored pill with tooltip shows how the job's salary compares to market data.
 - SalaryInsights Component – `client/src/components/salary/SalaryInsights.jsx` – a collapsible section that fetches and displays salary trend data (line chart) and percentiles (horizontal bars) for a given job title and location.
+- Added Skip to Content link
+- Added global keyboard shortcuts
+- Added visible keyboard focus indicators
+- Added keyboard shortcut help panel
+- Added `useFocusTrap.js` reusable hook
+- Added modal focus trap for Save Search modal
+- Added modal focus trap for JobsPage mobile filter drawer
+- Added modal focus trap for JobDetailsPage Report, Apply, and Quick Apply modals
+- Added focus return to triggering element after modal close
+- Added ARIA improvements for dialogs, filters, buttons, and dynamic status messages
+- Fixed `Alt + D` dashboard shortcut using `AuthContext`
+- Fixed `Alt + S` job search focus using `id="job-search-input"` and `data-hotkey="job-search"`
 
 **Miscellaneous:**
 

@@ -15,6 +15,7 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import SalaryComparisonBadge from "../../components/salary/SalaryComparisonBadge";
 import SalaryInsights from "../../components/salary/SalaryInsights";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import "./JobDetailsPage.css";
 
 const JobDetailsPage = () => {
@@ -39,6 +40,18 @@ const JobDetailsPage = () => {
   const [hasResume, setHasResume] = useState(false);
   const [showOneClickConfirmModal, setShowOneClickConfirmModal] =
     useState(false);
+
+  const reportModalRef = useFocusTrap(showReportModal, () =>
+    setShowReportModal(false),
+  );
+
+  const applyModalRef = useFocusTrap(showApplyModal, () =>
+    setShowApplyModal(false),
+  );
+
+  const oneClickModalRef = useFocusTrap(showOneClickConfirmModal, () =>
+    setShowOneClickConfirmModal(false),
+  );
 
   // Cover letter states
   const [coverLetters, setCoverLetters] = useState([]);
@@ -605,8 +618,16 @@ const JobDetailsPage = () => {
           className="modal-overlay"
           onClick={() => setShowReportModal(false)}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Report Job</h3>
+          <div
+            className="modal-content"
+            ref={reportModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-job-modal-title"
+            tabIndex="-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="report-job-modal-title">Report Job</h2>
             <form onSubmit={handleReportSubmit}>
               <div className="form-group">
                 <label htmlFor="report-reason">Reason *</label>
@@ -615,6 +636,7 @@ const JobDetailsPage = () => {
                   value={reportReason}
                   onChange={(e) => setReportReason(e.target.value)}
                   required
+                  data-autofocus
                 >
                   <option value="spam">Spam</option>
                   <option value="fraud">Fraud</option>
@@ -662,9 +684,14 @@ const JobDetailsPage = () => {
         <div className="modal-overlay" onClick={() => setShowApplyModal(false)}>
           <div
             className="modal-content apply-modal"
+            ref={applyModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="apply-job-modal-title"
+            tabIndex="-1"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2>Apply for {job?.title}</h2>
+            <h2 id="apply-job-modal-title">Apply for {job?.title}</h2>
 
             {coverLetters.length === 0 ? (
               <p>
@@ -673,10 +700,14 @@ const JobDetailsPage = () => {
             ) : (
               <>
                 <div className="form-group">
-                  <label>Cover Letter Template</label>
+                  <label htmlFor="cover-letter-template">
+                    Cover Letter Template
+                  </label>
                   <select
+                    id="cover-letter-template"
                     value={selectedCoverId || ""}
                     onChange={handleCoverChange}
+                    data-autofocus
                   >
                     {coverLetters.map((cl) => (
                       <option key={cl.id} value={cl.id}>
@@ -723,6 +754,7 @@ const JobDetailsPage = () => {
 
             <div className="modal-actions">
               <button
+                type="button"
                 className="btn-primary"
                 onClick={handleApplySubmit}
                 disabled={applying || coverLetters.length === 0}
@@ -730,6 +762,7 @@ const JobDetailsPage = () => {
                 {applying ? "Submitting..." : "Submit Application"}
               </button>
               <button
+                type="button"
                 className="btn-secondary"
                 onClick={() => setShowApplyModal(false)}
               >
@@ -740,14 +773,22 @@ const JobDetailsPage = () => {
         </div>
       )}
 
-      {/* NEW: One‑Click Confirmation Modal */}
+      {/* One‑Click Confirmation Modal */}
       {showOneClickConfirmModal && (
         <div
           className="modal-overlay"
           onClick={() => setShowOneClickConfirmModal(false)}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Quick Apply with Resume</h3>
+          <div
+            className="modal-content"
+            ref={oneClickModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quick-apply-modal-title"
+            tabIndex="-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="quick-apply-modal-title">Quick Apply with Resume</h2>
             <p>
               You are about to apply for <strong>{job?.title}</strong> at{" "}
               <strong>{job?.company_name}</strong> using your stored resume data
@@ -755,6 +796,7 @@ const JobDetailsPage = () => {
             </p>
             <div className="modal-actions">
               <button
+              type="button"
                 className="btn-primary"
                 onClick={handleOneClickApply}
                 disabled={applying}
@@ -762,6 +804,7 @@ const JobDetailsPage = () => {
                 {applying ? "Submitting..." : "Confirm & Apply"}
               </button>
               <button
+              type="button"
                 className="btn-secondary"
                 onClick={() => setShowOneClickConfirmModal(false)}
               >

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { jobAPI } from "../../services/api";
 import JobCard from "../../components/jobs/JobCard/JobCard";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import toast from "react-hot-toast";
 import SaveSearchModal from "../../components/SaveSearchModal/SaveSearchModal";
 import { useSavedSearch } from "../../contexts/SavedSearchContext";
@@ -42,6 +43,9 @@ const JobsPage = () => {
   const [loading, setLoading] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const filterDrawerRef = useFocusTrap(isFilterOpen, () =>
+    setIsFilterOpen(false),
+  );
 
   const { refreshSavedSearches } = useSavedSearch();
 
@@ -524,9 +528,11 @@ const JobsPage = () => {
             >
               <div
                 className="filter-drawer-content"
+                ref={filterDrawerRef}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="mobile-filters-heading"
+                tabIndex="-1"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="drawer-header">
@@ -536,6 +542,7 @@ const JobsPage = () => {
                     onClick={() => setIsFilterOpen(false)}
                     type="button"
                     aria-label="Close filters"
+                    data-autofocus
                   >
                     <span
                       className="material-symbols-outlined"

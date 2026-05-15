@@ -1,0 +1,322 @@
+/* Floating button used to open the keyboard shortcut help panel */
+.keyboard-help-button {
+  position: fixed;
+  right: var(--spacing-md);
+  bottom: var(--spacing-md);
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background: var(--primary-color);
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: var(--shadow-lg);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.keyboard-help-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.keyboard-help-button:focus-visible {
+  outline: 3px solid var(--primary-light);
+  outline-offset: 3px;
+}
+
+/* Popup panel that displays all available keyboard shortcuts */
+.keyboard-help-panel {
+  position: fixed;
+  right: var(--spacing-md);
+  bottom: 4.5rem;
+  width: min(22rem, calc(100vw - 2rem));
+  max-height: min(32rem, calc(100vh - 7rem));
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+}
+
+/* Header area inside the shortcut help panel */
+.keyboard-help-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.keyboard-help-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+/* Close button for the shortcut help panel */
+.keyboard-help-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+}
+
+.keyboard-help-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.keyboard-help-close:focus-visible {
+  outline: 3px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* List layout for shortcut keys and descriptions */
+.keyboard-help-list {
+  display: grid;
+  gap: var(--spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.keyboard-help-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  color: var(--text-secondary);
+}
+
+/* Keyboard key style inside the help panel */
+.keyboard-help-list kbd {
+  min-width: 4.5rem;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Adjusts shortcut panel on medium screens */
+@media (max-width: 992px) {
+  .keyboard-help-button {
+    right: var(--spacing-md);
+    bottom: var(--spacing-md);
+  }
+
+  .keyboard-help-panel {
+    right: var(--spacing-md);
+    bottom: 4.35rem;
+    width: min(21rem, calc(100vw - 2rem));
+  }
+}
+
+/* Tablet layout adjustment */
+@media (max-width: 768px) {
+  .keyboard-help-button {
+    right: var(--spacing-sm);
+    bottom: var(--spacing-sm);
+    width: 2.6rem;
+    height: 2.6rem;
+    font-size: 1.15rem;
+  }
+
+  .keyboard-help-panel {
+    right: var(--spacing-sm);
+    bottom: 4rem;
+    width: min(20rem, calc(100vw - 1rem));
+    padding: var(--spacing-md);
+  }
+
+  .keyboard-help-header h2 {
+    font-size: 1rem;
+  }
+
+  .keyboard-help-list li {
+    gap: var(--spacing-sm);
+  }
+}
+
+/* Mobile layout adjustment */
+@media (max-width: 480px) {
+  .keyboard-help-button {
+    right: var(--spacing-sm);
+    bottom: var(--spacing-sm);
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .keyboard-help-panel {
+    left: var(--spacing-sm);
+    right: var(--spacing-sm);
+    bottom: 3.9rem;
+    width: auto;
+    max-height: calc(100vh - 6rem);
+    border-radius: var(--radius-lg);
+  }
+
+  .keyboard-help-list li {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .keyboard-help-list kbd {
+    min-width: auto;
+  }
+}
+
+/* Handles very small phones */
+@media (max-width: 360px) {
+  .keyboard-help-panel {
+    left: var(--spacing-xs);
+    right: var(--spacing-xs);
+    bottom: 3.7rem;
+    padding: var(--spacing-sm);
+  }
+
+  .keyboard-help-header {
+    gap: var(--spacing-sm);
+  }
+
+  .keyboard-help-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .keyboard-help-list {
+    gap: 0.55rem;
+  }
+
+  .keyboard-help-list span {
+    font-size: 0.9rem;
+  }
+}
+
+/* Handles short screens such as mobile landscape */
+@media (max-height: 520px) {
+  .keyboard-help-panel {
+    top: var(--spacing-sm);
+    bottom: 4rem;
+    max-height: none;
+  }
+}
+
+/* Better positioning for landscape phones */
+@media (orientation: landscape) and (max-height: 520px) {
+  .keyboard-help-button {
+    right: var(--spacing-sm);
+    bottom: var(--spacing-sm);
+  }
+
+  .keyboard-help-panel {
+    left: auto;
+    right: var(--spacing-sm);
+    top: var(--spacing-sm);
+    bottom: 3.8rem;
+    width: min(24rem, calc(100vw - 1rem));
+  }
+
+  .keyboard-help-list li {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* Increases touch target size on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .keyboard-help-button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .keyboard-help-close {
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+
+  .keyboard-help-button:hover,
+  .keyboard-help-close:hover {
+    transform: none;
+  }
+}
+
+/* Reduces motion for users who prefer less animation */
+@media (prefers-reduced-motion: reduce) {
+  .keyboard-help-button {
+    transition: none;
+  }
+
+  .keyboard-help-button:hover {
+    transform: none;
+  }
+}
+
+/* Improves visibility for users who prefer stronger contrast */
+@media (prefers-contrast: more) {
+  .keyboard-help-button,
+  .keyboard-help-panel,
+  .keyboard-help-list kbd {
+    border-width: 2px;
+  }
+
+  .keyboard-help-button:focus-visible,
+  .keyboard-help-close:focus-visible {
+    outline-width: 4px;
+  }
+}
+
+/* Supports Windows high contrast mode */
+@media (forced-colors: active) {
+  .keyboard-help-button,
+  .keyboard-help-panel,
+  .keyboard-help-list kbd {
+    border: 1px solid ButtonText;
+  }
+
+  .keyboard-help-button {
+    background: ButtonFace;
+    color: ButtonText;
+    forced-color-adjust: auto;
+  }
+
+  .keyboard-help-panel {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .keyboard-help-close {
+    color: ButtonText;
+  }
+
+  .keyboard-help-button:focus-visible,
+  .keyboard-help-close:focus-visible {
+    outline: 3px solid Highlight;
+  }
+}
+
+/* Hides shortcut helper when printing */
+@media print {
+  .keyboard-help-button,
+  .keyboard-help-panel {
+    display: none;
+  }
+}

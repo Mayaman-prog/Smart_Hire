@@ -21,7 +21,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   width: 100%;
   overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 #root {
@@ -125,13 +127,6 @@ select:focus-visible {
   border: 0;
 }
 
-/* Responsive container */
-@media (max-width: 768px) {
-  .container {
-    padding: 0 var(--spacing-md);
-  }
-}
-
 /* TOAST NOTIFICATION STYLES */
 
 /* Toast Container */
@@ -139,7 +134,7 @@ select:focus-visible {
   position: fixed;
   z-index: 9999;
 }
- 
+
 .react-hot-toast {
   border-radius: var(--radius-md);
   font-family: var(--font-family);
@@ -150,49 +145,53 @@ select:focus-visible {
   animation: toastSlideIn 0.3s ease-out;
   backdrop-filter: blur(10px);
 }
- 
+
 .react-hot-toast-success {
   background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
   color: #ffffff;
   border-left: 4px solid #34d399;
 }
- 
+
 .react-hot-toast-error {
   background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
   color: #ffffff;
   border-left: 4px solid #f87171;
 }
- 
+
 .react-hot-toast-info {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--primary-dark) 100%
+  );
   color: #ffffff;
   border-left: 4px solid var(--primary-light);
 }
- 
+
 .react-hot-toast-loading {
   background: var(--toast-loading-bg);
   color: #ffffff;
   border-left: 4px solid var(--primary-color);
 }
- 
+
 .react-hot-toast-icon {
   margin-right: var(--spacing-sm);
   width: 20px;
   height: 20px;
 }
- 
+
 .react-hot-toast-close {
   background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-sm);
   padding: 2px;
   transition: all 0.2s;
 }
- 
+
 .react-hot-toast-close:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
 }
- 
+
 @keyframes toastSlideIn {
   from {
     transform: translateX(100%);
@@ -203,7 +202,7 @@ select:focus-visible {
     opacity: 1;
   }
 }
- 
+
 @keyframes toastSlideOut {
   from {
     transform: translateX(0);
@@ -214,60 +213,192 @@ select:focus-visible {
     opacity: 0;
   }
 }
- 
+
 .react-hot-toast-top-right {
   top: var(--spacing-lg);
   right: var(--spacing-lg);
 }
- 
+
 .react-hot-toast-top-left {
   top: var(--spacing-lg);
   left: var(--spacing-lg);
 }
- 
+
 .react-hot-toast-bottom-right {
   bottom: var(--spacing-lg);
   right: var(--spacing-lg);
 }
- 
+
 .react-hot-toast-bottom-left {
   bottom: var(--spacing-lg);
   left: var(--spacing-lg);
 }
- 
+
 .react-hot-toast-top-center {
   top: var(--spacing-lg);
   left: 50%;
   transform: translateX(-50%);
 }
- 
+
 .react-hot-toast-bottom-center {
   bottom: var(--spacing-lg);
   left: 50%;
   transform: translateX(-50%);
 }
- 
+
+/* Hidden skip link that becomes visible when focused with keyboard */
+.skip-link {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  z-index: 2000;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--primary-color);
+  color: #ffffff;
+  font-size: var(--font-sm);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Shows the skip link when keyboard users tab onto it */
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid var(--primary-light);
+  outline-offset: 3px;
+}
+
+/* Removes browser outline from main after skip link moves focus there */
+.app-main:focus {
+  outline: none;
+}
+
+/* Gives main content a stable layout target */
+.app-main {
+  width: 100%;
+  min-height: calc(100vh - 160px);
+}
+
+/* Responsive container */
+/* Improves skip link spacing on medium screens */
+@media (max-width: 992px) {
+  .skip-link {
+    top: var(--spacing-sm);
+    left: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+}
+
 @media (max-width: 768px) {
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+
   .react-hot-toast {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: 0.8125rem;
     max-width: 90vw;
   }
- 
+
   .react-hot-toast-top-right {
     top: var(--spacing-sm);
     right: var(--spacing-sm);
   }
- 
+
   .react-hot-toast-bottom-right {
     bottom: var(--spacing-sm);
     right: var(--spacing-sm);
   }
- 
+
   .react-hot-toast-top-center,
   .react-hot-toast-bottom-center {
     width: 90%;
     left: 5%;
     transform: translateX(0);
+  }
+
+  .skip-link {
+    top: var(--spacing-sm);
+    left: var(--spacing-sm);
+    font-size: 0.875rem;
+  }
+
+  .app-main {
+    min-height: calc(100vh - 140px);
+  }
+}
+
+/* Makes skip link full-width friendly on small phones */
+@media (max-width: 480px) {
+  .skip-link {
+    left: var(--spacing-sm);
+    right: var(--spacing-sm);
+    text-align: center;
+    padding: 0.7rem var(--spacing-md);
+  }
+}
+
+/* Handles very small phone screens */
+@media (max-width: 360px) {
+  .skip-link {
+    left: var(--spacing-xs);
+    right: var(--spacing-xs);
+    top: var(--spacing-xs);
+    font-size: 0.8125rem;
+    padding: 0.65rem var(--spacing-sm);
+  }
+}
+
+/* Prevents animation for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  body,
+  .skip-link {
+    transition: none;
+  }
+}
+
+/* Improves visibility for users who prefer stronger contrast */
+@media (prefers-contrast: more) {
+  .skip-link {
+    border: 2px solid var(--text-primary);
+  }
+
+  .skip-link:focus,
+  .skip-link:focus-visible {
+    outline-width: 4px;
+  }
+}
+
+/* Supports Windows high contrast mode */
+@media (forced-colors: active) {
+  .skip-link {
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+    forced-color-adjust: auto;
+  }
+
+  .skip-link:focus,
+  .skip-link:focus-visible {
+    outline: 3px solid Highlight;
+  }
+}
+
+/* Hides accessibility navigation helper when printing */
+@media print {
+  .skip-link {
+    display: none;
   }
 }

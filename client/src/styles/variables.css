@@ -10,7 +10,7 @@
 
   /* Status */
   --success-color: #10b981;
-  --warning-color: #151008;
+  --warning-color: #f59e0b;
   --danger-color: #ef4444;
 
   /* Backgrounds */
@@ -54,7 +54,7 @@
   --black: #000000;
   --footer-bg: #f8f9fa;
   --footer-divider-color: #374151;
-  --social-hover-color: #14539a;
+  --social-hover-color: #009b72;
 
   /* Typography */
   --font-family: "Inter", system-ui, -apple-system, sans-serif;
@@ -167,7 +167,7 @@
   --black: #ffffff;
   --footer-bg: #0f172a;
   --footer-divider-color: #334155;
-  --social-hover-color: #60a5fa;
+  --social-hover-color: #5eead4;
 
   /* Toast */
   --toast-loading-bg: #334155;

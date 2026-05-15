@@ -12,18 +12,22 @@ const JobsPage = () => {
   const { user, isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // State: search fields
+  // State for search fields
   const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
   const [location, setLocation] = useState(searchParams.get("location") || "");
+
   const [selectedJobTypes, setSelectedJobTypes] = useState(() => {
     const types = searchParams.get("jobTypes");
     return types ? types.split(",") : [];
   });
+
   const [salaryRange, setSalaryRange] = useState({
     min: parseInt(searchParams.get("minSalary"), 10) || 0,
     max: parseInt(searchParams.get("maxSalary"), 10) || 200000,
   });
+
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "recent");
+
   const [currentPage, setCurrentPage] = useState(
     parseInt(searchParams.get("page"), 10) || 1,
   );
@@ -41,31 +45,45 @@ const JobsPage = () => {
 
   const { refreshSavedSearches } = useSavedSearch();
 
-  // Debounce keyword
+  // Debounces keyword search to reduce unnecessary API calls
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedKeyword(keyword), 300);
     return () => clearTimeout(timer);
   }, [keyword]);
 
-  // Debounce location
+  // Debounces location search to reduce unnecessary API calls
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedLocation(location), 300);
     return () => clearTimeout(timer);
   }, [location]);
 
-  // Sync URL params
+  // Keeps URL query parameters synced with active filters
   useEffect(() => {
     const params = new URLSearchParams();
+
     if (debouncedKeyword) params.set("keyword", debouncedKeyword);
     if (debouncedLocation) params.set("location", debouncedLocation);
+
     if (selectedJobTypes.length > 0) {
       params.set("jobTypes", selectedJobTypes.join(","));
     }
-    if (salaryRange.min > 0) params.set("minSalary", String(salaryRange.min));
-    if (salaryRange.max < 200000)
+
+    if (salaryRange.min > 0) {
+      params.set("minSalary", String(salaryRange.min));
+    }
+
+    if (salaryRange.max < 200000) {
       params.set("maxSalary", String(salaryRange.max));
-    if (sortBy !== "recent") params.set("sort", sortBy);
-    if (currentPage > 1) params.set("page", String(currentPage));
+    }
+
+    if (sortBy !== "recent") {
+      params.set("sort", sortBy);
+    }
+
+    if (currentPage > 1) {
+      params.set("page", String(currentPage));
+    }
+
     setSearchParams(params, { replace: true });
   }, [
     debouncedKeyword,
@@ -77,10 +95,11 @@ const JobsPage = () => {
     setSearchParams,
   ]);
 
-  // Fetch jobs
+  // Fetches jobs from backend whenever filters or pagination changes
   useEffect(() => {
     const fetchJobs = async () => {
       setLoading(true);
+
       try {
         const params = {
           keyword: debouncedKeyword || undefined,
@@ -95,10 +114,13 @@ const JobsPage = () => {
           page: currentPage,
           limit,
         };
+
         Object.keys(params).forEach((key) => {
           if (params[key] === undefined) delete params[key];
         });
+
         const response = await jobAPI.getJobs(params);
+
         setJobs(response.data?.data || []);
         setTotal(response.data?.total || 0);
       } catch (error) {
@@ -110,6 +132,7 @@ const JobsPage = () => {
         setLoading(false);
       }
     };
+
     fetchJobs();
   }, [
     debouncedKeyword,
@@ -120,6 +143,7 @@ const JobsPage = () => {
     currentPage,
   ]);
 
+  // Clears every active search and filter option
   const clearAllFilters = () => {
     setKeyword("");
     setLocation("");
@@ -129,6 +153,7 @@ const JobsPage = () => {
     setCurrentPage(1);
   };
 
+  // Adds or removes a selected job type filter
   const toggleJobType = (type) => {
     setSelectedJobTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
@@ -141,6 +166,7 @@ const JobsPage = () => {
   const showingStart = total > 0 ? startIndex + 1 : 0;
   const showingEnd = Math.min(startIndex + limit, total);
 
+  // Changes page and scrolls back to top of page
   const goToPage = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -157,8 +183,16 @@ const JobsPage = () => {
       label: "Part Time",
       colorClass: "job-type-part-time",
     },
-    { value: "remote", label: "Remote", colorClass: "job-type-remote" },
-    { value: "contract", label: "Contract", colorClass: "job-type-contract" },
+    {
+      value: "remote",
+      label: "Remote",
+      colorClass: "job-type-remote",
+    },
+    {
+      value: "contract",
+      label: "Contract",
+      colorClass: "job-type-contract",
+    },
     {
       value: "internship",
       label: "Internship",
@@ -177,15 +211,18 @@ const JobsPage = () => {
     salary_max: salaryRange.max,
   };
 
+  // Opens save search modal only for logged-in job seekers
   const handleSaveSearchClick = () => {
     if (!isAuthenticated) {
       toast.error("Please login to save searches");
       return;
     }
+
     if (user?.role !== "job_seeker") {
       toast.error("Only job seekers can save searches");
       return;
     }
+
     setIsSaveModalOpen(true);
   };
 
@@ -195,52 +232,67 @@ const JobsPage = () => {
     <div className="jobs-page">
       <div className="container">
         <h1 className="sr-only">Find Jobs</h1>
-        <div className="search-section">
-          <div className="search-bar">
+
+        <section
+          className="search-section"
+          aria-labelledby="job-search-heading"
+        >
+          <h2 id="job-search-heading" className="sr-only">
+            Search and filter jobs
+          </h2>
+
+          <div className="search-bar" role="search" aria-label="Job search">
             <div className="search-input-group">
-              <span className="material-symbols-outlined search-icon">
+              <span
+                className="material-symbols-outlined search-icon"
+                aria-hidden="true"
+              >
                 search
               </span>
-              <>
-                <label htmlFor="jobs-keyword-search" className="sr-only">
-                  Search jobs by title, keyword, or company
-                </label>
 
-                <input
-                  id="jobs-keyword-search"
-                  type="text"
-                  placeholder="Job title, keyword, or company"
-                  value={keyword}
-                  onChange={(e) => {
-                    setKeyword(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="search-input"
-                />
-              </>
+              <label htmlFor="job-search-input" className="sr-only">
+                Search jobs by title, keyword, or company
+              </label>
+
+              <input
+                id="job-search-input"
+                data-hotkey="job-search"
+                type="search"
+                placeholder="Job title, keyword, or company"
+                value={keyword}
+                onChange={(e) => {
+                  setKeyword(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="search-input"
+                aria-label="Search jobs by title, keyword, or company"
+              />
             </div>
 
             <div className="search-input-group">
-              <span className="material-symbols-outlined search-icon">
+              <span
+                className="material-symbols-outlined search-icon"
+                aria-hidden="true"
+              >
                 location_on
               </span>
-              <>
-                <label htmlFor="jobs-location-search" className="sr-only">
-                  Search jobs by location
-                </label>
 
-                <input
-                  id="jobs-location-search"
-                  type="text"
-                  placeholder="City, state, or remote"
-                  value={location}
-                  onChange={(e) => {
-                    setLocation(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="search-input"
-                />
-              </>
+              <label htmlFor="jobs-location-search" className="sr-only">
+                Search jobs by location
+              </label>
+
+              <input
+                id="jobs-location-search"
+                type="text"
+                placeholder="City, state, or remote"
+                value={location}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="search-input"
+                aria-label="Search jobs by location"
+              />
             </div>
 
             <button
@@ -249,12 +301,13 @@ const JobsPage = () => {
               type="button"
               aria-label="Search jobs"
             >
-              <span className="material-symbols-outlined">search</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                search
+              </span>
               Search
             </button>
           </div>
 
-          {/* Save this search */}
           {showSaveSearch && (
             <button
               className="save-search-btn"
@@ -263,20 +316,23 @@ const JobsPage = () => {
               title="Save this search"
               aria-label="Save current job search"
             >
-              <span className="material-symbols-outlined">bookmark</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                bookmark
+              </span>
               Save this search
             </button>
           )}
 
-          {/* Active filters */}
           {(activeFilterCount > 0 || selectedJobTypes.length > 0) && (
-            <div className="active-filters">
-              <span className="filter-count">
+            <div className="active-filters" aria-label="Active job filters">
+              <span className="filter-count" role="status" aria-live="polite">
                 {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""}{" "}
                 active
               </span>
+
               {selectedJobTypes.map((type) => {
                 const opt = jobTypeOptions.find((o) => o.value === type);
+
                 return (
                   <span
                     key={type}
@@ -288,32 +344,37 @@ const JobsPage = () => {
                       onClick={() => toggleJobType(type)}
                       aria-label={`Remove ${opt?.label || type} filter`}
                     >
-                      x
+                      <span aria-hidden="true">x</span>
                     </button>
                   </span>
                 );
               })}
+
               <button
                 onClick={clearAllFilters}
                 className="clear-all-link"
                 type="button"
+                aria-label="Clear all active filters"
               >
                 Clear all
               </button>
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Jobs Layout */}
         <div className="jobs-layout">
-          {/* Desktop Sidebar */}
-          <aside className="filters-sidebar desktop-sidebar">
+          <aside
+            className="filters-sidebar desktop-sidebar"
+            aria-labelledby="desktop-filters-heading"
+          >
             <div className="filters-header">
-              <h3>Filters</h3>
+              <h2 id="desktop-filters-heading">Filters</h2>
+
               <button
                 onClick={clearAllFilters}
                 className="clear-filters-link"
                 type="button"
+                aria-label="Clear all filters"
               >
                 Clear all
               </button>
@@ -321,7 +382,12 @@ const JobsPage = () => {
 
             <div className="filter-group">
               <h3>Job Type</h3>
-              <div className="job-type-buttons">
+
+              <div
+                className="job-type-buttons"
+                role="group"
+                aria-label="Job type filters"
+              >
                 {jobTypeOptions.map((opt) => (
                   <button
                     key={opt.value}
@@ -330,10 +396,16 @@ const JobsPage = () => {
                     className={`job-type-filter-btn ${opt.colorClass} ${
                       selectedJobTypes.includes(opt.value) ? "selected" : ""
                     }`}
+                    aria-pressed={selectedJobTypes.includes(opt.value)}
+                    aria-label={`${
+                      selectedJobTypes.includes(opt.value) ? "Remove" : "Apply"
+                    } ${opt.label} job type filter`}
                   >
                     {opt.label}
                     {selectedJobTypes.includes(opt.value) && (
-                      <span className="check-mark">✓</span>
+                      <span className="check-mark" aria-hidden="true">
+                        ✓
+                      </span>
                     )}
                   </button>
                 ))}
@@ -342,7 +414,13 @@ const JobsPage = () => {
 
             <div className="filter-group">
               <h3>Location</h3>
+
+              <label htmlFor="desktop-location-filter" className="sr-only">
+                Filter jobs by location
+              </label>
+
               <input
+                id="desktop-location-filter"
                 type="text"
                 placeholder="City or remote"
                 value={location}
@@ -351,14 +429,17 @@ const JobsPage = () => {
                   setCurrentPage(1);
                 }}
                 className="filter-input"
+                aria-label="Filter jobs by location"
               />
             </div>
 
             <div className="filter-group">
               <h3>Salary Range</h3>
+
               <div className="salary-inputs">
                 <div className="salary-input">
                   <label htmlFor="salary-min-desktop">Min ($)</label>
+
                   <input
                     type="number"
                     id="salary-min-desktop"
@@ -371,8 +452,10 @@ const JobsPage = () => {
                       });
                       setCurrentPage(1);
                     }}
+                    aria-label="Minimum salary filter"
                   />
                 </div>
+
                 <div className="salary-input">
                   <label htmlFor="salary-max-desktop">Max ($)</label>
 
@@ -388,18 +471,21 @@ const JobsPage = () => {
                       });
                       setCurrentPage(1);
                     }}
+                    aria-label="Maximum salary filter"
                   />
                 </div>
               </div>
-              <div className="salary-range-bar">
+
+              <div className="salary-range-bar" aria-hidden="true">
                 <div
                   className="salary-range-fill"
                   style={{ width: `${(salaryRange.max / 200000) * 100}%` }}
                 />
               </div>
-              <div className="salary-values">
+
+              <div className="salary-values" aria-label="Selected salary range">
                 <span>${salaryRange.min.toLocaleString()}</span>
-                <span>—</span>
+                <span aria-hidden="true">—</span>
                 <span>${salaryRange.max.toLocaleString()}</span>
               </div>
             </div>
@@ -408,46 +494,67 @@ const JobsPage = () => {
               onClick={clearAllFilters}
               className="clear-filters-btn"
               type="button"
+              aria-label="Clear all filters"
             >
               Clear Filters
             </button>
           </aside>
 
-          {/* Mobile filter button */}
           <button
             className="mobile-filter-btn"
             onClick={() => setIsFilterOpen(true)}
             type="button"
-            aria-label="Open filters"
+            aria-label={`Open filters${
+              activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""
+            }`}
+            aria-haspopup="dialog"
+            aria-expanded={isFilterOpen}
           >
-            <span className="material-symbols-outlined">filter_list</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              filter_list
+            </span>
             Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
           </button>
 
-          {/* Mobile filter drawer */}
           {isFilterOpen && (
             <div
               className="filter-drawer"
+              role="presentation"
               onClick={() => setIsFilterOpen(false)}
             >
               <div
                 className="filter-drawer-content"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="mobile-filters-heading"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="drawer-header">
-                  <h3>Filters</h3>
+                  <h2 id="mobile-filters-heading">Filters</h2>
+
                   <button
                     onClick={() => setIsFilterOpen(false)}
                     type="button"
                     aria-label="Close filters"
                   >
-                    <span className="material-symbols-outlined">close</span>
+                    <span
+                      className="material-symbols-outlined"
+                      aria-hidden="true"
+                    >
+                      close
+                    </span>
                   </button>
                 </div>
+
                 <div className="drawer-body">
                   <div className="filter-group">
                     <h3>Job Type</h3>
-                    <div className="job-type-buttons">
+
+                    <div
+                      className="job-type-buttons"
+                      role="group"
+                      aria-label="Mobile job type filters"
+                    >
                       {jobTypeOptions.map((opt) => (
                         <button
                           key={opt.value}
@@ -458,18 +565,33 @@ const JobsPage = () => {
                               ? "selected"
                               : ""
                           }`}
+                          aria-pressed={selectedJobTypes.includes(opt.value)}
+                          aria-label={`${
+                            selectedJobTypes.includes(opt.value)
+                              ? "Remove"
+                              : "Apply"
+                          } ${opt.label} job type filter`}
                         >
                           {opt.label}
                           {selectedJobTypes.includes(opt.value) && (
-                            <span className="check-mark">✓</span>
+                            <span className="check-mark" aria-hidden="true">
+                              ✓
+                            </span>
                           )}
                         </button>
                       ))}
                     </div>
                   </div>
+
                   <div className="filter-group">
                     <h3>Location</h3>
+
+                    <label htmlFor="mobile-location-filter" className="sr-only">
+                      Filter jobs by location
+                    </label>
+
                     <input
+                      id="mobile-location-filter"
                       type="text"
                       placeholder="City or remote"
                       value={location}
@@ -478,64 +600,70 @@ const JobsPage = () => {
                         setCurrentPage(1);
                       }}
                       className="filter-input"
+                      aria-label="Filter jobs by location"
                     />
                   </div>
+
                   <div className="filter-group">
                     <h3>Salary Range</h3>
+
                     <div className="salary-inputs">
-                      <>
-                        <label htmlFor="salary-min-mobile" className="sr-only">
-                          Minimum salary
-                        </label>
+                      <label htmlFor="salary-min-mobile" className="sr-only">
+                        Minimum salary
+                      </label>
 
-                        <input
-                          id="salary-min-mobile"
-                          type="number"
-                          placeholder="Min"
-                          value={salaryRange.min}
-                          onChange={(e) => {
-                            setSalaryRange({
-                              ...salaryRange,
-                              min: parseInt(e.target.value, 10) || 0,
-                            });
-                            setCurrentPage(1);
-                          }}
-                        />
-                      </>
-                      <>
-                        <label htmlFor="salary-max-mobile" className="sr-only">
-                          Maximum salary
-                        </label>
+                      <input
+                        id="salary-min-mobile"
+                        type="number"
+                        placeholder="Min"
+                        value={salaryRange.min}
+                        onChange={(e) => {
+                          setSalaryRange({
+                            ...salaryRange,
+                            min: parseInt(e.target.value, 10) || 0,
+                          });
+                          setCurrentPage(1);
+                        }}
+                        aria-label="Minimum salary filter"
+                      />
 
-                        <input
-                          id="salary-max-mobile"
-                          type="number"
-                          placeholder="Max"
-                          value={salaryRange.max}
-                          onChange={(e) => {
-                            setSalaryRange({
-                              ...salaryRange,
-                              max: parseInt(e.target.value, 10) || 200000,
-                            });
-                            setCurrentPage(1);
-                          }}
-                        />
-                      </>
+                      <label htmlFor="salary-max-mobile" className="sr-only">
+                        Maximum salary
+                      </label>
+
+                      <input
+                        id="salary-max-mobile"
+                        type="number"
+                        placeholder="Max"
+                        value={salaryRange.max}
+                        onChange={(e) => {
+                          setSalaryRange({
+                            ...salaryRange,
+                            max: parseInt(e.target.value, 10) || 200000,
+                          });
+                          setCurrentPage(1);
+                        }}
+                        aria-label="Maximum salary filter"
+                      />
                     </div>
                   </div>
                 </div>
+
                 <div className="drawer-footer">
                   <button
                     onClick={clearAllFilters}
                     className="drawer-clear-btn"
                     type="button"
+                    aria-label="Clear all filters"
                   >
                     Clear All
                   </button>
+
                   <button
                     onClick={() => setIsFilterOpen(false)}
                     className="drawer-apply-btn"
                     type="button"
+                    aria-label="Apply filters and close filter drawer"
                   >
                     Apply Filters
                   </button>
@@ -544,37 +672,48 @@ const JobsPage = () => {
             </div>
           )}
 
-          {/* Main jobs content */}
-          <main className="jobs-content">
+          <section
+            className="jobs-content"
+            aria-labelledby="jobs-results-heading"
+          >
+            <h2 id="jobs-results-heading" className="sr-only">
+              Job search results
+            </h2>
+
             <div className="results-info">
-              <p>
+              <p role="status" aria-live="polite">
                 Showing {showingStart}-{showingEnd} of {total} jobs
               </p>
-              <>
-                <label htmlFor="jobs-sort" className="sr-only">
-                  Sort jobs
-                </label>
 
-                <select
-                  id="jobs-sort"
-                  className="sort-select"
-                  value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <option value="recent">Most recent</option>
-                  <option value="salary_high">Salary: High to Low</option>
-                  <option value="salary_low">Salary: Low to High</option>
-                </select>
-              </>
+              <label htmlFor="jobs-sort" className="sr-only">
+                Sort jobs
+              </label>
+
+              <select
+                id="jobs-sort"
+                className="sort-select"
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentPage(1);
+                }}
+                aria-label="Sort jobs"
+              >
+                <option value="recent">Most recent</option>
+                <option value="salary_high">Salary: High to Low</option>
+                <option value="salary_low">Salary: Low to High</option>
+              </select>
             </div>
 
             {loading ? (
-              <div className="jobs-grid loading-skeleton">
+              <div
+                className="jobs-grid loading-skeleton"
+                role="status"
+                aria-live="polite"
+                aria-label="Loading jobs"
+              >
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="skeleton-card">
+                  <div key={i} className="skeleton-card" aria-hidden="true">
                     <div className="skeleton-logo" />
                     <div className="skeleton-title" />
                     <div className="skeleton-text" />
@@ -584,40 +723,60 @@ const JobsPage = () => {
               </div>
             ) : jobs.length > 0 ? (
               <>
-                <div className="jobs-grid">
+                <div className="jobs-grid" aria-label="Job search results list">
                   {jobs.map((job) => (
                     <JobCard key={job.id} job={job} />
                   ))}
                 </div>
+
                 {totalPages > 1 && (
-                  <div className="pagination">
+                  <nav
+                    className="pagination"
+                    aria-label="Job results pagination"
+                  >
                     <button
                       className="pagination-btn"
                       disabled={currentPage === 1}
                       onClick={() => goToPage(currentPage - 1)}
                       type="button"
+                      aria-label="Go to previous page"
                     >
-                      <span className="material-symbols-outlined" aria-label="Go to previous page">
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
                         chevron_left
                       </span>
                       Previous
                     </button>
-                    <div className="pagination-pages">
+
+                    <div
+                      className="pagination-pages"
+                      role="group"
+                      aria-label="Page numbers"
+                    >
                       {[...Array(totalPages).keys()].map((i) => {
                         const page = i + 1;
+
                         return (
                           <button
                             key={page}
-                            className={`pagination-page ${currentPage === page ? "active" : ""}`}
+                            className={`pagination-page ${
+                              currentPage === page ? "active" : ""
+                            }`}
                             onClick={() => goToPage(page)}
                             type="button"
                             aria-label={`Go to page ${page}`}
+                            aria-current={
+                              currentPage === page ? "page" : undefined
+                            }
                           >
                             {page}
                           </button>
                         );
                       })}
                     </div>
+
                     <button
                       className="pagination-btn"
                       disabled={currentPage === totalPages}
@@ -626,34 +785,44 @@ const JobsPage = () => {
                       aria-label="Go to next page"
                     >
                       Next
-                      <span className="material-symbols-outlined">
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
                         chevron_right
                       </span>
                     </button>
-                  </div>
+                  </nav>
                 )}
               </>
             ) : (
-              <div className="empty-state">
-                <div className="empty-icon">
-                  <span className="material-symbols-outlined">search_off</span>
+              <div className="empty-state" role="status" aria-live="polite">
+                <div className="empty-icon" aria-hidden="true">
+                  <span
+                    className="material-symbols-outlined"
+                    aria-hidden="true"
+                  >
+                    search_off
+                  </span>
                 </div>
-                <h3>No jobs found</h3>
+
+                <h2>No jobs found</h2>
                 <p>Try adjusting your filters or search term</p>
+
                 <button
                   onClick={clearAllFilters}
                   className="empty-clear-btn"
                   type="button"
+                  aria-label="Clear all filters and show all jobs"
                 >
                   Clear all filters
                 </button>
               </div>
             )}
-          </main>
+          </section>
         </div>
       </div>
 
-      {/* Save search modal */}
       {showSaveSearch && (
         <SaveSearchModal
           isOpen={isSaveModalOpen}

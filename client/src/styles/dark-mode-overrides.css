@@ -6,9 +6,7 @@
   --primary-dark: #009b72;
   --primary-light: #5eead4;
   --secondary-color: #ecfdf5;
-
   --success-color: #00c48c;
-
   --footer-bg: #f0fdf4;
 }
 
@@ -18,9 +16,7 @@
   --primary-dark: #00a67a;
   --primary-light: #5eead4;
   --secondary-color: #052e2b;
-
   --success-color: #00c48c;
-
   --footer-bg: #071a16;
 }
 
@@ -243,4 +239,453 @@ select:focus,
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 196, 140, 0.7);
+}
+
+/* Dark mode badge contrast fix */
+[data-theme="dark"] .verified-badge,
+[data-theme="dark"] .role-badge,
+[data-theme="dark"] .tag-primary,
+[data-theme="dark"] .job-type-remote,
+[data-theme="dark"] .active-filter-tag.job-type-remote,
+[data-theme="dark"] .kpi-change.positive,
+[data-theme="dark"] .status-badge.linked,
+[data-theme="dark"] .success-badge,
+[data-theme="dark"] .toast-success,
+[data-theme="dark"] .alert-success {
+  background: rgba(0, 196, 140, 0.18) !important;
+  color: var(--primary-light) !important;
+  border-color: rgba(94, 234, 212, 0.28) !important;
+}
+
+/* Large laptop screens */
+@media (max-width: 1200px) {
+  .hero-section,
+  .hero-banner,
+  .hero-container {
+    background:
+      radial-gradient(
+        circle at top left,
+        rgba(0, 196, 140, 0.14),
+        transparent 38%
+      ),
+      linear-gradient(135deg, #052e2b 0%, #064e3b 55%, #00c48c 100%) !important;
+  }
+
+  .job-card:hover,
+  .company-card:hover,
+  .profile-card:hover,
+  .admin-stat-card:hover,
+  .quick-action-card:hover,
+  .saved-search-card:hover,
+  .application-card:hover,
+  .stat-card:hover,
+  .chart-card:hover,
+  .salary-card:hover,
+  .ai-feature-card:hover,
+  .step-card:hover,
+  .testimonial-card:hover {
+    box-shadow:
+      0 10px 24px rgba(0, 196, 140, 0.11),
+      0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* Tablet screens */
+@media (max-width: 992px) {
+  .btn-primary,
+  .search-btn,
+  .search-btn-black,
+  .drawer-btn-primary,
+  .detail-content .btn-primary,
+  .admin-btn-primary,
+  .role-btn.active,
+  .btn-black-pill,
+  .save-search-btn:hover {
+    box-shadow: 0 8px 20px rgba(0, 196, 140, 0.16);
+  }
+
+  .job-card:hover,
+  .company-card:hover,
+  .profile-card:hover,
+  .admin-stat-card:hover,
+  .quick-action-card:hover,
+  .saved-search-card:hover,
+  .application-card:hover,
+  .stat-card:hover,
+  .chart-card:hover,
+  .salary-card:hover,
+  .ai-feature-card:hover,
+  .step-card:hover,
+  .testimonial-card:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* Small tablet and large mobile screens */
+@media (max-width: 768px) {
+  .hero-section,
+  .hero-banner,
+  .hero-container {
+    background:
+      radial-gradient(circle at top, rgba(0, 196, 140, 0.16), transparent 42%),
+      linear-gradient(160deg, #052e2b 0%, #064e3b 58%, #00c48c 100%) !important;
+  }
+
+  .btn-primary,
+  .search-btn,
+  .search-btn-black,
+  .drawer-btn-primary,
+  .detail-content .btn-primary,
+  .admin-btn-primary,
+  .role-btn.active,
+  .btn-black-pill,
+  .save-search-btn:hover {
+    box-shadow: 0 6px 16px rgba(0, 196, 140, 0.14);
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus,
+  .form-input:focus,
+  .form-select:focus,
+  .search-input:focus,
+  .filter-input:focus {
+    box-shadow: 0 0 0 3px rgba(0, 196, 140, 0.13) !important;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+}
+
+/* Mobile screens */
+@media (max-width: 480px) {
+  .hero-section,
+  .hero-banner,
+  .hero-container {
+    background:
+      radial-gradient(circle at top, rgba(0, 196, 140, 0.18), transparent 45%),
+      linear-gradient(170deg, #052e2b 0%, #064e3b 60%, #00c48c 100%) !important;
+  }
+
+  .btn-primary:hover,
+  .search-btn:hover,
+  .search-btn-black:hover,
+  .drawer-btn-primary:hover,
+  .detail-content .btn-primary:hover,
+  .admin-btn-primary:hover,
+  .role-btn.active:hover,
+  .btn-black-pill:hover,
+  .job-card:hover,
+  .company-card:hover,
+  .profile-card:hover,
+  .admin-stat-card:hover,
+  .quick-action-card:hover,
+  .saved-search-card:hover,
+  .application-card:hover,
+  .stat-card:hover,
+  .chart-card:hover,
+  .salary-card:hover,
+  .ai-feature-card:hover,
+  .step-card:hover,
+  .testimonial-card:hover {
+    transform: none;
+  }
+
+  .job-card:hover,
+  .company-card:hover,
+  .profile-card:hover,
+  .admin-stat-card:hover,
+  .quick-action-card:hover,
+  .saved-search-card:hover,
+  .application-card:hover,
+  .stat-card:hover,
+  .chart-card:hover,
+  .salary-card:hover,
+  .ai-feature-card:hover,
+  .step-card:hover,
+  .testimonial-card:hover {
+    box-shadow:
+      0 6px 16px rgba(0, 196, 140, 0.1),
+      0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .verified-badge,
+  .role-badge,
+  .tag-primary,
+  .job-type-remote,
+  .active-filter-tag.job-type-remote {
+    font-size: 0.8125rem;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+  .btn-primary,
+  .search-btn,
+  .search-btn-black,
+  .drawer-btn-primary,
+  .detail-content .btn-primary,
+  .admin-btn-primary,
+  .role-btn.active,
+  .btn-black-pill {
+    box-shadow: 0 4px 12px rgba(0, 196, 140, 0.12);
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus,
+  .form-input:focus,
+  .form-select:focus,
+  .search-input:focus,
+  .filter-input:focus {
+    box-shadow: 0 0 0 2px rgba(0, 196, 140, 0.12) !important;
+  }
+}
+
+/* Short screens such as mobile landscape */
+@media (max-height: 520px) {
+  .hero-section,
+  .hero-banner,
+  .hero-container {
+    background:
+      radial-gradient(circle at left, rgba(0, 196, 140, 0.14), transparent 35%),
+      linear-gradient(120deg, #052e2b 0%, #064e3b 60%, #00c48c 100%) !important;
+  }
+}
+
+/* Landscape phones */
+@media (orientation: landscape) and (max-height: 520px) {
+  .btn-primary:hover,
+  .search-btn:hover,
+  .search-btn-black:hover,
+  .drawer-btn-primary:hover,
+  .detail-content .btn-primary:hover,
+  .admin-btn-primary:hover,
+  .role-btn.active:hover,
+  .btn-black-pill:hover {
+    transform: none;
+  }
+
+  .job-card:hover,
+  .company-card:hover,
+  .profile-card:hover,
+  .admin-stat-card:hover,
+  .quick-action-card:hover,
+  .saved-search-card:hover,
+  .application-card:hover,
+  .stat-card:hover,
+  .chart-card:hover,
+  .salary-card:hover,
+  .ai-feature-card:hover,
+  .step-card:hover,
+  .testimonial-card:hover {
+    transform: none;
+  }
+}
+
+/* Touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary:hover,
+  .search-btn:hover,
+  .search-btn-black:hover,
+  .drawer-btn-primary:hover,
+  .detail-content .btn-primary:hover,
+  .admin-btn-primary:hover,
+  .role-btn.active:hover,
+  .btn-black-pill:hover,
+  .job-card:hover,
+  .company-card:hover,
+  .profile-card:hover,
+  .admin-stat-card:hover,
+  .quick-action-card:hover,
+  .saved-search-card:hover,
+  .application-card:hover,
+  .stat-card:hover,
+  .chart-card:hover,
+  .salary-card:hover,
+  .ai-feature-card:hover,
+  .step-card:hover,
+  .testimonial-card:hover {
+    transform: none;
+  }
+
+  .btn-primary,
+  .search-btn,
+  .search-btn-black,
+  .drawer-btn-primary,
+  .detail-content .btn-primary,
+  .admin-btn-primary,
+  .role-btn.active,
+  .btn-black-pill {
+    min-height: 44px;
+  }
+}
+
+/* Users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .job-card,
+  .company-card,
+  .profile-card,
+  .admin-stat-card,
+  .quick-action-card,
+  .saved-search-card,
+  .application-card,
+  .stat-card,
+  .chart-card,
+  .salary-card,
+  .ai-feature-card,
+  .step-card,
+  .testimonial-card,
+  .btn-primary,
+  .search-btn,
+  .search-btn-black,
+  .drawer-btn-primary,
+  .detail-content .btn-primary,
+  .admin-btn-primary,
+  .role-btn.active,
+  .btn-black-pill {
+    transition: none !important;
+  }
+
+  .btn-primary:hover,
+  .search-btn:hover,
+  .search-btn-black:hover,
+  .drawer-btn-primary:hover,
+  .detail-content .btn-primary:hover,
+  .admin-btn-primary:hover,
+  .role-btn.active:hover,
+  .btn-black-pill:hover,
+  .job-card:hover,
+  .company-card:hover,
+  .profile-card:hover,
+  .admin-stat-card:hover,
+  .quick-action-card:hover,
+  .saved-search-card:hover,
+  .application-card:hover,
+  .stat-card:hover,
+  .chart-card:hover,
+  .salary-card:hover,
+  .ai-feature-card:hover,
+  .step-card:hover,
+  .testimonial-card:hover {
+    transform: none !important;
+  }
+}
+
+/* Users who prefer stronger contrast */
+@media (prefers-contrast: more) {
+  .btn-primary,
+  .search-btn,
+  .search-btn-black,
+  .drawer-btn-primary,
+  .detail-content .btn-primary,
+  .admin-btn-primary,
+  .role-btn.active,
+  .btn-black-pill,
+  .verified-badge,
+  .role-badge,
+  .tag-primary,
+  .job-type-remote,
+  .active-filter-tag.job-type-remote {
+    border-width: 2px !important;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus,
+  .form-input:focus,
+  .form-select:focus,
+  .search-input:focus,
+  .filter-input:focus {
+    outline: 3px solid var(--primary-light) !important;
+    outline-offset: 2px;
+  }
+}
+
+/* Windows high contrast mode */
+@media (forced-colors: active) {
+  .btn-primary,
+  .search-btn,
+  .search-btn-black,
+  .drawer-btn-primary,
+  .detail-content .btn-primary,
+  .admin-btn-primary,
+  .role-btn.active,
+  .btn-black-pill {
+    border: 1px solid ButtonText !important;
+    background: ButtonFace !important;
+    color: ButtonText !important;
+    forced-color-adjust: auto;
+  }
+
+  .verified-badge,
+  .role-badge,
+  .tag-primary,
+  .job-type-remote,
+  .active-filter-tag.job-type-remote,
+  .kpi-change.positive,
+  .status-badge.linked,
+  .success-badge {
+    border: 1px solid ButtonText !important;
+    background: Canvas !important;
+    color: CanvasText !important;
+    forced-color-adjust: auto;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus,
+  .form-input:focus,
+  .form-select:focus,
+  .search-input:focus,
+  .filter-input:focus {
+    outline: 3px solid Highlight !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .hero-section,
+  .hero-banner,
+  .hero-container {
+    background: none !important;
+  }
+
+  .btn-primary,
+  .search-btn,
+  .search-btn-black,
+  .drawer-btn-primary,
+  .detail-content .btn-primary,
+  .admin-btn-primary,
+  .role-btn.active,
+  .btn-black-pill {
+    box-shadow: none !important;
+  }
+
+  .job-card,
+  .company-card,
+  .profile-card,
+  .admin-stat-card,
+  .quick-action-card,
+  .saved-search-card,
+  .application-card,
+  .stat-card,
+  .chart-card,
+  .salary-card,
+  .ai-feature-card,
+  .step-card,
+  .testimonial-card {
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
 }

@@ -1,35 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import "./KeyboardShortcuts.css";
-
-// List of shortcut keys shown inside the help panel
-const shortcuts = [
-  {
-    keys: "Alt + S",
-    action: "Focus job search",
-  },
-  {
-    keys: "Alt + J",
-    action: "Go to Jobs page",
-  },
-  {
-    keys: "Alt + H",
-    action: "Go to Home page",
-  },
-  {
-    keys: "Alt + D",
-    action: "Go to Dashboard",
-  },
-  {
-    keys: "Esc",
-    action: "Close modal/help or remove focus",
-  },
-  {
-    keys: "?",
-    action: "Show or hide keyboard shortcuts help",
-  },
-];
 
 // Checks whether the user is currently typing in a form field
 function isTypingElement(element) {
@@ -75,6 +47,7 @@ function focusJobSearchInput(attempts = 10) {
     return;
   }
 
+  // Tries again after navigation because the Jobs page may still be rendering
   if (attempts > 0) {
     setTimeout(() => {
       focusJobSearchInput(attempts - 1);
@@ -113,11 +86,12 @@ function closeTopLayerElement() {
     const closeButton =
       openDialog.querySelector('[aria-label="Close modal"]') ||
       openDialog.querySelector('[aria-label="Close"]') ||
+      openDialog.querySelector('[aria-label="Close filters"]') ||
       openDialog.querySelector(".modal-close") ||
       openDialog.querySelector(".close-button") ||
       openDialog.querySelector("button");
 
-    if (closeButton) {
+    if (closeButton instanceof HTMLElement) {
       closeButton.click();
       return true;
     }
@@ -130,11 +104,15 @@ function KeyboardShortcuts() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
-  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     function handleKeyboardShortcuts(event) {
       const key = event.key.toLowerCase();
+
+      // Stops shortcuts from running while the user is typing
+      if (isTypingElement(event.target)) {
+        return;
+      }
 
       // Checks that only the Alt key is used with the shortcut
       const isAltShortcut =
@@ -191,37 +169,16 @@ function KeyboardShortcuts() {
         return;
       }
 
-      // Escape closes help, closes modal, or removes focus from the active element
+      // Escape closes modal or removes focus from the active element
       if (key === "escape") {
         event.preventDefault();
         event.stopPropagation();
-
-        if (showHelp) {
-          setShowHelp(false);
-          return;
-        }
 
         const didCloseElement = closeTopLayerElement();
 
         if (!didCloseElement && document.activeElement instanceof HTMLElement) {
           document.activeElement.blur();
         }
-
-        return;
-      }
-
-      // Question mark opens or closes the keyboard shortcuts help panel
-      if (
-        event.key === "?" &&
-        !event.altKey &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !isTypingElement(event.target)
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        setShowHelp((currentValue) => !currentValue);
       }
     }
 
@@ -232,54 +189,9 @@ function KeyboardShortcuts() {
     return () => {
       window.removeEventListener("keydown", handleKeyboardShortcuts);
     };
-  }, [location.pathname, navigate, showHelp, user, isAuthenticated]);
+  }, [location.pathname, navigate, user, isAuthenticated]);
 
-  return (
-    <>
-      <button
-        type="button"
-        className="keyboard-help-button"
-        aria-label="Show keyboard shortcuts help"
-        aria-expanded={showHelp}
-        onClick={() => setShowHelp((currentValue) => !currentValue)}
-      >
-        ?
-      </button>
-
-      {showHelp && (
-        <div
-          className="keyboard-help-panel"
-          role="dialog"
-          aria-modal="false"
-          aria-labelledby="keyboard-help-title"
-        >
-          <div className="keyboard-help-header">
-            <h2 id="keyboard-help-title">Keyboard shortcuts</h2>
-
-            <button
-              type="button"
-              className="keyboard-help-close"
-              aria-label="Close keyboard shortcuts help"
-              onClick={() => setShowHelp(false)}
-            >
-              <span className="material-symbols-outlined" aria-hidden="true">
-                close
-              </span>
-            </button>
-          </div>
-
-          <ul className="keyboard-help-list">
-            {shortcuts.map((shortcut) => (
-              <li key={shortcut.keys}>
-                <kbd>{shortcut.keys}</kbd>
-                <span>{shortcut.action}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </>
-  );
+  return null;
 }
 
 export default KeyboardShortcuts;

@@ -8,6 +8,11 @@
   --primary-light: #5eead4;
   --secondary-color: #ecfdf5;
 
+  /* Accessibility focus ring */
+  --focus-ring-color: #3b82f6;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 3px;
+
   /* Status */
   --success-color: #10b981;
   --warning-color: #f59e0b;
@@ -120,6 +125,11 @@
   --primary-dark: #009b72;
   --primary-light: #5eead4;
   --secondary-color: #052e2b;
+
+  /* Accessibility focus ring */
+  --focus-ring-color: #3b82f6;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 3px;
 
   /* Status */
   --success-color: #10b981;

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { savedSearchAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import Button from "../common/Button/Button";
 import Input from "../common/Input/Input";
 import "./SaveSearchModal.css";
@@ -23,6 +24,7 @@ export default function SaveSearchModal({
   const [jobType, setJobType] = useState("");
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
+  const modalRef = useFocusTrap(isOpen, onClose);
 
   // Load initial data for edit mode
   useEffect(() => {
@@ -101,8 +103,18 @@ export default function SaveSearchModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>{mode === "edit" ? "Edit Saved Search" : "Save This Search"}</h2>
+      <div
+        className="modal-content"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="save-search-modal-title"
+        tabIndex="-1"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="save-search-modal-title">
+          {mode === "edit" ? "Edit Saved Search" : "Save This Search"}
+        </h2>
         <form onSubmit={handleSubmit}>
           <Input
             label="Search Name"

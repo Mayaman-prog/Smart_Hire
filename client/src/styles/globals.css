@@ -78,13 +78,52 @@ button,
     box-shadow 0.3s ease;
 }
 
+/* Shows a clear blue outline only for keyboard focus */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
-select:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+select:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Removes focus outline when the user clicks using a mouse */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Prevents dialog containers from showing outline on mouse click */
+[role="dialog"]:focus {
+  outline: none;
+}
+
+/* Shows a focus ring if the dialog container itself receives keyboard focus */
+[role="dialog"]:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Keeps modal containers ready for focus trap fallback focus */
+.modal-content,
+.keyboard-help-panel,
+.filter-drawer-content {
+  outline: none;
+}
+
+/* Shows focus ring if the modal wrapper itself becomes focused */
+.modal-content:focus-visible,
+.keyboard-help-panel:focus-visible,
+.filter-drawer-content:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* Utility Classes */
@@ -272,8 +311,8 @@ select:focus-visible {
 .skip-link:focus,
 .skip-link:focus-visible {
   transform: translateY(0);
-  outline: 3px solid var(--primary-light);
-  outline-offset: 3px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* Removes browser outline from main after skip link moves focus there */

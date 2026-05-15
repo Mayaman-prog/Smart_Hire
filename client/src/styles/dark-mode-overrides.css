@@ -8,6 +8,11 @@
   --secondary-color: #ecfdf5;
   --success-color: #00c48c;
   --footer-bg: #f0fdf4;
+
+  /* Accessibility focus ring */
+  --focus-ring-color: #3b82f6;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 3px;
 }
 
 [data-theme="dark"],
@@ -18,6 +23,11 @@
   --secondary-color: #052e2b;
   --success-color: #00c48c;
   --footer-bg: #071a16;
+
+  /* Accessibility focus ring */
+  --focus-ring-color: #3b82f6;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 3px;
 }
 
 /* HERO SECTION */
@@ -602,8 +612,8 @@ select:focus,
   .form-select:focus,
   .search-input:focus,
   .filter-input:focus {
-    outline: 3px solid var(--primary-light) !important;
-    outline-offset: 2px;
+    outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
+  outline-offset: var(--focus-ring-offset);
   }
 }
 

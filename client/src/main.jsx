@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import './styles/globals.css';
+import "./styles/dark-mode-overrides.css";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>

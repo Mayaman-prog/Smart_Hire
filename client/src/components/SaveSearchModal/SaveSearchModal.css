@@ -2,7 +2,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,9 +11,10 @@
 
 /* The white box that contains the modal form */
 .modal-content {
-  background: var(--white);
   padding: var(--spacing-xl);
-  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   width: 90%;
   max-width: 440px;
   box-shadow: var(--shadow-xl);
@@ -24,7 +25,7 @@
   margin: 0 0 var(--spacing-lg) 0;
   font-size: var(--font-xl);
   font-weight: 600;
-  color: var(--dark-color);
+  color: var(--text-primary);
 }
 
 /* Wrapper for each form field (label + input) */
@@ -38,7 +39,7 @@
   margin-bottom: var(--spacing-xs);
   font-size: var(--font-sm);
   font-weight: 500;
-  color: var(--gray-color);
+  color: var(--text-secondary);
 }
 
 /* The dropdown select box for choosing alert frequency */
@@ -47,8 +48,8 @@
   padding: 0.6rem var(--spacing-md);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: var(--light-gray);
-  color: var(--dark-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-size: var(--font-md);
   font-family: inherit;
   outline: none;
@@ -60,11 +61,13 @@
 /* Style when user clicks in the dropdown */
 .form-group select:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 196, 140, 0.15);
 }
 
 /* Form inputs for edit mode */
 .form-input {
+  background: var(--bg-primary);
+  color: var(--text-primary);
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--border-color);
@@ -77,10 +80,12 @@
 .form-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 196, 140, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 196, 140, 0.15);
 }
 
 .form-select {
+  background: var(--bg-primary);
+  color: var(--text-primary);
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--border-color);
@@ -97,6 +102,8 @@
 }
 
 .salary-group .salary-inputs input {
+  background: var(--bg-primary);
+  color: var(--text-primary);
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--border-color);
@@ -105,8 +112,13 @@
   font-family: inherit;
 }
 
+.salary-inputs input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 196, 140, 0.15);
+}
+
 .salary-group .salary-inputs span {
-  color: var(--gray-color);
+  color: var(--text-secondary);
   font-size: var(--font-sm);
 }
 

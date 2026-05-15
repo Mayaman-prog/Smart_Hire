@@ -5,6 +5,8 @@
 ![GitHub forks](https://img.shields.io/github/forks/Mayaman-prog/Smart_Hire?style=social)
 ![GitHub issues](https://img.shields.io/github/issues/Mayaman-prog/Smart_Hire)
 ![License](https://img.shields.io/badge/license-MIT-blue)
+![Accessibility](https://img.shields.io/badge/accessibility-WCAG%202.1-green)
+![Theme](https://img.shields.io/badge/theme-light%20%7C%20dark%20%7C%20system-blue)
 
 SmartHire is a full-stack job portal web application connecting job seekers, employers, and administrators. It is designed to be scalable, SEO-friendly, and production-ready.
 
@@ -135,7 +137,13 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - **Search Term Logging & Keyword Highlighting** – Every search term is logged with user/IP data for analytics. Matching terms in job titles and descriptions are highlighted with a yellow background in search results.
 - Salary Comparison Badge – On the job details page, a colored pill indicates if the job’s salary is above, average, or below market, with a tooltip showing market stats (average, median, percentiles, sample count).
 - Salary Trend Chart & Percentiles – On the job details page, a collapsible "Salary Insights" section displays a line chart of monthly average salaries over the last 6 months and horizontal bars for the 25th, 50th (median), and 75th percentiles, with a tooltip on the chart.
-- **Theme toggle button** to switch between **light** and **dark** modes
+- Complete global theme system with **light**, **dark**, and **system** modes
+- Automatic operating system theme detection using `prefers-color-scheme`
+- Persistent theme storage using `localStorage`
+- Flash-of-incorrect-theme prevention using inline `<head>` theme initialization script
+- WCAG-friendly color contrast improvements across all pages and components
+- Centralized dark mode architecture using CSS variables and semantic theme tokens
+- Fully accessible UI with ARIA labels, semantic HTML structure, and keyboard navigation support
 
 ### Backend Features
 
@@ -324,6 +332,19 @@ transition:
   color 0.3s ease;
 ```
 
+Global accessibility focus styles are also applied:
+
+```css
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+```
+
 #### Navbar Theme Toggle
 
 The theme toggle button is implemented inside:
@@ -369,6 +390,113 @@ This allows:
 - Cleaner component code
 - Better maintainability
 - Easier future customization
+
+### Accessibility & Dark Mode Enhancements
+
+SmartHire was enhanced with a complete accessibility and dark mode optimization pass to improve usability, responsiveness, and visual consistency across the platform.
+
+#### Accessibility Improvements
+
+The frontend was updated to follow semantic HTML and accessibility best practices.
+
+##### Implemented Accessibility Features
+
+- Added `aria-label` attributes to icon-only buttons
+- Added proper `<label>` associations for all form fields
+- Added `role="dialog"` and `aria-modal="true"` to modals
+- Added `role="status"` and `role="alert"` for loading and error states
+- Added `aria-hidden="true"` to decorative icons
+- Improved heading hierarchy consistency (`h1 → h2 → h3`)
+- Added global `lang="en"` attribute
+- Added reusable `sr-only` utility class for screen-reader-only content
+- Replaced clickable `<div>` elements with semantic `<button>` elements
+- Added keyboard focus visibility styles using `:focus-visible`
+- Improved screen reader support across navigation and forms
+
+##### Accessibility Testing
+
+The application was manually tested for:
+
+- Keyboard navigation
+- Screen reader compatibility
+- Focus visibility
+- Form labeling
+- Modal accessibility
+- Responsive accessibility behavior
+- Semantic heading structure consistency
+
+#### Dark Mode Optimization
+
+The SmartHire frontend now supports complete dark mode compatibility across all pages, dashboards, cards, forms, tables, modals, and navigation components.
+
+##### Dark Mode Features
+
+- Full light/dark/system theme support
+- Automatic operating system theme synchronization
+- Smooth theme transitions
+- Centralized theme management using React Context API
+- CSS custom property architecture
+- Semantic color variables (`--bg-card`, `--text-primary`, etc.)
+- Responsive dark mode layouts
+- Improved contrast ratios for WCAG readability compliance
+
+##### Flash Prevention
+
+To prevent the “flash of incorrect theme” problem during page load, an inline theme initialization script is injected inside `index.html` before React mounts.
+
+The script:
+
+- Reads the saved theme from `localStorage`
+- Detects operating system theme preference
+- Applies the correct theme before rendering
+
+##### Dark Mode Override Architecture
+
+A centralized override file was added:
+
+`client/src/styles/dark-mode-overrides.css`
+
+**Responsibilities:**
+
+- Overrides remaining hardcoded light-mode styles
+- Applies semantic theme variables globally
+- Ensures consistency across reusable components
+- Reduces duplicated dark mode styling logic
+- Simplifies long-term theme maintenance
+- Components Updated for Dark Mode
+
+The following components/pages were updated and tested in both light and dark modes:
+
+- Navbar
+- Footer
+- JobCard
+- CompanyCard
+- SaveSearchModal
+- HomePage
+- JobsPage
+- JobDetailsPage
+- CompaniesPage
+- CompanyDetailsPage
+- LoginPage
+- RegisterPage
+- ProfilePage
+- SalaryInsights
+- JobSeekerDashboard
+- EmployerDashboard
+- AdminDashboard
+- ResumeUpload
+- ConnectedAccounts
+- WCAG Contrast Improvements
+
+The following improvements were applied:
+
+- Improved text readability on dark backgrounds
+- Enhanced button hover visibility
+- Accessible form field contrast
+- Better muted-text visibility
+- Improved dashboard card readability
+- Accessible modal overlays
+- Improved focus ring visibility for keyboard users
 
 ### Saved Searches Feature
 
@@ -598,6 +726,7 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - Dynamic copyright year (auto-updates)
 - Sticky to bottom using flexbox
 - Dark theme background with white text
+- Fully responsive light and dark mode support using semantic CSS variables
 
 ### HomePage
 
@@ -935,8 +1064,8 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - **Axios 1.6.2** - HTTP client for API requests
 - **React Hook Form 7.48.2** - Form handling and validation
 - **React Hot Toast 2.4.1** Toast notifications
-- **CSS3** - Custom styling with CSS variables
-- **Google Fonts Icons** - Icon system
+- **CSS3** - Custom styling with CSS variables, semantic theme tokens, and centralized dark mode overrides
+- **Google Material Symbols** - Icon system
 - **Recharts** - Charting library for admin dashboard (line, bar, pie charts)
 
 ### Server
@@ -1074,7 +1203,8 @@ SmartHire/
 │   │   │   └── validators.js
 │   │   ├── styles/
 │   │   │   ├── globals.css
-│   │   │   └── variables.css
+│   │   │   ├── variables.css
+│   │   │   └── dark-mode-overrides.css
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   ├── .env
@@ -2514,6 +2644,11 @@ client/src/pages/NotFoundPage/
 - Interview scheduling system
 - Mobile native apps (React Native)
 - Structured resume API (e.g., Affinda) for higher‑accuracy parsing
+- Advanced accessibility auditing using Lighthouse and Axe DevTools
+- Additional theme customization options
+- High contrast accessibility mode
+- Reduced motion accessibility preferences
+- Theme customization per user profile
 
 ## License
 

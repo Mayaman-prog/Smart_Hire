@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const { pool } = require("../config/database");
 const generateToken = require("../utils/generateToken");
 const { addEmailJob } = require("../queues/emailQueue");
+const { logAction } = require("../middleware/auditLogger");
 
 // VALIDATION
 const registerValidation = [
@@ -18,6 +19,19 @@ const registerValidation = [
 ];
 
 const loginValidation = [body("email").isEmail(), body("password").notEmpty()];
+
+// Builds audit details for login events because login happens before req.user exists.
+const getAuditDetails = (req, details = {}) => ({
+  ...details,
+  ip_address:
+    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.ip ||
+    req.socket?.remoteAddress ||
+    null,
+  user_agent: req.get("user-agent") || null,
+  method: req.method,
+  path: req.originalUrl,
+});
 
 // REGISTER
 const register = async (req, res) => {
@@ -139,7 +153,17 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
+      logAction(
+        null,
+        "LOGIN_FAILURE",
+        getAuditDetails(req, {
+          reason: "validation_failed",
+          email: req.body?.email || null,
+        })
+      );
+
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
@@ -150,6 +174,15 @@ const login = async (req, res) => {
     ]);
 
     if (users.length === 0) {
+      logAction(
+        null,
+        "LOGIN_FAILURE",
+        getAuditDetails(req, {
+          reason: "user_not_found",
+          email,
+        })
+      );
+
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -159,6 +192,15 @@ const login = async (req, res) => {
     const user = users[0];
 
     if (!user.is_active) {
+      logAction(
+        user.id,
+        "LOGIN_FAILURE",
+        getAuditDetails(req, {
+          reason: "account_disabled",
+          email,
+        })
+      );
+
       return res.status(403).json({
         success: false,
         message: "Account disabled",
@@ -168,6 +210,15 @@ const login = async (req, res) => {
     const match = await bcrypt.compare(password, user.password_hash);
 
     if (!match) {
+      logAction(
+        user.id,
+        "LOGIN_FAILURE",
+        getAuditDetails(req, {
+          reason: "invalid_password",
+          email,
+        })
+      );
+
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -178,8 +229,16 @@ const login = async (req, res) => {
       user.id,
     ]);
 
-    const { password_hash, ...safeUser } = user;
+    logAction(
+      user.id,
+      "LOGIN_SUCCESS",
+      getAuditDetails(req, {
+        email,
+        role: user.role,
+      })
+    );
 
+    const { password_hash, ...safeUser } = user;
     const token = generateToken(user);
 
     return res.json({
@@ -195,7 +254,7 @@ const login = async (req, res) => {
   }
 };
 
-// PROFILE (UPDATED)
+// PROFILE
 const getProfile = async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -210,7 +269,7 @@ const getProfile = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Prevent caching to ensure fresh data (fixes 304 Not Modified)
+    // Prevent caching to ensure fresh data
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");

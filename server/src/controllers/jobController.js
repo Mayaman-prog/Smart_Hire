@@ -710,6 +710,15 @@ const deleteJob = async (req, res) => {
 
     await pool.query("DELETE FROM jobs WHERE id = ?", [id]);
 
+    if (req.logAction) {
+      req.logAction("JOB_DELETE", {
+        job_id: Number(id),
+        company_id: jobs[0].company_id,
+        posted_by: jobs[0].posted_by,
+        source: user.role === "admin" ? "admin" : "employer",
+      });
+    }
+
     res.json({ success: true, message: "Job deleted" });
   } catch (error) {
     console.error("Delete job error:", error);

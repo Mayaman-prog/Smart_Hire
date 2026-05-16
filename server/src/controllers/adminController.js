@@ -18,7 +18,15 @@ const getAllUsers = async (req, res) => {
 const banUser = async (req, res) => {
   try {
     const { id } = req.params;
+
     await pool.query("UPDATE users SET is_active = 0 WHERE id = ?", [id]);
+
+    if (req.logAction) {
+      req.logAction("USER_BAN", {
+        target_user_id: Number(id),
+      });
+    }
+
     res.json({ success: true, message: "User banned" });
   } catch (error) {
     console.error("Ban user error:", error);
@@ -29,10 +37,66 @@ const banUser = async (req, res) => {
 const unbanUser = async (req, res) => {
   try {
     const { id } = req.params;
+
     await pool.query("UPDATE users SET is_active = 1 WHERE id = ?", [id]);
+
+    if (req.logAction) {
+      req.logAction("USER_UNBAN", {
+        target_user_id: Number(id),
+      });
+    }
+
     res.json({ success: true, message: "User unbanned" });
   } catch (error) {
     console.error("Unban user error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+const changeUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    const allowedRoles = ["job_seeker", "employer", "admin"];
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role",
+      });
+    }
+
+    const [users] = await pool.query(
+      "SELECT id, role FROM users WHERE id = ?",
+      [id],
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const oldRole = users[0].role;
+
+    await pool.query("UPDATE users SET role = ? WHERE id = ?", [role, id]);
+
+    if (req.logAction) {
+      req.logAction("ROLE_CHANGE", {
+        target_user_id: Number(id),
+        old_role: oldRole,
+        new_role: role,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "User role updated",
+    });
+  } catch (error) {
+    console.error("Change user role error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -68,7 +132,15 @@ const getAllCompanies = async (req, res) => {
 const verifyCompany = async (req, res) => {
   try {
     const { id } = req.params;
+
     await pool.query("UPDATE companies SET is_verified = 1 WHERE id = ?", [id]);
+
+    if (req.logAction) {
+      req.logAction("COMPANY_VERIFY", {
+        company_id: Number(id),
+      });
+    }
+
     res.json({ success: true, message: "Company verified" });
   } catch (error) {
     console.error("Verify company error:", error);
@@ -128,7 +200,31 @@ const unfeatureJob = async (req, res) => {
 const deleteJob = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const [jobs] = await pool.query(
+      "SELECT id, title, company_id, posted_by FROM jobs WHERE id = ?",
+      [id],
+    );
+
+    if (jobs.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
     await pool.query("DELETE FROM jobs WHERE id = ?", [id]);
+
+    if (req.logAction) {
+      req.logAction("JOB_DELETE", {
+        job_id: Number(id),
+        job_title: jobs[0].title,
+        company_id: jobs[0].company_id,
+        posted_by: jobs[0].posted_by,
+        source: "admin",
+      });
+    }
+
     res.json({ success: true, message: "Job deleted" });
   } catch (error) {
     console.error("Delete job error:", error);
@@ -424,12 +520,10 @@ const updateJobReportStatus = async (req, res) => {
 
     const reportData = report[0];
     if (reportData.old_status !== "pending") {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: `Report already resolved (status: ${reportData.old_status})`,
-        });
+      return res.status(400).json({
+        success: false,
+        message: `Report already resolved (status: ${reportData.old_status})`,
+      });
     }
 
     await pool.query(
@@ -443,6 +537,16 @@ const updateJobReportStatus = async (req, res) => {
       await pool.query("UPDATE jobs SET is_active = 0 WHERE id = ?", [
         reportData.job_id,
       ]);
+    }
+
+    if (req.logAction) {
+      req.logAction("REPORT_RESOLUTION", {
+        report_id: Number(id),
+        job_id: reportData.job_id,
+        old_status: reportData.old_status,
+        new_status: status,
+        reporter_id: reportData.reporter_id,
+      });
     }
 
     const resolutionLabels = {
@@ -502,6 +606,7 @@ module.exports = {
   getAllUsers,
   banUser,
   unbanUser,
+  changeUserRole,
   deleteUser,
   getAllCompanies,
   verifyCompany,

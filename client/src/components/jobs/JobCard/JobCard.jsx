@@ -20,23 +20,17 @@ export const getJobTypeColor = (jobType) => {
   }
 };
 
-export const getJobTypeLabel = (jobType) => {
+export const getJobTypeLabel = (jobType, t) => {
   const labels = {
-    "full-time":
-      t?.("jobs.fullTime", { defaultValue: "Full Time" }) || "Full Time",
-    "part-time":
-      t?.("jobs.partTime", { defaultValue: "Part Time" }) || "Part Time",
-    remote: t?.("jobs.remote", { defaultValue: "Remote" }) || "Remote",
-    contract: t?.("jobs.contract", { defaultValue: "Contract" }) || "Contract",
-    internship:
-      t?.("jobs.internship", { defaultValue: "Internship" }) || "Internship",
+    "full-time": t("jobs.fullTime", { defaultValue: "Full Time" }),
+    "part-time": t("jobs.partTime", { defaultValue: "Part Time" }),
+    remote: t("jobs.remote", { defaultValue: "Remote" }),
+    contract: t("jobs.contract", { defaultValue: "Contract" }),
+    internship: t("jobs.internship", { defaultValue: "Internship" }),
   };
 
   return (
-    labels[jobType] ||
-    jobType ||
-    t?.("common.other", { defaultValue: "Other" }) ||
-    "Other"
+    labels[jobType] || jobType || t("common.other", { defaultValue: "Other" })
   );
 };
 

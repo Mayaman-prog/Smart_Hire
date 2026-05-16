@@ -9,6 +9,7 @@ import {
   savedSearchAPI,
 } from "../../../services/api";
 import JobCard from "../../../components/jobs/JobCard/JobCard";
+import RecommendedJobsSection from "../../../components/jobs/RecommendedJobSection/RecommendedJobsSection";
 import SaveSearchModal from "../../../components/SaveSearchModal/SaveSearchModal";
 import Navbar from "../../../components/common/Navbar/Navbar";
 import Footer from "../../../components/common/Footer/Footer";
@@ -517,6 +518,8 @@ const JobSeekerDashboard = () => {
             </div>
           )}
 
+          <RecommendedJobsSection className="dashboard-recommended-jobs" />
+
           {/* Saved Searches Section */}
           <div className="saved-searches-section">
             <div className="section-header">
@@ -584,7 +587,6 @@ const JobSeekerDashboard = () => {
                         <button
                           type="button"
                           className="icon-btn delete-btn"
-                          aria-label={`Delete saved search ${search.name}`}
                           onClick={() => {
                             setDeletingSearchId(search.id);
                             setIsDeleteModalOpen(true);

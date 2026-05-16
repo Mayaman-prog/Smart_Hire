@@ -499,72 +499,390 @@
   background: var(--primary-dark);
 }
 
+/* Recommended Jobs Homepage Integration */
+
+.home-page .recommended-jobs-section {
+  margin-top: var(--spacing-3xl);
+  margin-bottom: var(--spacing-3xl);
+}
+
+.home-page .recommended-jobs-grid {
+  align-items: stretch;
+}
+
+.home-page .recommended-job-item {
+  height: 100%;
+}
+
+/* Ensure JobCard fills grid properly */
+.home-page .recommended-job-item > * {
+  height: 100%;
+}
+
+/* Better spacing consistency */
+.home-page .recommended-jobs-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Better section alignment */
+.home-page .recommended-jobs-section .section-title {
+  word-break: break-word;
+}
+
 /* RESPONSIVE DESIGN */
-@media (max-width: 992px) {
+/* Ultra-wide screens */
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1440px;
+  }
+
   .hero-title {
-    font-size: 36px;
+    font-size: 56px;
   }
-  .jobs-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  .jobs-grid,
+  .testimonials-grid,
+  .ai-features-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-  .company-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+
   .steps-grid {
+    max-width: 1100px;
+  }
+}
+
+/* Large desktop */
+@media (max-width: 1280px) {
+  .container {
+    padding: 0 24px;
+  }
+
+  .jobs-grid {
+    gap: 20px;
+  }
+}
+
+/* Small laptop */
+@media (max-width: 1100px) {
+  .hero-title {
+    font-size: 40px;
+  }
+
+  .jobs-grid,
+  .testimonials-grid,
+  .ai-features-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .steps-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;
   }
 }
 
-@media (max-width: 768px) {
-  .hero-section {
-    padding: 40px 0 60px;
+/* Tablet landscape */
+@media (max-width: 900px) {
+  .hero-section,
+  .companies-section,
+  .jobs-section,
+  .how-it-works-section,
+  .testimonials-section,
+  .ai-features-section {
+    padding: 48px 0;
   }
+
   .hero-title {
+    font-size: 34px;
+  }
+
+  .hero-search-bar {
+    max-width: 100%;
+  }
+
+  .section-header {
+    align-items: flex-start;
+  }
+
+  .section-title,
+  .testimonials-title,
+  .ai-features-title {
     font-size: 28px;
   }
-  .hero-search-bar {
-    flex-direction: column;
-    border-radius: 12px;
-    padding: 12px;
-  }
-  .search-divider {
-    display: none;
-  }
-  .search-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  .popular-searches {
-    justify-content: center;
-  }
-  .company-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+
   .carousel-item {
-    width: 160px;
-  }
-  .jobs-grid {
-    grid-template-columns: 1fr;
-  }
-  .steps-grid {
-    grid-template-columns: 1fr;
-  }
-  .testimonials-grid {
-    grid-template-columns: 1fr;
-  }
-  .ai-features-grid {
-    grid-template-columns: 1fr;
+    width: 180px;
   }
 }
 
-@media (max-width: 480px) {
+/* Tablet portrait */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 18px;
+  }
+
+  .hero-search-bar {
+    align-items: stretch;
+  }
+
+  .search-input-wrapper {
+    width: 100%;
+    min-height: 50px;
+  }
+
+  .search-input-wrapper input {
+    min-height: 50px;
+  }
+
+  .popular-searches {
+    max-width: 100%;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .jobs-grid,
+  .testimonials-grid,
+  .ai-features-grid,
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .step-card,
+  .testimonial-card,
+  .ai-feature-card {
+    padding: 20px;
+  }
+}
+
+/* Large mobile */
+@media (max-width: 640px) {
+  .hero-section {
+    padding: 36px 0 48px;
+  }
+
   .hero-title {
+    font-size: 26px;
+  }
+
+  .hero-content {
+    margin-bottom: 28px;
+  }
+
+  .section-title,
+  .testimonials-title,
+  .ai-features-title {
     font-size: 24px;
   }
-  .company-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  .section-title.centered {
+    margin-bottom: 32px;
   }
-  .section-title {
-    font-size: 24px;
+
+  .companies-section,
+  .jobs-section,
+  .how-it-works-section,
+  .testimonials-section,
+  .ai-features-section {
+    padding: 40px 0;
+  }
+
+  .carousel-item {
+    width: 150px;
+  }
+
+  .popular-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 14px;
+  }
+
+  .hero-title {
+    font-size: 23px;
+  }
+
+  .hero-search-bar {
+    padding: 10px;
+  }
+
+  .search-input-wrapper {
+    min-height: 46px;
+  }
+
+  .search-icon {
+    left: 12px;
+    font-size: 20px;
+  }
+
+  .search-input-wrapper input {
+    padding-left: 40px;
+    font-size: 14px;
+  }
+
+  .search-btn {
+    height: 42px;
+    font-size: 14px;
+  }
+
+  .carousel-item {
+    width: 135px;
+  }
+
+  .section-title,
+  .testimonials-title,
+  .ai-features-title {
+    font-size: 22px;
+  }
+
+  .step-icon .material-symbols-outlined {
+    font-size: 40px;
+  }
+
+  .icon-circle {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* Very small mobile */
+@media (max-width: 360px) {
+  .container {
+    padding: 0 12px;
+  }
+
+  .hero-title {
+    font-size: 21px;
+  }
+
+  .hero-search-bar {
+    border-radius: 10px;
+  }
+
+  .popular-searches {
+    font-size: 12px;
+  }
+
+  .popular-tag {
+    padding: 3px 8px;
+  }
+
+  .carousel-item {
+    width: 120px;
+  }
+
+  .section-title,
+  .testimonials-title,
+  .ai-features-title {
+    font-size: 20px;
+  }
+}
+
+/* Mobile landscape */
+@media (max-width: 900px) and (orientation: landscape) {
+  .hero-section {
+    padding: 32px 0 40px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .jobs-grid,
+  .testimonials-grid,
+  .ai-features-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .steps-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .search-btn,
+  .view-all-link,
+  .popular-tag,
+  .retry-btn {
+    min-height: 44px;
+  }
+
+  .carousel-container {
+    touch-action: pan-x;
+  }
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .hero-section::before,
+  .carousel-track,
+  .search-btn,
+  .popular-tag,
+  .view-all-link,
+  .retry-btn,
+  .skeleton-logo,
+  .skeleton-title,
+  .skeleton-text {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .search-btn:hover {
+    transform: none;
+  }
+}
+
+/* High contrast accessibility */
+@media (prefers-contrast: more) {
+  .hero-search-bar,
+  .testimonial-card,
+  .ai-feature-card,
+  .skeleton-card,
+  .empty-state {
+    border-width: 2px;
+  }
+
+  .popular-tag,
+  .search-btn,
+  .retry-btn {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Print view */
+@media print {
+  .hero-search-bar,
+  .popular-searches,
+  .carousel-container,
+  .view-all-link,
+  .search-btn,
+  .retry-btn {
+    display: none !important;
+  }
+
+  .hero-section,
+  .companies-section,
+  .jobs-section,
+  .how-it-works-section,
+  .testimonials-section,
+  .ai-features-section {
+    padding: 20px 0;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .jobs-grid,
+  .steps-grid,
+  .testimonials-grid,
+  .ai-features-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -1,0 +1,170 @@
+.recommended-jobs-section {
+  margin: var(--spacing-2xl) 0;
+  width: 100%;
+}
+
+.recommended-jobs-header {
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.recommended-jobs-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  line-height: 1.6;
+  margin-top: var(--spacing-xs);
+}
+
+.recommended-jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.recommended-job-item {
+  position: relative;
+  min-width: 0;
+}
+
+.match-score-badge {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  z-index: 2;
+  background: var(--primary-color);
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  font-size: var(--font-xs);
+  font-weight: 700;
+  line-height: 1.4;
+  box-shadow: var(--shadow-sm);
+}
+
+.recommended-jobs-status {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.recommended-jobs-empty {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Dark mode */
+[data-theme="dark"] .recommended-jobs-status,
+.dark .recommended-jobs-status {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .recommended-jobs-empty,
+.dark .recommended-jobs-empty {
+  color: var(--text-primary);
+}
+
+/* Large tablets and small laptops */
+@media (max-width: 1200px) {
+  .recommended-jobs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tablets */
+@media (max-width: 900px) {
+  .recommended-jobs-section {
+    margin: var(--spacing-xl) 0;
+  }
+
+  .recommended-jobs-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recommended-jobs-grid {
+    gap: var(--spacing-md);
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .recommended-jobs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommended-jobs-subtitle {
+    font-size: var(--font-xs);
+  }
+
+  .recommended-jobs-status {
+    padding: var(--spacing-lg);
+  }
+
+  .match-score-badge {
+    top: var(--spacing-xs);
+    right: var(--spacing-xs);
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+}
+
+/* Very small mobile screens */
+@media (max-width: 380px) {
+  .recommended-jobs-section {
+    margin: var(--spacing-lg) 0;
+  }
+
+  .recommended-jobs-status {
+    padding: var(--spacing-md);
+    font-size: var(--font-sm);
+  }
+
+  .match-score-badge {
+    max-width: 90px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Landscape phones */
+@media (max-width: 900px) and (orientation: landscape) {
+  .recommended-jobs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .recommended-job-item {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .match-score-badge {
+    padding: 5px 10px;
+  }
+}
+
+/* Reduced motion users */
+@media (prefers-reduced-motion: reduce) {
+  .recommended-job-item,
+  .match-score-badge {
+    transition: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: more) {
+  .recommended-jobs-status,
+  .match-score-badge {
+    border: 2px solid currentColor;
+  }
+}

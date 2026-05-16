@@ -1,36 +1,68 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import './CompanyCard.css';
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import "./CompanyCard.css";
 
 const CompanyCard = ({ company }) => {
-    return (
-        <Link to={`/companies/${company.id}`} className="company-card-link">
-            <div className="company-card">
-                <div className="company-card-header">
-                    <div className="company-logo">
-                        {company.initials || company.name?.charAt(0) || 'C'}
-                    </div>
-                    {company.is_verified && (
-                        <div className="verified-badge">
-                            <span className="material-symbols-outlined">verified</span>
-                        </div>
-                    )}
-                </div>
+  const { t } = useTranslation();
+  const jobsCount = company.jobs_count || 0;
 
-                <div className="company-card-content">
-                    <h3 className="company-name">{company.name}</h3>
-                    <div className="company-location">
-                        <span className="material-symbols-outlined">location_on</span>
-                        <span>{company.location || 'Location not specified'}</span>
-                    </div>
-                    <div className="company-jobs-count">
-                        <span className="material-symbols-outlined">work</span>
-                        <span>{company.jobs_count || 0} open position{company.jobs_count !== 1 ? 's' : ''}</span>
-                    </div>
-                </div>
+  return (
+    <Link
+      to={`/companies/${company.id}`}
+      className="company-card-link"
+      aria-label={t("companies.viewCompanyNamed", {
+        defaultValue: "View company {{name}}",
+        name: company.name,
+      })}
+    >
+      <div className="company-card">
+        <div className="company-card-header">
+          <div className="company-logo" aria-hidden="true">
+            {company.initials || company.name?.charAt(0) || "C"}
+          </div>
+          {company.is_verified && (
+            <div
+              className="verified-badge"
+              aria-label={t("companies.verified", {
+                defaultValue: "Verified Company",
+              })}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true">
+                verified
+              </span>
             </div>
-        </Link>
-    );
+          )}
+        </div>
+
+        <div className="company-card-content">
+          <h3 className="company-name">{company.name}</h3>
+          <div className="company-location">
+            <span className="material-symbols-outlined" aria-hidden="true">
+              location_on
+            </span>
+            <span>
+              {company.location ||
+                t("companies.locationNotSpecified", {
+                  defaultValue: "Location not specified",
+                })}
+            </span>
+          </div>
+          <div className="company-jobs-count">
+            <span className="material-symbols-outlined" aria-hidden="true">
+              work
+            </span>
+            <span>
+              {t("companies.openPositionsCount", {
+                defaultValue: "{{count}} open position",
+                count: jobsCount,
+              })}
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
 };
 
 export default CompanyCard;

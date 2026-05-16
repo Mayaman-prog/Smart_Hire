@@ -107,7 +107,11 @@ function KeyboardShortcuts() {
 
   useEffect(() => {
     function handleKeyboardShortcuts(event) {
-      const key = event.key.toLowerCase();
+      const key = typeof event.key === "string" ? event.key.toLowerCase() : "";
+
+      if (!key) {
+        return;
+      }
 
       // Stops shortcuts from running while the user is typing
       if (isTypingElement(event.target)) {

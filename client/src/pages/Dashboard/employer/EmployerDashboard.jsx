@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { employerAPI, jobAPI, applicationAPI } from "../../../services/api";
@@ -9,6 +10,7 @@ import "./EmployerDashboard.css";
 // @route GET /api/applications/my
 // @access Private (job seeker)
 const EmployerDashboard = () => {
+  const { t } = useTranslation();
   const { user, logout, loading: authLoading, isAuthenticated } = useAuth();
 
   const [activeTab, setActiveTab] = useState("overview");
@@ -142,12 +144,20 @@ const EmployerDashboard = () => {
   // Handle next step in multi-step form, with validation for required fields
   const handlePostJobNext = async () => {
     if (postStep === 1 && (!newJob.title || !newJob.location)) {
-      toast.error("Please fill in title and location");
+      toast.error(
+        t("auto.please_fill_in_title_and_location", {
+          defaultValue: "Please fill in title and location",
+        }),
+      );
       return;
     }
 
     if (postStep === 2 && (!newJob.description || !newJob.requirements)) {
-      toast.error("Please fill in description and requirements");
+      toast.error(
+        t("auto.please_fill_in_description_and_requirements", {
+          defaultValue: "Please fill in description and requirements",
+        }),
+      );
       return;
     }
 
@@ -157,7 +167,11 @@ const EmployerDashboard = () => {
         await jobAPI.createJob(jobData);
 
         await fetchData();
-        toast.success("Job posted successfully");
+        toast.success(
+          t("auto.job_posted_successfully", {
+            defaultValue: "Job posted successfully",
+          }),
+        );
 
         resetPostForm();
         setActiveTab("my-jobs");
@@ -194,14 +208,22 @@ const EmployerDashboard = () => {
     try {
       // Safety check
       if (!editJobData) {
-        toast.error("No job data to update");
+        toast.error(
+          t("auto.no_job_data_to_update", {
+            defaultValue: "No job data to update",
+          }),
+        );
         return;
       }
 
       // Get the job ID from any possible field
       const jobId = editJobData.id || editJobData._id || editJobData.job_id;
       if (!jobId) {
-        toast.error("Missing job ID — cannot update");
+        toast.error(
+          t("auto.missing_job_id_cannot_update", {
+            defaultValue: "Missing job ID \u2014 cannot update",
+          }),
+        );
         return;
       }
 
@@ -220,7 +242,11 @@ const EmployerDashboard = () => {
         payload.salary_max = editJobData.salary_max;
       await jobAPI.updateJob(jobId, payload);
 
-      toast.success("Job updated successfully");
+      toast.success(
+        t("auto.job_updated_successfully", {
+          defaultValue: "Job updated successfully",
+        }),
+      );
       setIsEditing(false);
       setEditJobData(null);
       await fetchData();
@@ -238,7 +264,7 @@ const EmployerDashboard = () => {
 
     try {
       await jobAPI.deleteJob(jobId);
-      toast.success("Job deleted");
+      toast.success(t("auto.job_deleted", { defaultValue: "Job deleted" }));
       await fetchData();
     } catch (error) {
       console.error(error);
@@ -276,7 +302,12 @@ const EmployerDashboard = () => {
     try {
       await applicationAPI.updateApplicationStatus(applicationId, newStatus);
       await fetchData();
-      toast.success(`Status updated to ${newStatus}`);
+      toast.success(
+        t("employer.statusUpdated", {
+          defaultValue: "Status updated to {{status}}",
+          status: newStatus,
+        }),
+      );
     } catch (error) {
       console.error(error);
       toast.error(error?.response?.data?.message || "Status update failed");
@@ -293,7 +324,7 @@ const EmployerDashboard = () => {
         role="status"
         aria-live="polite"
       >
-        Loading...
+        {t("auto.loading", { defaultValue: "Loading..." })}
       </div>
     );
   }
@@ -311,29 +342,54 @@ const EmployerDashboard = () => {
                   Welcome back, {user?.name?.split(" ")[0] || "Employer"}!
                 </h1>
                 <p>
-                  Here&apos;s what&apos;s happening with your hiring pipeline
-                  today.
+                  {t(
+                    "auto.here_apos_s_what_apos_s_happening_with_your_hiring_pipe",
+                    {
+                      defaultValue:
+                        "Here&apos;s what&apos;s happening with your hiring pipeline today.",
+                    },
+                  )}
                 </p>
               </div>
 
               <div className="stats-grid">
                 <div className="stat-card">
                   <span className="stat-value">{stats.totalApplicants}</span>
-                  <span className="stat-label">Total Applicants</span>
-                  <span className="stat-change neutral">Across all jobs</span>
+                  <span className="stat-label">
+                    {t("auto.total_applicants", {
+                      defaultValue: "Total Applicants",
+                    })}
+                  </span>
+                  <span className="stat-change neutral">
+                    {t("auto.across_all_jobs", {
+                      defaultValue: "Across all jobs",
+                    })}
+                  </span>
                 </div>
 
                 <div className="stat-card">
                   <span className="stat-value">{stats.activeJobs}</span>
-                  <span className="stat-label">Active Jobs</span>
-                  <span className="stat-change neutral">Currently open</span>
+                  <span className="stat-label">
+                    {t("auto.active_jobs", { defaultValue: "Active Jobs" })}
+                  </span>
+                  <span className="stat-change neutral">
+                    {t("auto.currently_open", {
+                      defaultValue: "Currently open",
+                    })}
+                  </span>
                 </div>
 
                 <div className="stat-card">
                   <span className="stat-value">{stats.reviewedApplicants}</span>
-                  <span className="stat-label">Reviewed Applicants</span>
+                  <span className="stat-label">
+                    {t("auto.reviewed_applicants", {
+                      defaultValue: "Reviewed Applicants",
+                    })}
+                  </span>
                   <span className="stat-change neutral">
-                    In screening stage
+                    {t("auto.in_screening_stage", {
+                      defaultValue: "In screening stage",
+                    })}
                   </span>
                 </div>
 
@@ -341,16 +397,30 @@ const EmployerDashboard = () => {
                   <span className="stat-value">
                     {stats.shortlistedApplicants}
                   </span>
-                  <span className="stat-label">Shortlisted Applicants</span>
+                  <span className="stat-label">
+                    {t("auto.shortlisted_applicants", {
+                      defaultValue: "Shortlisted Applicants",
+                    })}
+                  </span>
                   <span className="stat-change positive">
-                    Ready for next step
+                    {t("auto.ready_for_next_step", {
+                      defaultValue: "Ready for next step",
+                    })}
                   </span>
                 </div>
 
                 <div className="stat-card">
                   <span className="stat-value">{stats.hiredApplicants}</span>
-                  <span className="stat-label">Hired Candidates</span>
-                  <span className="stat-change positive">Successful hires</span>
+                  <span className="stat-label">
+                    {t("auto.hired_candidates", {
+                      defaultValue: "Hired Candidates",
+                    })}
+                  </span>
+                  <span className="stat-change positive">
+                    {t("auto.successful_hires", {
+                      defaultValue: "Successful hires",
+                    })}
+                  </span>
                 </div>
               </div>
 
@@ -364,50 +434,88 @@ const EmployerDashboard = () => {
                     >
                       rocket_launch
                     </span>
-                    <h3>You're all set to start hiring!</h3>
+                    <h3>
+                      {t("auto.you_re_all_set_to_start_hiring", {
+                        defaultValue: "You're all set to start hiring!",
+                      })}
+                    </h3>
                   </div>
                   <p>
-                    Here's how to get your first job posted and start receiving
-                    applications.
+                    {t(
+                      "auto.here_s_how_to_get_your_first_job_posted_and_start_recei",
+                      {
+                        defaultValue:
+                          "Here's how to get your first job posted and start receiving applications.",
+                      },
+                    )}
                   </p>
                   <div className="onboarding-steps">
                     <div className="step-item">
                       <div className="step-number">1</div>
                       <div className="step-content">
-                        <strong>Post Your First Job</strong>
+                        <strong>
+                          {t("auto.post_your_first_job_42ee9a", {
+                            defaultValue: "Post Your First Job",
+                          })}
+                        </strong>
                         <p>
-                          Write a compelling job description and set your salary
-                          range.
+                          {t(
+                            "auto.write_a_compelling_job_description_and_set_your_salary",
+                            {
+                              defaultValue:
+                                "Write a compelling job description and set your salary range.",
+                            },
+                          )}
                         </p>
                         <button
                           className="btn-primary"
                           type="button"
-                          aria-label="Post a new job"
+                          aria-label={t("auto.post_a_new_job", {
+                            defaultValue: "Post a new job",
+                          })}
                           onClick={() =>
                             navigate("/dashboard/employer/post-job")
                           }
                         >
-                          Post a Job
+                          {t("auto.post_a_job", { defaultValue: "Post a Job" })}
                         </button>
                       </div>
                     </div>
                     <div className="step-item">
                       <div className="step-number">2</div>
                       <div className="step-content">
-                        <strong>Review Applications</strong>
+                        <strong>
+                          {t("auto.review_applications", {
+                            defaultValue: "Review Applications",
+                          })}
+                        </strong>
                         <p>
-                          Once candidates apply, you'll see them here. You can
-                          review, shortlist, or reject them.
+                          {t(
+                            "auto.once_candidates_apply_you_ll_see_them_here_you_can_revi",
+                            {
+                              defaultValue:
+                                "Once candidates apply, you'll see them here. You can review, shortlist, or reject them.",
+                            },
+                          )}
                         </p>
                       </div>
                     </div>
                     <div className="step-item">
                       <div className="step-number">3</div>
                       <div className="step-content">
-                        <strong>Hire Your Perfect Candidate</strong>
+                        <strong>
+                          {t("auto.hire_your_perfect_candidate", {
+                            defaultValue: "Hire Your Perfect Candidate",
+                          })}
+                        </strong>
                         <p>
-                          When you find the right person, mark them as "Hired"
-                          and celebrate your success!
+                          {t(
+                            "auto.when_you_find_the_right_person_mark_them_as_hired_and_c",
+                            {
+                              defaultValue:
+                                'When you find the right person, mark them as "Hired" and celebrate your success!',
+                            },
+                          )}
                         </p>
                       </div>
                     </div>
@@ -419,25 +527,33 @@ const EmployerDashboard = () => {
 
           {activeTab === "post-job" && (
             <div className="post-job-tab">
-              <h2>Post a New Job</h2>
+              <h2>
+                {t("auto.post_a_new_job_3dee8a", {
+                  defaultValue: "Post a New Job",
+                })}
+              </h2>
 
               <div className="multi-step-form">
                 <div className="step-indicator">
                   <div className={`step ${postStep >= 1 ? "active" : ""}`}>
-                    1. Basic Info
+                    {t("auto.1_basic_info", { defaultValue: "1. Basic Info" })}
                   </div>
                   <div className={`step ${postStep >= 2 ? "active" : ""}`}>
-                    2. Details
+                    {t("auto.2_details", { defaultValue: "2. Details" })}
                   </div>
                   <div className={`step ${postStep >= 3 ? "active" : ""}`}>
-                    3. Review
+                    {t("auto.3_review", { defaultValue: "3. Review" })}
                   </div>
                 </div>
 
                 {postStep === 1 && (
                   <div className="form-step">
                     <div className="form-group">
-                      <label htmlFor="job-title">Job Title *</label>
+                      <label htmlFor="job-title">
+                        {t("auto.job_title_4aec7f", {
+                          defaultValue: "Job Title *",
+                        })}
+                      </label>
                       <input
                         id="job-title"
                         type="text"
@@ -445,12 +561,18 @@ const EmployerDashboard = () => {
                         onChange={(e) =>
                           handlePostJobChange("title", e.target.value)
                         }
-                        placeholder="e.g., Senior Frontend Developer"
+                        placeholder={t("auto.e_g_senior_frontend_developer", {
+                          defaultValue: "e.g., Senior Frontend Developer",
+                        })}
                       />
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="job-location">Location *</label>
+                      <label htmlFor="job-location">
+                        {t("auto.location_90e063", {
+                          defaultValue: "Location *",
+                        })}
+                      </label>
                       <input
                         id="job-location"
                         type="text"
@@ -458,13 +580,17 @@ const EmployerDashboard = () => {
                         onChange={(e) =>
                           handlePostJobChange("location", e.target.value)
                         }
-                        placeholder="e.g., San Francisco, CA or Remote"
+                        placeholder={t("auto.e_g_san_francisco_ca_or_remote", {
+                          defaultValue: "e.g., San Francisco, CA or Remote",
+                        })}
                       />
                     </div>
 
                     <div className="form-row">
                       <div className="form-group">
-                        <label htmlFor="salary-min">Salary Min</label>
+                        <label htmlFor="salary-min">
+                          {t("auto.salary_min", { defaultValue: "Salary Min" })}
+                        </label>
                         <input
                           id="salary-min"
                           type="number"
@@ -472,12 +598,16 @@ const EmployerDashboard = () => {
                           onChange={(e) =>
                             handlePostJobChange("salary_min", e.target.value)
                           }
-                          placeholder="e.g., 80000"
+                          placeholder={t("auto.e_g_80000", {
+                            defaultValue: "e.g., 80000",
+                          })}
                         />
                       </div>
 
                       <div className="form-group">
-                        <label htmlFor="salary-max">Salary Max</label>
+                        <label htmlFor="salary-max">
+                          {t("auto.salary_max", { defaultValue: "Salary Max" })}
+                        </label>
                         <input
                           id="salary-max"
                           type="number"
@@ -485,14 +615,18 @@ const EmployerDashboard = () => {
                           onChange={(e) =>
                             handlePostJobChange("salary_max", e.target.value)
                           }
-                          placeholder="e.g., 120000"
+                          placeholder={t("auto.e_g_120000", {
+                            defaultValue: "e.g., 120000",
+                          })}
                         />
                       </div>
                     </div>
 
                     <div className="form-row">
                       <div className="form-group">
-                        <label htmlFor="job-type">Job Type</label>
+                        <label htmlFor="job-type">
+                          {t("auto.job_type", { defaultValue: "Job Type" })}
+                        </label>
                         <select
                           id="job-type"
                           value={newJob.job_type}
@@ -500,17 +634,35 @@ const EmployerDashboard = () => {
                             handlePostJobChange("job_type", e.target.value)
                           }
                         >
-                          <option value="full-time">Full-time</option>
-                          <option value="part-time">Part-time</option>
-                          <option value="remote">Remote</option>
-                          <option value="contract">Contract</option>
-                          <option value="internship">Internship</option>
+                          <option value="full-time">
+                            {t("auto.full_time_c00a28", {
+                              defaultValue: "Full-time",
+                            })}
+                          </option>
+                          <option value="part-time">
+                            {t("auto.part_time_1f3df4", {
+                              defaultValue: "Part-time",
+                            })}
+                          </option>
+                          <option value="remote">
+                            {t("auto.remote", { defaultValue: "Remote" })}
+                          </option>
+                          <option value="contract">
+                            {t("auto.contract", { defaultValue: "Contract" })}
+                          </option>
+                          <option value="internship">
+                            {t("auto.internship", {
+                              defaultValue: "Internship",
+                            })}
+                          </option>
                         </select>
                       </div>
 
                       <div className="form-group">
                         <label htmlFor="experience-level">
-                          Experience Level
+                          {t("auto.experience_level", {
+                            defaultValue: "Experience Level",
+                          })}
                         </label>
                         <select
                           id="experience-level"
@@ -522,10 +674,22 @@ const EmployerDashboard = () => {
                             )
                           }
                         >
-                          <option value="entry">Entry Level</option>
-                          <option value="mid">Mid Level</option>
-                          <option value="senior">Senior Level</option>
-                          <option value="lead">Lead</option>
+                          <option value="entry">
+                            {t("auto.entry_level", {
+                              defaultValue: "Entry Level",
+                            })}
+                          </option>
+                          <option value="mid">
+                            {t("auto.mid_level", { defaultValue: "Mid Level" })}
+                          </option>
+                          <option value="senior">
+                            {t("auto.senior_level", {
+                              defaultValue: "Senior Level",
+                            })}
+                          </option>
+                          <option value="lead">
+                            {t("auto.lead", { defaultValue: "Lead" })}
+                          </option>
                         </select>
                       </div>
                     </div>
@@ -535,7 +699,11 @@ const EmployerDashboard = () => {
                 {postStep === 2 && (
                   <div className="form-step">
                     <div className="form-group">
-                      <label htmlFor="job-description">Job Description *</label>
+                      <label htmlFor="job-description">
+                        {t("auto.job_description", {
+                          defaultValue: "Job Description *",
+                        })}
+                      </label>
                       <textarea
                         id="job-description"
                         rows="4"
@@ -543,12 +711,18 @@ const EmployerDashboard = () => {
                         onChange={(e) =>
                           handlePostJobChange("description", e.target.value)
                         }
-                        placeholder="Describe the role clearly..."
+                        placeholder={t("auto.describe_the_role_clearly", {
+                          defaultValue: "Describe the role clearly...",
+                        })}
                       />
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="job-requirements">Requirements *</label>
+                      <label htmlFor="job-requirements">
+                        {t("auto.requirements", {
+                          defaultValue: "Requirements *",
+                        })}
+                      </label>
                       <textarea
                         id="job-requirements"
                         rows="4"
@@ -556,13 +730,21 @@ const EmployerDashboard = () => {
                         onChange={(e) =>
                           handlePostJobChange("requirements", e.target.value)
                         }
-                        placeholder="List required skills, experience, education..."
+                        placeholder={t(
+                          "auto.list_required_skills_experience_education",
+                          {
+                            defaultValue:
+                              "List required skills, experience, education...",
+                          },
+                        )}
                       />
                     </div>
 
                     <div className="form-group">
                       <label htmlFor="job-responsibilities">
-                        Responsibilities (Optional)
+                        {t("auto.responsibilities_optional", {
+                          defaultValue: "Responsibilities (Optional)",
+                        })}
                       </label>
                       <textarea
                         id="job-responsibilities"
@@ -574,7 +756,13 @@ const EmployerDashboard = () => {
                             e.target.value,
                           )
                         }
-                        placeholder="This is only shown in review for now"
+                        placeholder={t(
+                          "auto.this_is_only_shown_in_review_for_now",
+                          {
+                            defaultValue:
+                              "This is only shown in review for now",
+                          },
+                        )}
                       />
                     </div>
                   </div>
@@ -582,34 +770,73 @@ const EmployerDashboard = () => {
 
                 {postStep === 3 && (
                   <div className="form-step review-step">
-                    <h3>Review Your Job Post</h3>
+                    <h3>
+                      {t("auto.review_your_job_post", {
+                        defaultValue: "Review Your Job Post",
+                      })}
+                    </h3>
 
                     <div className="review-card">
                       <p>
-                        <strong>Title:</strong> {newJob.title}
+                        <strong>
+                          {t("auto.title_51ec9b", { defaultValue: "Title:" })}
+                        </strong>{" "}
+                        {newJob.title}
                       </p>
                       <p>
-                        <strong>Location:</strong> {newJob.location}
+                        <strong>
+                          {t("auto.location_be9469", {
+                            defaultValue: "Location:",
+                          })}
+                        </strong>{" "}
+                        {newJob.location}
                       </p>
                       <p>
-                        <strong>Salary:</strong> {newJob.salary_min} -{" "}
-                        {newJob.salary_max}
+                        <strong>
+                          {t("auto.salary", { defaultValue: "Salary:" })}
+                        </strong>{" "}
+                        {newJob.salary_min} - {newJob.salary_max}
                       </p>
                       <p>
-                        <strong>Type:</strong> {newJob.job_type}
+                        <strong>
+                          {t("auto.type", { defaultValue: "Type:" })}
+                        </strong>{" "}
+                        {newJob.job_type}
                       </p>
                       <p>
-                        <strong>Experience:</strong> {newJob.experience_level}
+                        <strong>
+                          {t("auto.experience", {
+                            defaultValue: "Experience:",
+                          })}
+                        </strong>{" "}
+                        {newJob.experience_level}
                       </p>
                       <p>
-                        <strong>Description:</strong> {newJob.description}
+                        <strong>
+                          {t("auto.description", {
+                            defaultValue: "Description:",
+                          })}
+                        </strong>{" "}
+                        {newJob.description}
                       </p>
                       <p>
-                        <strong>Requirements:</strong> {newJob.requirements}
+                        <strong>
+                          {t("auto.requirements_3b31c3", {
+                            defaultValue: "Requirements:",
+                          })}
+                        </strong>{" "}
+                        {newJob.requirements}
                       </p>
                       <p>
-                        <strong>Responsibilities:</strong>{" "}
-                        {newJob.responsibilities || "Not specified"}
+                        <strong>
+                          {t("auto.responsibilities", {
+                            defaultValue: "Responsibilities:",
+                          })}
+                        </strong>{" "}
+                        {newJob.responsibilities ||
+                          t("common.notSpecified", {
+                            defaultValue: "Not specified",
+                          })}
                       </p>
                     </div>
                   </div>
@@ -618,12 +845,14 @@ const EmployerDashboard = () => {
                 <div className="form-actions">
                   {postStep > 1 && (
                     <button type="button" onClick={handlePostJobPrev}>
-                      Previous
+                      {t("auto.previous", { defaultValue: "Previous" })}
                     </button>
                   )}
 
                   <button type="button" onClick={handlePostJobNext}>
-                    {postStep === 3 ? "Post Job" : "Next"}
+                    {postStep === 3
+                      ? t("auto.post_job", { defaultValue: "Post Job" })
+                      : t("auto.next", { defaultValue: "Next" })}
                   </button>
 
                   <button
@@ -633,7 +862,7 @@ const EmployerDashboard = () => {
                       setActiveTab("overview");
                     }}
                   >
-                    Cancel
+                    {t("auto.cancel", { defaultValue: "Cancel" })}
                   </button>
                 </div>
               </div>
@@ -642,10 +871,14 @@ const EmployerDashboard = () => {
 
           {activeTab === "my-jobs" && (
             <div className="my-jobs-tab">
-              <h2>My Jobs</h2>
+              <h2>{t("auto.my_jobs", { defaultValue: "My Jobs" })}</h2>
 
               {jobs.length === 0 ? (
-                <p>No jobs posted yet.</p>
+                <p>
+                  {t("auto.no_jobs_posted_yet", {
+                    defaultValue: "No jobs posted yet.",
+                  })}
+                </p>
               ) : (
                 <div className="jobs-list">
                   {jobs.map((job) => (
@@ -679,7 +912,7 @@ const EmployerDashboard = () => {
                           className="btn-secondary"
                           onClick={() => handleEditJob(job)}
                         >
-                          Edit
+                          {t("auto.edit", { defaultValue: "Edit" })}
                         </button>
                         <button
                           type="button"
@@ -699,7 +932,7 @@ const EmployerDashboard = () => {
                           className="btn-danger"
                           onClick={() => handleDeleteJob(job.id)}
                         >
-                          Delete
+                          {t("auto.delete", { defaultValue: "Delete" })}
                         </button>
                       </div>
                     </div>
@@ -712,8 +945,13 @@ const EmployerDashboard = () => {
           {activeTab === "candidates" && (
             <div className="applicants-tab">
               <div className="applicants-header">
-                <h2>Applicants</h2>
-                <p>Manage candidates across all your job postings.</p>
+                <h2>{t("auto.applicants", { defaultValue: "Applicants" })}</h2>
+                <p>
+                  {t("auto.manage_candidates_across_all_your_job_postings", {
+                    defaultValue:
+                      "Manage candidates across all your job postings.",
+                  })}
+                </p>
               </div>
 
               {/* Applicants Stats */}
@@ -722,37 +960,51 @@ const EmployerDashboard = () => {
                   <span className="mini-stat-value">
                     {applicantStats.total}
                   </span>
-                  <span className="mini-stat-label">Total</span>
+                  <span className="mini-stat-label">
+                    {t("auto.total", { defaultValue: "Total" })}
+                  </span>
                 </div>
                 <div className="mini-stat-card">
                   <span className="mini-stat-value">
                     {applicantStats.pending}
                   </span>
-                  <span className="mini-stat-label">Pending</span>
+                  <span className="mini-stat-label">
+                    {t("auto.pending_2d13df", { defaultValue: "Pending" })}
+                  </span>
                 </div>
                 <div className="mini-stat-card">
                   <span className="mini-stat-value">
                     {applicantStats.reviewed}
                   </span>
-                  <span className="mini-stat-label">Reviewed</span>
+                  <span className="mini-stat-label">
+                    {t("auto.reviewed", { defaultValue: "Reviewed" })}
+                  </span>
                 </div>
                 <div className="mini-stat-card">
                   <span className="mini-stat-value">
                     {applicantStats.shortlisted}
                   </span>
-                  <span className="mini-stat-label">Shortlisted</span>
+                  <span className="mini-stat-label">
+                    {t("auto.shortlisted", { defaultValue: "Shortlisted" })}
+                  </span>
                 </div>
                 <div className="mini-stat-card">
                   <span className="mini-stat-value">
                     {applicantStats.hired}
                   </span>
-                  <span className="mini-stat-label">Hired</span>
+                  <span className="mini-stat-label">
+                    {t("auto.hired", { defaultValue: "Hired" })}
+                  </span>
                 </div>
               </div>
 
               <div className="filter-bar">
                 <div className="filter-group">
-                  <label htmlFor="filter-job">Filter by Job:</label>
+                  <label htmlFor="filter-job">
+                    {t("auto.filter_by_job", {
+                      defaultValue: "Filter by Job:",
+                    })}
+                  </label>
                   <select
                     id="filter-job"
                     value={selectedJobId || ""}
@@ -762,7 +1014,9 @@ const EmployerDashboard = () => {
                       )
                     }
                   >
-                    <option value="">All Jobs</option>
+                    <option value="">
+                      {t("auto.all_jobs", { defaultValue: "All Jobs" })}
+                    </option>
                     {jobs.map((job) => (
                       <option key={job.id} value={job.id}>
                         {job.title}
@@ -772,18 +1026,36 @@ const EmployerDashboard = () => {
                 </div>
 
                 <div className="filter-group">
-                  <label htmlFor="filter-status">Filter by Status:</label>
+                  <label htmlFor="filter-status">
+                    {t("auto.filter_by_status", {
+                      defaultValue: "Filter by Status:",
+                    })}
+                  </label>
                   <select
                     id="filter-status"
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
                   >
-                    <option value="">All Statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="reviewed">Reviewed</option>
-                    <option value="shortlisted">Shortlisted</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="hired">Hired</option>
+                    <option value="">
+                      {t("auto.all_statuses_a775fc", {
+                        defaultValue: "All Statuses",
+                      })}
+                    </option>
+                    <option value="pending">
+                      {t("auto.pending_2d13df", { defaultValue: "Pending" })}
+                    </option>
+                    <option value="reviewed">
+                      {t("auto.reviewed", { defaultValue: "Reviewed" })}
+                    </option>
+                    <option value="shortlisted">
+                      {t("auto.shortlisted", { defaultValue: "Shortlisted" })}
+                    </option>
+                    <option value="rejected">
+                      {t("auto.rejected", { defaultValue: "Rejected" })}
+                    </option>
+                    <option value="hired">
+                      {t("auto.hired", { defaultValue: "Hired" })}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -799,18 +1071,31 @@ const EmployerDashboard = () => {
                       group_off
                     </span>
                   </div>
-                  <h3>No applicants found</h3>
+                  <h3>
+                    {t("auto.no_applicants_found", {
+                      defaultValue: "No applicants found",
+                    })}
+                  </h3>
                   <p>
-                    We haven&apos;t received any applications yet for the
-                    selected filters.
+                    {t(
+                      "auto.we_haven_apos_t_received_any_applications_yet_for_the_s",
+                      {
+                        defaultValue:
+                          "We haven&apos;t received any applications yet for the selected filters.",
+                      },
+                    )}
                   </p>
                   <button
                     type="button"
-                    aria-label="Post your first job"
+                    aria-label={t("auto.post_your_first_job", {
+                      defaultValue: "Post your first job",
+                    })}
                     className="btn-ghost"
                     onClick={() => navigate("/dashboard/employer/post-job")}
                   >
-                    Post your first job →
+                    {t("auto.post_your_first_job_9c17eb", {
+                      defaultValue: "Post your first job \u2192",
+                    })}
                   </button>
                 </div>
               ) : (
@@ -865,7 +1150,9 @@ const EmployerDashboard = () => {
                         <div className="applicant-actions">
                           <button
                             type="button"
-                            aria-label="Mark applicant as reviewed"
+                            aria-label={t("auto.mark_applicant_as_reviewed", {
+                              defaultValue: "Mark applicant as reviewed",
+                            })}
                             className="btn-review"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "reviewed")
@@ -881,7 +1168,9 @@ const EmployerDashboard = () => {
 
                           <button
                             type="button"
-                            aria-label="Shortlist applicant"
+                            aria-label={t("auto.shortlist_applicant", {
+                              defaultValue: "Shortlist applicant",
+                            })}
                             className="btn-shortlist"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "shortlisted")
@@ -897,7 +1186,9 @@ const EmployerDashboard = () => {
 
                           <button
                             type="button"
-                            aria-label="Reject applicant"
+                            aria-label={t("auto.reject_applicant", {
+                              defaultValue: "Reject applicant",
+                            })}
                             className="btn-reject"
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "rejected")
@@ -914,7 +1205,9 @@ const EmployerDashboard = () => {
                           <button
                             type="button"
                             className="btn-hire"
-                            aria-label="Hire applicant"
+                            aria-label={t("auto.hire_applicant", {
+                              defaultValue: "Hire applicant",
+                            })}
                             onClick={() =>
                               handleUpdateStatus(applicant.id, "hired")
                             }
@@ -944,10 +1237,14 @@ const EmployerDashboard = () => {
                 aria-modal="true"
                 aria-labelledby="edit-job-title"
               >
-                <h3 id="edit-job-title">Edit Job</h3>
+                <h3 id="edit-job-title">
+                  {t("auto.edit_job", { defaultValue: "Edit Job" })}
+                </h3>
 
                 <div className="form-group">
-                  <label htmlFor="edit-title">Title</label>
+                  <label htmlFor="edit-title">
+                    {t("auto.title", { defaultValue: "Title" })}
+                  </label>
                   <input
                     id="edit-title"
                     type="text"
@@ -959,7 +1256,9 @@ const EmployerDashboard = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="edit-location">Location</label>
+                  <label htmlFor="edit-location">
+                    {t("auto.location", { defaultValue: "Location" })}
+                  </label>
                   <input
                     id="edit-location"
                     type="text"
@@ -975,7 +1274,9 @@ const EmployerDashboard = () => {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="edit-salary-min">Salary Min</label>
+                    <label htmlFor="edit-salary-min">
+                      {t("auto.salary_min", { defaultValue: "Salary Min" })}
+                    </label>
                     <input
                       id="edit-salary-min"
                       type="number"
@@ -993,7 +1294,9 @@ const EmployerDashboard = () => {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="edit-salary-max">Salary Max</label>
+                    <label htmlFor="edit-salary-max">
+                      {t("auto.salary_max", { defaultValue: "Salary Max" })}
+                    </label>
                     <input
                       id="edit-salary-max"
                       type="number"
@@ -1012,7 +1315,11 @@ const EmployerDashboard = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="edit-description">Description</label>
+                  <label htmlFor="edit-description">
+                    {t("auto.description_b5a7ad", {
+                      defaultValue: "Description",
+                    })}
+                  </label>
                   <textarea
                     id="edit-description"
                     value={editJobData.description}
@@ -1027,7 +1334,11 @@ const EmployerDashboard = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="edit-requirements">Requirements</label>
+                  <label htmlFor="edit-requirements">
+                    {t("auto.requirements_5a2ebf", {
+                      defaultValue: "Requirements",
+                    })}
+                  </label>
                   <textarea
                     id="edit-requirements"
                     value={editJobData.requirements}
@@ -1043,7 +1354,7 @@ const EmployerDashboard = () => {
 
                 <div className="modal-actions">
                   <button type="button" onClick={handleUpdateJob}>
-                    Save
+                    {t("auto.save", { defaultValue: "Save" })}
                   </button>
                   <button
                     type="button"
@@ -1052,7 +1363,7 @@ const EmployerDashboard = () => {
                       setEditJobData(null);
                     }}
                   >
-                    Cancel
+                    {t("auto.cancel", { defaultValue: "Cancel" })}
                   </button>
                 </div>
               </div>

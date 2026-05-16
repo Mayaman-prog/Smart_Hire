@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,6 +26,7 @@ ChartJS.register(
 );
 
 const SalaryInsights = ({ jobTitle, location }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [trendData, setTrendData] = useState(null);
   const [percentiles, setPercentiles] = useState(null);
@@ -117,21 +119,26 @@ const SalaryInsights = ({ jobTitle, location }) => {
         <span className="material-symbols-outlined" aria-hidden="true">
           {isOpen ? "expand_less" : "expand_more"}
         </span>
-        Salary Insights
+        {t("auto.salary_insights", { defaultValue: "Salary Insights" })}
       </button>
 
       {isOpen && (
         <div className="insights-content">
           {loading && (
             <div className="insights-loading" role="status" aria-live="polite">
-              <span className="spinner"></span> Loading salary data...
+              <span className="spinner"></span>
+              {t("auto.loading_salary_data", {
+                defaultValue: "Loading salary data...",
+              })}
             </div>
           )}
 
           {error && (
             <div className="insights-error" role="alert" aria-live="assertlive">
               <span className="material-symbols-outlined">error_outline</span>
-              Could not load salary insights.
+              {t("auto.could_not_load_salary_insights", {
+                defaultValue: "Could not load salary insights.",
+              })}
             </div>
           )}
 
@@ -139,7 +146,11 @@ const SalaryInsights = ({ jobTitle, location }) => {
             <div className="insights-grid">
               {/* Chart section */}
               <div className="chart-container">
-                <h3>Salary Trend (Last 6 Months)</h3>
+                <h3>
+                  {t("auto.salary_trend_last_6_months", {
+                    defaultValue: "Salary Trend (Last 6 Months)",
+                  })}
+                </h3>
                 <div className="chart-wrapper">
                   <Line data={chartData} options={chartOptions} />
                 </div>
@@ -147,9 +158,15 @@ const SalaryInsights = ({ jobTitle, location }) => {
 
               {/* Percentiles section */}
               <div className="percentiles-container">
-                <h3>Percentile Distribution</h3>
+                <h3>
+                  {t("auto.percentile_distribution", {
+                    defaultValue: "Percentile Distribution",
+                  })}
+                </h3>
                 <div className="percentile-item">
-                  <span className="percentile-label">25th</span>
+                  <span className="percentile-label">
+                    {t("salary.percentile25", { defaultValue: "25th" })}
+                  </span>
                   <div className="percentile-bar-bg">
                     <div
                       className="percentile-bar"
@@ -164,7 +181,11 @@ const SalaryInsights = ({ jobTitle, location }) => {
                 </div>
 
                 <div className="percentile-item">
-                  <span className="percentile-label">50th (Median)</span>
+                  <span className="percentile-label">
+                    {t("salary.percentile50Median", {
+                      defaultValue: "50th (Median)",
+                    })}
+                  </span>
                   <div className="percentile-bar-bg">
                     <div
                       className="percentile-bar median"
@@ -179,7 +200,9 @@ const SalaryInsights = ({ jobTitle, location }) => {
                 </div>
 
                 <div className="percentile-item">
-                  <span className="percentile-label">75th</span>
+                  <span className="percentile-label">
+                    {t("salary.percentile75", { defaultValue: "75th" })}
+                  </span>
                   <div className="percentile-bar-bg">
                     <div
                       className="percentile-bar"

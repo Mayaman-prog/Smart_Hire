@@ -160,6 +160,13 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Mobile filter drawer, Save Search modal, Report Job modal, Apply modal, and Quick Apply modal updated for keyboard accessibility
 - **Job Matching Algorithm** – Backend recommendation system that calculates personalised job match scores using user skills, previous applications, saved jobs, location preference, job type, salary alignment, and TF-IDF keyword overlap.
 - **Audit Logging** – Security-sensitive backend actions are recorded in the `audit_logs` table for accountability, monitoring, and forensic investigation.
+- Multi-language localisation support (English, Spanish, French)
+- Dynamic frontend translation using i18next
+- Language switcher integrated into Navbar
+- Automatic browser language detection
+- Translation support for buttons, labels, placeholders, headings, modals, empty states, and accessibility labels
+- Translation-ready architecture using JSON locale files
+- ARIA labels translated for screen readers
 
 ### Backend Features
 
@@ -485,9 +492,11 @@ This allows:
 
 ### Accessibility & Dark Mode Enhancements
 
-SmartHire was enhanced with a complete accessibility and dark mode optimization pass to improve usability, responsiveness, and visual consistency across the platform.
-
-The frontend was updated to follow semantic HTML and accessibility best practices. The latest accessibility work focused on keyboard navigation, visible focus indicators, modal focus trapping, and improved screen reader support.
+- SmartHire was enhanced with a complete accessibility and dark mode optimization pass to improve usability, responsiveness, and visual consistency across the platform.
+- The frontend was updated to follow semantic HTML and accessibility best practices. The latest accessibility work focused on keyboard navigation, visible focus indicators, modal focus trapping, and improved screen reader support.
+- Accessibility labels translated for all supported languages
+- Screen reader text localisation support
+- Multi-language ARIA labels for icon-only buttons and modals
 
 ##### Implemented Accessibility Features
 
@@ -696,6 +705,136 @@ It is used by modal components to:
 | Apply modal                  | `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`                   |
 | Quick Apply modal            | `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`                   |
 | Keyboard shortcut help panel | `client/src/components/common/KeyboardShortcuts/KeyboardShortcuts.jsx` |
+
+## Internationalization (i18n) System
+
+SmartHire includes a complete frontend localisation system using i18next and react-i18next. The application currently supports:
+
+- English (`en`)
+- Spanish (`es`)
+- French (`fr`)
+
+The translation system allows users to dynamically switch languages without reloading the page.
+
+### Features
+
+- Dynamic language switching
+- Browser language auto-detection
+- Translation JSON architecture
+- Accessibility-aware translated ARIA labels
+- Translated placeholders, buttons, modals, forms, and navigation
+- Persistent selected language
+- Scalable localisation structure for future languages
+
+### Libraries Used
+
+| Library                            | Purpose                             |
+| ---------------------------------- | ----------------------------------- |
+| `i18next`                          | Core internationalization framework |
+| `react-i18next`                    | React integration                   |
+| `i18next-browser-languagedetector` | Detects browser language            |
+| `i18next-http-backend`             | Loads translation files             |
+
+### Translation File Structure
+
+```plaintext
+public/
+└── locales/
+    ├── en/
+    │   └── translation.json
+    ├── es/
+    │   └── translation.json
+    └── fr/
+        └── translation.json
+```
+
+### i18n Initialization
+
+The localisation configuration is initialized inside:
+
+```plaintext
+client/src/i18n.js
+```
+
+Imported globally inside:
+
+```js
+import "./i18n";
+```
+
+### Translation Usage Pattern
+
+```jsx
+import { useTranslation } from "react-i18next";
+
+const { t } = useTranslation();
+
+<h1>{t("home.title")}</h1>
+
+<button>{t("buttons.search")}</button>
+
+<input placeholder={t("placeholders.searchJobs")} />
+```
+
+### Language Switcher
+
+The language switcher component is integrated into the Navbar and allows users to dynamically switch between:
+
+- English
+- Spanish
+- French
+
+The selected language updates all translated UI text instantly.
+
+### Accessibility Translation Support
+
+ARIA labels and accessibility text are also translated.
+
+Example:
+
+```jsx
+<button aria-label={t("buttons.close")}>
+```
+
+### Components Updated for Translation
+
+- Navbar
+- Footer
+- HomePage
+- JobsPage
+- JobDetailsPage
+- CompaniesPage
+- CompanyDetailsPage
+- LoginPage
+- RegisterPage
+- JobSeekerDashboard
+- EmployerDashboard
+- AdminDashboard
+- ProfilePage
+- ConnectedAccounts
+- ResumeUpload
+- JobCard
+- CompanyCard
+- SalaryInsights
+- SalaryComparisonBadge
+- SaveSearchModal
+- NotFoundPage
+- Toast messages
+- Shared form components
+
+### Translation Rules
+
+The localisation system only translates static frontend UI text.
+
+The following dynamic backend values are intentionally NOT translated:
+
+- Job titles
+- Company names
+- User names
+- Salary values
+- User-generated content
+- Database-driven descriptions
+- API statuses
 
 ### Saved Searches Feature
 
@@ -973,6 +1112,9 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - User avatar dropdown menu with logout
 - Mobile hamburger menu with slide-out drawer
 - CSS modules styling with responsive breakpoints
+- Integrated language switcher (EN / ES / FR)
+- Fully translated navigation labels and ARIA attributes
+- Responsive language selector for desktop and mobile layouts
 
 ### Footer
 
@@ -1323,10 +1465,14 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - **React Router DOM 6.20.0** - Client-side routing
 - **Axios 1.6.2** - HTTP client for API requests
 - **React Hook Form 7.48.2** - Form handling and validation
-- **React Hot Toast 2.4.1** Toast notifications
+- **React Hot Toast 2.4.1** - Toast notifications
+- **i18next** - Internationalization framework
+- **react-i18next** - React bindings for i18next
+- **i18next-browser-languagedetector** - Automatic browser language detection
+- **i18next-http-backend** - Translation file loader
 - **CSS3** - Custom styling with CSS variables, semantic theme tokens, and centralized dark mode overrides
 - **Google Material Symbols** - Icon system
-- **Recharts** - Charting library for admin dashboard (line, bar, pie charts)
+- **Recharts** - Charting library for admin dashboard
 
 ### Server
 
@@ -1363,6 +1509,14 @@ Make sure you have the following installed:
 ```
 SmartHire/
 ├── client/                           # React (Vite) frontend
+├── public/
+│   ├── locales/
+│   │   ├── en/
+│   │   │   └── translation.json
+│   │   ├── es/
+│   │   │   └── translation.json
+│   │   └── fr/
+│   │       └── translation.json
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── common/
@@ -1472,6 +1626,7 @@ SmartHire/
 │   │   │   └── dark-mode-overrides.css
 │   │   ├── App.jsx
 │   │   └── main.jsx
+|   ├── i18n.js
 │   ├── .env
 │   ├── .gitignore
 │   ├── index.html
@@ -1634,6 +1789,7 @@ To test audit logging:
 cd server
 node server.js
 ```
+
 Perform one of the following actions:
 Successful login
 Failed login
@@ -1652,6 +1808,7 @@ ORDER BY created_at DESC;
 ```
 
 Expected actions include:
+
 ```bash
 LOGIN_SUCCESS
 LOGIN_FAILURE
@@ -3062,6 +3219,10 @@ This table allows SmartHire to store precomputed job recommendations instead of 
 - More advanced admin analytics and downloadable reports
 - User-level theme customization options
 - More advanced high contrast mode options
+- Add Nepali language support
+- Add RTL language support
+- Add backend-driven translation management
+- Add lazy-loaded translation namespaces
 
 ## License
 
@@ -3069,7 +3230,7 @@ SmartHire is a college project created for learning full‑stack web development
 
 ## Goal
 
-SmartHire Sprint 1-2 progress - Currently In Progress:
+The goal of SmartHire is to provide an accessible, scalable, responsive, multilingual, and production-ready job portal platform for job seekers, employers, and administrators.
 
 ### Completed So Far:
 

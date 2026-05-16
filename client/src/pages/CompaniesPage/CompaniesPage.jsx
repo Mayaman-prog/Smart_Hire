@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import CompanyCard from "../../components/companies/CompanyCard/CompanyCard";
 import companiesData from "../../data/companies.json";
@@ -6,6 +7,7 @@ import jobsData from "../../data/jobs.json";
 import "./CompaniesPage.css";
 
 const CompaniesPage = () => {
+  const { t } = useTranslation();
   // State variables
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
@@ -69,26 +71,42 @@ const CompaniesPage = () => {
       <div className="companies-page">
         <div className="container">
           <div className="page-header">
-            <h1 className="page-title">Discover Top Employers</h1>
+            <h1 className="page-title">
+              {t("auto.discover_top_employers", {
+                defaultValue: "Discover Top Employers",
+              })}
+            </h1>
             <p className="page-subtitle">
-              Connect with companies that share your values. Browse through our
-              curated list of industry leaders and innovators.
+              {t(
+                "auto.connect_with_companies_that_share_your_values_browse_th",
+                {
+                  defaultValue:
+                    "Connect with companies that share your values. Browse through our curated list of industry leaders and innovators.",
+                },
+              )}
             </p>
           </div>
           <div className="search-section">
             <div className="search-bar">
-              <span className="material-symbols-outlined search-icon" aria-hidden="true">
+              <span
+                className="material-symbols-outlined search-icon"
+                aria-hidden="true"
+              >
                 search
               </span>
               <>
                 <label htmlFor="company-search-loading" className="sr-only">
-                  Search companies by name
+                  {t("auto.search_companies_by_name_60c56e", {
+                    defaultValue: "Search companies by name",
+                  })}
                 </label>
 
                 <input
                   id="company-search-loading"
                   type="text"
-                  placeholder="Search companies by name..."
+                  placeholder={t("auto.search_companies_by_name", {
+                    defaultValue: "Search companies by name...",
+                  })}
                   className="search-input"
                   disabled
                 />
@@ -117,16 +135,22 @@ const CompaniesPage = () => {
         <div className="container">
           <div className="error-state">
             <div className="error-icon">🏢</div>
-            <h2>Unable to Load Companies</h2>
+            <h2>
+              {t("auto.unable_to_load_companies", {
+                defaultValue: "Unable to Load Companies",
+              })}
+            </h2>
             <p>{error}</p>
             <button
               onClick={() => window.location.reload()}
               className="retry-btn"
               type="button"
-              aria-label="Reload companies page"
+              aria-label={t("auto.reload_companies_page", {
+                defaultValue: "Reload companies page",
+              })}
             >
               <span className="material-symbols-outlined">refresh</span>
-              Try Again
+              {t("auto.try_again", { defaultValue: "Try Again" })}
             </button>
           </div>
         </div>
@@ -139,28 +163,41 @@ const CompaniesPage = () => {
       <div className="container">
         {/* Page Header */}
         <div className="page-header">
-          <h1 className="page-title">Discover Top Employers</h1>
+          <h1 className="page-title">
+            {t("auto.discover_top_employers", {
+              defaultValue: "Discover Top Employers",
+            })}
+          </h1>
           <p className="page-subtitle">
-            Connect with companies that share your values. Browse through our
-            curated list of industry leaders and innovators.
+            {t("auto.connect_with_companies_that_share_your_values_browse_th", {
+              defaultValue:
+                "Connect with companies that share your values. Browse through our curated list of industry leaders and innovators.",
+            })}
           </p>
         </div>
 
         {/* Search Bar Section */}
         <div className="search-section">
           <div className="search-bar">
-            <span className="material-symbols-outlined search-icon" aria-hidden="true">
+            <span
+              className="material-symbols-outlined search-icon"
+              aria-hidden="true"
+            >
               search
             </span>
             <>
               <label htmlFor="company-search" className="sr-only">
-                Search companies by name
+                {t("auto.search_companies_by_name_60c56e", {
+                  defaultValue: "Search companies by name",
+                })}
               </label>
 
               <input
                 id="company-search"
                 type="text"
-                placeholder="Search companies by name..."
+                placeholder={t("auto.search_companies_by_name", {
+                  defaultValue: "Search companies by name...",
+                })}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -171,9 +208,13 @@ const CompaniesPage = () => {
                 className="clear-search-btn"
                 onClick={clearSearch}
                 type="button"
-                aria-label="Clear company search"
+                aria-label={t("auto.clear_company_search", {
+                  defaultValue: "Clear company search",
+                })}
               >
-                <span className="material-symbols-outlined" aria-hidden="true">close</span>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  close
+                </span>
               </button>
             )}
           </div>
@@ -201,10 +242,14 @@ const CompaniesPage = () => {
             <div className="empty-icon">
               <span className="material-symbols-outlined">business_center</span>
             </div>
-            <h3>No companies found</h3>
+            <h3>
+              {t("auto.no_companies_found", {
+                defaultValue: "No companies found",
+              })}
+            </h3>
             <p>We couldn't find any companies matching "{searchTerm}"</p>
             <button onClick={clearSearch} className="empty-clear-btn">
-              Clear Search
+              {t("auto.clear_search", { defaultValue: "Clear Search" })}
             </button>
           </div>
         )}

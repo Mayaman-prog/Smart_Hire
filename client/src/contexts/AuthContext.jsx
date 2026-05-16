@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { authAPI } from "../services/api";
 
 const AuthContext = createContext();
@@ -13,6 +14,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -119,17 +121,27 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       setIsAuthenticated(true);
 
-      toast.success("Login successful!");
+      toast.success(
+        t("auth.loginSuccessful", { defaultValue: "Login successful!" }),
+      );
       return { success: true, user };
     } catch (error) {
       const status = error.response?.status;
       const message = error.response?.data?.message;
 
-      let errorMessage = "Login failed";
+      let errorMessage = t("auth.loginFailed", {
+        defaultValue: "Login failed",
+      });
 
-      if (status === 401) errorMessage = "Invalid email or password";
-      else if (status === 403) errorMessage = "Account disabled";
-      else if (message) errorMessage = message;
+      if (status === 401) {
+        errorMessage = t("auth.invalidEmailOrPassword", {
+          defaultValue: "Invalid email or password",
+        });
+      } else if (status === 403) {
+        errorMessage = t("auth.accountDisabled", {
+          defaultValue: "Account disabled",
+        });
+      } else if (message) errorMessage = message;
 
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
@@ -153,10 +165,16 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       setIsAuthenticated(true);
 
-      toast.success("Registration successful!");
+      toast.success(
+        t("auth.registrationSuccessful", {
+          defaultValue: "Registration successful!",
+        }),
+      );
       return { success: true, user };
     } catch (error) {
-      const message = error.response?.data?.message || "Registration failed";
+      const message =
+        error.response?.data?.message ||
+        t("auth.registrationFailed", { defaultValue: "Registration failed" });
 
       toast.error(message);
       return { success: false, error: message };
@@ -166,7 +184,11 @@ export const AuthProvider = ({ children }) => {
   // LOGOUT
   const logout = () => {
     clearAuth();
-    toast.success("Logged out successfully");
+    toast.success(
+      t("auth.loggedOutSuccessfully", {
+        defaultValue: "Logged out successfully",
+      }),
+    );
   };
 
   // HELPERS

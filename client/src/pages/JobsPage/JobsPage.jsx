@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { jobAPI } from "../../services/api";
@@ -10,6 +11,7 @@ import { useSavedSearch } from "../../contexts/SavedSearchContext";
 import "./JobsPage.css";
 
 const JobsPage = () => {
+  const { t } = useTranslation();
   const { user, isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -218,12 +220,20 @@ const JobsPage = () => {
   // Opens save search modal only for logged-in job seekers
   const handleSaveSearchClick = () => {
     if (!isAuthenticated) {
-      toast.error("Please login to save searches");
+      toast.error(
+        t("auto.please_login_to_save_searches", {
+          defaultValue: "Please login to save searches",
+        }),
+      );
       return;
     }
 
     if (user?.role !== "job_seeker") {
-      toast.error("Only job seekers can save searches");
+      toast.error(
+        t("auto.only_job_seekers_can_save_searches", {
+          defaultValue: "Only job seekers can save searches",
+        }),
+      );
       return;
     }
 
@@ -235,17 +245,25 @@ const JobsPage = () => {
   return (
     <div className="jobs-page">
       <div className="container">
-        <h1 className="sr-only">Find Jobs</h1>
+        <h1 className="sr-only">
+          {t("auto.find_jobs", { defaultValue: "Find Jobs" })}
+        </h1>
 
         <section
           className="search-section"
           aria-labelledby="job-search-heading"
         >
           <h2 id="job-search-heading" className="sr-only">
-            Search and filter jobs
+            {t("auto.search_and_filter_jobs", {
+              defaultValue: "Search and filter jobs",
+            })}
           </h2>
 
-          <div className="search-bar" role="search" aria-label="Job search">
+          <div
+            className="search-bar"
+            role="search"
+            aria-label={t("auto.job_search", { defaultValue: "Job search" })}
+          >
             <div className="search-input-group">
               <span
                 className="material-symbols-outlined search-icon"
@@ -255,21 +273,27 @@ const JobsPage = () => {
               </span>
 
               <label htmlFor="job-search-input" className="sr-only">
-                Search jobs by title, keyword, or company
+                {t("auto.search_jobs_by_title_keyword_or_company", {
+                  defaultValue: "Search jobs by title, keyword, or company",
+                })}
               </label>
 
               <input
                 id="job-search-input"
                 data-hotkey="job-search"
                 type="search"
-                placeholder="Job title, keyword, or company"
+                placeholder={t("auto.job_title_keyword_or_company", {
+                  defaultValue: "Job title, keyword, or company",
+                })}
                 value={keyword}
                 onChange={(e) => {
                   setKeyword(e.target.value);
                   setCurrentPage(1);
                 }}
                 className="search-input"
-                aria-label="Search jobs by title, keyword, or company"
+                aria-label={t("auto.search_jobs_by_title_keyword_or_company", {
+                  defaultValue: "Search jobs by title, keyword, or company",
+                })}
               />
             </div>
 
@@ -282,20 +306,26 @@ const JobsPage = () => {
               </span>
 
               <label htmlFor="jobs-location-search" className="sr-only">
-                Search jobs by location
+                {t("auto.search_jobs_by_location", {
+                  defaultValue: "Search jobs by location",
+                })}
               </label>
 
               <input
                 id="jobs-location-search"
                 type="text"
-                placeholder="City, state, or remote"
+                placeholder={t("auto.city_state_or_remote", {
+                  defaultValue: "City, state, or remote",
+                })}
                 value={location}
                 onChange={(e) => {
                   setLocation(e.target.value);
                   setCurrentPage(1);
                 }}
                 className="search-input"
-                aria-label="Search jobs by location"
+                aria-label={t("auto.search_jobs_by_location", {
+                  defaultValue: "Search jobs by location",
+                })}
               />
             </div>
 
@@ -303,12 +333,14 @@ const JobsPage = () => {
               className="search-btn"
               onClick={() => setCurrentPage(1)}
               type="button"
-              aria-label="Search jobs"
+              aria-label={t("auto.search_jobs", {
+                defaultValue: "Search jobs",
+              })}
             >
               <span className="material-symbols-outlined" aria-hidden="true">
                 search
               </span>
-              Search
+              {t("auto.search", { defaultValue: "Search" })}
             </button>
           </div>
 
@@ -317,18 +349,27 @@ const JobsPage = () => {
               className="save-search-btn"
               type="button"
               onClick={handleSaveSearchClick}
-              title="Save this search"
-              aria-label="Save current job search"
+              title={t("auto.save_this_search", {
+                defaultValue: "Save this search",
+              })}
+              aria-label={t("auto.save_current_job_search", {
+                defaultValue: "Save current job search",
+              })}
             >
               <span className="material-symbols-outlined" aria-hidden="true">
                 bookmark
               </span>
-              Save this search
+              {t("auto.save_this_search", { defaultValue: "Save this search" })}
             </button>
           )}
 
           {(activeFilterCount > 0 || selectedJobTypes.length > 0) && (
-            <div className="active-filters" aria-label="Active job filters">
+            <div
+              className="active-filters"
+              aria-label={t("auto.active_job_filters", {
+                defaultValue: "Active job filters",
+              })}
+            >
               <span className="filter-count" role="status" aria-live="polite">
                 {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""}{" "}
                 active
@@ -358,9 +399,11 @@ const JobsPage = () => {
                 onClick={clearAllFilters}
                 className="clear-all-link"
                 type="button"
-                aria-label="Clear all active filters"
+                aria-label={t("auto.clear_all_active_filters", {
+                  defaultValue: "Clear all active filters",
+                })}
               >
-                Clear all
+                {t("auto.clear_all", { defaultValue: "Clear all" })}
               </button>
             </div>
           )}
@@ -372,25 +415,31 @@ const JobsPage = () => {
             aria-labelledby="desktop-filters-heading"
           >
             <div className="filters-header">
-              <h2 id="desktop-filters-heading">Filters</h2>
+              <h2 id="desktop-filters-heading">
+                {t("auto.filters", { defaultValue: "Filters" })}
+              </h2>
 
               <button
                 onClick={clearAllFilters}
                 className="clear-filters-link"
                 type="button"
-                aria-label="Clear all filters"
+                aria-label={t("auto.clear_all_filters", {
+                  defaultValue: "Clear all filters",
+                })}
               >
-                Clear all
+                {t("auto.clear_all", { defaultValue: "Clear all" })}
               </button>
             </div>
 
             <div className="filter-group">
-              <h3>Job Type</h3>
+              <h3>{t("auto.job_type", { defaultValue: "Job Type" })}</h3>
 
               <div
                 className="job-type-buttons"
                 role="group"
-                aria-label="Job type filters"
+                aria-label={t("auto.job_type_filters", {
+                  defaultValue: "Job type filters",
+                })}
               >
                 {jobTypeOptions.map((opt) => (
                   <button
@@ -417,32 +466,42 @@ const JobsPage = () => {
             </div>
 
             <div className="filter-group">
-              <h3>Location</h3>
+              <h3>{t("auto.location", { defaultValue: "Location" })}</h3>
 
               <label htmlFor="desktop-location-filter" className="sr-only">
-                Filter jobs by location
+                {t("auto.filter_jobs_by_location", {
+                  defaultValue: "Filter jobs by location",
+                })}
               </label>
 
               <input
                 id="desktop-location-filter"
                 type="text"
-                placeholder="City or remote"
+                placeholder={t("auto.city_or_remote", {
+                  defaultValue: "City or remote",
+                })}
                 value={location}
                 onChange={(e) => {
                   setLocation(e.target.value);
                   setCurrentPage(1);
                 }}
                 className="filter-input"
-                aria-label="Filter jobs by location"
+                aria-label={t("auto.filter_jobs_by_location", {
+                  defaultValue: "Filter jobs by location",
+                })}
               />
             </div>
 
             <div className="filter-group">
-              <h3>Salary Range</h3>
+              <h3>
+                {t("auto.salary_range", { defaultValue: "Salary Range" })}
+              </h3>
 
               <div className="salary-inputs">
                 <div className="salary-input">
-                  <label htmlFor="salary-min-desktop">Min ($)</label>
+                  <label htmlFor="salary-min-desktop">
+                    {t("auto.min_887c84", { defaultValue: "Min ($)" })}
+                  </label>
 
                   <input
                     type="number"
@@ -456,12 +515,16 @@ const JobsPage = () => {
                       });
                       setCurrentPage(1);
                     }}
-                    aria-label="Minimum salary filter"
+                    aria-label={t("auto.minimum_salary_filter", {
+                      defaultValue: "Minimum salary filter",
+                    })}
                   />
                 </div>
 
                 <div className="salary-input">
-                  <label htmlFor="salary-max-desktop">Max ($)</label>
+                  <label htmlFor="salary-max-desktop">
+                    {t("auto.max_9c35f8", { defaultValue: "Max ($)" })}
+                  </label>
 
                   <input
                     type="number"
@@ -475,7 +538,9 @@ const JobsPage = () => {
                       });
                       setCurrentPage(1);
                     }}
-                    aria-label="Maximum salary filter"
+                    aria-label={t("auto.maximum_salary_filter", {
+                      defaultValue: "Maximum salary filter",
+                    })}
                   />
                 </div>
               </div>
@@ -487,7 +552,12 @@ const JobsPage = () => {
                 />
               </div>
 
-              <div className="salary-values" aria-label="Selected salary range">
+              <div
+                className="salary-values"
+                aria-label={t("auto.selected_salary_range", {
+                  defaultValue: "Selected salary range",
+                })}
+              >
                 <span>${salaryRange.min.toLocaleString()}</span>
                 <span aria-hidden="true">—</span>
                 <span>${salaryRange.max.toLocaleString()}</span>
@@ -498,9 +568,11 @@ const JobsPage = () => {
               onClick={clearAllFilters}
               className="clear-filters-btn"
               type="button"
-              aria-label="Clear all filters"
+              aria-label={t("auto.clear_all_filters", {
+                defaultValue: "Clear all filters",
+              })}
             >
-              Clear Filters
+              {t("auto.clear_filters", { defaultValue: "Clear Filters" })}
             </button>
           </aside>
 
@@ -536,12 +608,16 @@ const JobsPage = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="drawer-header">
-                  <h2 id="mobile-filters-heading">Filters</h2>
+                  <h2 id="mobile-filters-heading">
+                    {t("auto.filters", { defaultValue: "Filters" })}
+                  </h2>
 
                   <button
                     onClick={() => setIsFilterOpen(false)}
                     type="button"
-                    aria-label="Close filters"
+                    aria-label={t("auto.close_filters", {
+                      defaultValue: "Close filters",
+                    })}
                     data-autofocus
                   >
                     <span
@@ -555,12 +631,14 @@ const JobsPage = () => {
 
                 <div className="drawer-body">
                   <div className="filter-group">
-                    <h3>Job Type</h3>
+                    <h3>{t("auto.job_type", { defaultValue: "Job Type" })}</h3>
 
                     <div
                       className="job-type-buttons"
                       role="group"
-                      aria-label="Mobile job type filters"
+                      aria-label={t("auto.mobile_job_type_filters", {
+                        defaultValue: "Mobile job type filters",
+                      })}
                     >
                       {jobTypeOptions.map((opt) => (
                         <button
@@ -591,38 +669,48 @@ const JobsPage = () => {
                   </div>
 
                   <div className="filter-group">
-                    <h3>Location</h3>
+                    <h3>{t("auto.location", { defaultValue: "Location" })}</h3>
 
                     <label htmlFor="mobile-location-filter" className="sr-only">
-                      Filter jobs by location
+                      {t("auto.filter_jobs_by_location", {
+                        defaultValue: "Filter jobs by location",
+                      })}
                     </label>
 
                     <input
                       id="mobile-location-filter"
                       type="text"
-                      placeholder="City or remote"
+                      placeholder={t("auto.city_or_remote", {
+                        defaultValue: "City or remote",
+                      })}
                       value={location}
                       onChange={(e) => {
                         setLocation(e.target.value);
                         setCurrentPage(1);
                       }}
                       className="filter-input"
-                      aria-label="Filter jobs by location"
+                      aria-label={t("auto.filter_jobs_by_location", {
+                        defaultValue: "Filter jobs by location",
+                      })}
                     />
                   </div>
 
                   <div className="filter-group">
-                    <h3>Salary Range</h3>
+                    <h3>
+                      {t("auto.salary_range", { defaultValue: "Salary Range" })}
+                    </h3>
 
                     <div className="salary-inputs">
                       <label htmlFor="salary-min-mobile" className="sr-only">
-                        Minimum salary
+                        {t("auto.minimum_salary", {
+                          defaultValue: "Minimum salary",
+                        })}
                       </label>
 
                       <input
                         id="salary-min-mobile"
                         type="number"
-                        placeholder="Min"
+                        placeholder={t("auto.min", { defaultValue: "Min" })}
                         value={salaryRange.min}
                         onChange={(e) => {
                           setSalaryRange({
@@ -631,17 +719,21 @@ const JobsPage = () => {
                           });
                           setCurrentPage(1);
                         }}
-                        aria-label="Minimum salary filter"
+                        aria-label={t("auto.minimum_salary_filter", {
+                          defaultValue: "Minimum salary filter",
+                        })}
                       />
 
                       <label htmlFor="salary-max-mobile" className="sr-only">
-                        Maximum salary
+                        {t("auto.maximum_salary", {
+                          defaultValue: "Maximum salary",
+                        })}
                       </label>
 
                       <input
                         id="salary-max-mobile"
                         type="number"
-                        placeholder="Max"
+                        placeholder={t("auto.max", { defaultValue: "Max" })}
                         value={salaryRange.max}
                         onChange={(e) => {
                           setSalaryRange({
@@ -650,7 +742,9 @@ const JobsPage = () => {
                           });
                           setCurrentPage(1);
                         }}
-                        aria-label="Maximum salary filter"
+                        aria-label={t("auto.maximum_salary_filter", {
+                          defaultValue: "Maximum salary filter",
+                        })}
                       />
                     </div>
                   </div>
@@ -661,18 +755,23 @@ const JobsPage = () => {
                     onClick={clearAllFilters}
                     className="drawer-clear-btn"
                     type="button"
-                    aria-label="Clear all filters"
+                    aria-label={t("auto.clear_all_filters", {
+                      defaultValue: "Clear all filters",
+                    })}
                   >
-                    Clear All
+                    {t("auto.clear_all_e77fef", { defaultValue: "Clear All" })}
                   </button>
 
                   <button
                     onClick={() => setIsFilterOpen(false)}
                     className="drawer-apply-btn"
                     type="button"
-                    aria-label="Apply filters and close filter drawer"
+                    aria-label={t(
+                      "auto.apply_filters_and_close_filter_drawer",
+                      { defaultValue: "Apply filters and close filter drawer" },
+                    )}
                   >
-                    Apply Filters
+                    {t("auto.apply_filters", { defaultValue: "Apply Filters" })}
                   </button>
                 </div>
               </div>
@@ -684,7 +783,9 @@ const JobsPage = () => {
             aria-labelledby="jobs-results-heading"
           >
             <h2 id="jobs-results-heading" className="sr-only">
-              Job search results
+              {t("auto.job_search_results", {
+                defaultValue: "Job search results",
+              })}
             </h2>
 
             <div className="results-info">
@@ -693,7 +794,7 @@ const JobsPage = () => {
               </p>
 
               <label htmlFor="jobs-sort" className="sr-only">
-                Sort jobs
+                {t("auto.sort_jobs", { defaultValue: "Sort jobs" })}
               </label>
 
               <select
@@ -704,11 +805,21 @@ const JobsPage = () => {
                   setSortBy(e.target.value);
                   setCurrentPage(1);
                 }}
-                aria-label="Sort jobs"
+                aria-label={t("auto.sort_jobs", { defaultValue: "Sort jobs" })}
               >
-                <option value="recent">Most recent</option>
-                <option value="salary_high">Salary: High to Low</option>
-                <option value="salary_low">Salary: Low to High</option>
+                <option value="recent">
+                  {t("auto.most_recent", { defaultValue: "Most recent" })}
+                </option>
+                <option value="salary_high">
+                  {t("auto.salary_high_to_low", {
+                    defaultValue: "Salary: High to Low",
+                  })}
+                </option>
+                <option value="salary_low">
+                  {t("auto.salary_low_to_high", {
+                    defaultValue: "Salary: Low to High",
+                  })}
+                </option>
               </select>
             </div>
 
@@ -717,7 +828,9 @@ const JobsPage = () => {
                 className="jobs-grid loading-skeleton"
                 role="status"
                 aria-live="polite"
-                aria-label="Loading jobs"
+                aria-label={t("auto.loading_jobs_32d726", {
+                  defaultValue: "Loading jobs",
+                })}
               >
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div key={i} className="skeleton-card" aria-hidden="true">
@@ -730,7 +843,12 @@ const JobsPage = () => {
               </div>
             ) : jobs.length > 0 ? (
               <>
-                <div className="jobs-grid" aria-label="Job search results list">
+                <div
+                  className="jobs-grid"
+                  aria-label={t("auto.job_search_results_list", {
+                    defaultValue: "Job search results list",
+                  })}
+                >
                   {jobs.map((job) => (
                     <JobCard key={job.id} job={job} />
                   ))}
@@ -739,14 +857,18 @@ const JobsPage = () => {
                 {totalPages > 1 && (
                   <nav
                     className="pagination"
-                    aria-label="Job results pagination"
+                    aria-label={t("auto.job_results_pagination", {
+                      defaultValue: "Job results pagination",
+                    })}
                   >
                     <button
                       className="pagination-btn"
                       disabled={currentPage === 1}
                       onClick={() => goToPage(currentPage - 1)}
                       type="button"
-                      aria-label="Go to previous page"
+                      aria-label={t("auto.go_to_previous_page", {
+                        defaultValue: "Go to previous page",
+                      })}
                     >
                       <span
                         className="material-symbols-outlined"
@@ -754,13 +876,15 @@ const JobsPage = () => {
                       >
                         chevron_left
                       </span>
-                      Previous
+                      {t("auto.previous", { defaultValue: "Previous" })}
                     </button>
 
                     <div
                       className="pagination-pages"
                       role="group"
-                      aria-label="Page numbers"
+                      aria-label={t("auto.page_numbers", {
+                        defaultValue: "Page numbers",
+                      })}
                     >
                       {[...Array(totalPages).keys()].map((i) => {
                         const page = i + 1;
@@ -789,9 +913,11 @@ const JobsPage = () => {
                       disabled={currentPage === totalPages}
                       onClick={() => goToPage(currentPage + 1)}
                       type="button"
-                      aria-label="Go to next page"
+                      aria-label={t("auto.go_to_next_page", {
+                        defaultValue: "Go to next page",
+                      })}
                     >
-                      Next
+                      {t("auto.next", { defaultValue: "Next" })}
                       <span
                         className="material-symbols-outlined"
                         aria-hidden="true"
@@ -813,16 +939,28 @@ const JobsPage = () => {
                   </span>
                 </div>
 
-                <h2>No jobs found</h2>
-                <p>Try adjusting your filters or search term</p>
+                <h2>
+                  {t("auto.no_jobs_found_b6016a", {
+                    defaultValue: "No jobs found",
+                  })}
+                </h2>
+                <p>
+                  {t("auto.try_adjusting_your_filters_or_search_term", {
+                    defaultValue: "Try adjusting your filters or search term",
+                  })}
+                </p>
 
                 <button
                   onClick={clearAllFilters}
                   className="empty-clear-btn"
                   type="button"
-                  aria-label="Clear all filters and show all jobs"
+                  aria-label={t("auto.clear_all_filters_and_show_all_jobs", {
+                    defaultValue: "Clear all filters and show all jobs",
+                  })}
                 >
-                  Clear all filters
+                  {t("auto.clear_all_filters", {
+                    defaultValue: "Clear all filters",
+                  })}
                 </button>
               </div>
             )}

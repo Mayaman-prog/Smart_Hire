@@ -8,6 +8,7 @@ import React, {
 import { useAuth } from "../../../contexts/AuthContext";
 import { adminAPI } from "../../../services/api";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import {
   ResponsiveContainer,
   LineChart,
@@ -31,6 +32,7 @@ const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 const PAGE_SIZE = 6;
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -217,7 +219,9 @@ const AdminDashboard = () => {
 
   const downloadCSV = (data, headers, filename = "export.csv") => {
     if (!data || data.length === 0) {
-      toast.error("No data to export");
+      toast.error(
+        t("auto.no_data_to_export", { defaultValue: "No data to export" }),
+      );
       return;
     }
 
@@ -246,7 +250,12 @@ const AdminDashboard = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast.success(`Downloaded ${filename}`);
+    toast.success(
+      t("admin.downloadedFile", {
+        defaultValue: "Downloaded {{filename}}",
+        filename,
+      }),
+    );
   };
 
   // Export user growth timeline data as CSV
@@ -362,7 +371,11 @@ const AdminDashboard = () => {
       setReportStats(statsRes.data?.data || null);
     } catch (err) {
       console.error("Failed to fetch reports:", err);
-      toast.error("Failed to load reports");
+      toast.error(
+        t("auto.failed_to_load_reports", {
+          defaultValue: "Failed to load reports",
+        }),
+      );
     } finally {
       setReportLoading(false);
     }
@@ -385,7 +398,9 @@ const AdminDashboard = () => {
       setTogglingUserId(id);
       await adminAPI.toggleUser(id);
       await fetchData();
-      toast.success("User status updated");
+      toast.success(
+        t("auto.user_status_updated", { defaultValue: "User status updated" }),
+      );
     } catch (err) {
       console.error("Toggle user error:", err);
       toast.error(err.response?.data?.message || "Failed to update user");
@@ -400,7 +415,7 @@ const AdminDashboard = () => {
       setDeletingJobId(id);
       await adminAPI.deleteJob(id);
       await fetchData();
-      toast.success("Job deleted");
+      toast.success(t("auto.job_deleted", { defaultValue: "Job deleted" }));
     } catch (err) {
       console.error("Delete job error:", err);
       toast.error(err.response?.data?.message || "Failed to delete job");
@@ -413,7 +428,9 @@ const AdminDashboard = () => {
   const openReportModal = (report, action) => {
     console.log("🔍 openReportModal called with:", { report, action });
     if (!report || !action) {
-      toast.error("Missing report data");
+      toast.error(
+        t("auto.missing_report_data", { defaultValue: "Missing report data" }),
+      );
       return;
     }
 
@@ -437,11 +454,19 @@ const AdminDashboard = () => {
   // Confirm Report Resolution
   const confirmReportAction = async () => {
     if (!selectedReport) {
-      toast.error("Report data is missing. Please try again.");
+      toast.error(
+        t("auto.report_data_is_missing_please_try_again", {
+          defaultValue: "Report data is missing. Please try again.",
+        }),
+      );
       return;
     }
     if (!actionType) {
-      toast.error("Action type is missing. Please try again.");
+      toast.error(
+        t("auto.action_type_is_missing_please_try_again", {
+          defaultValue: "Action type is missing. Please try again.",
+        }),
+      );
       return;
     }
 
@@ -555,9 +580,11 @@ const AdminDashboard = () => {
           type="button"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={currentPage === 1}
-          aria-label="Go to previous page"
+          aria-label={t("auto.go_to_previous_page", {
+            defaultValue: "Go to previous page",
+          })}
         >
-          Previous
+          {t("auto.previous", { defaultValue: "Previous" })}
         </button>
         <span className="pagination-info">
           Page {currentPage} of {totalPages}
@@ -566,9 +593,11 @@ const AdminDashboard = () => {
           type="button"
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
-          aria-label="Go to next page"
+          aria-label={t("auto.go_to_next_page", {
+            defaultValue: "Go to next page",
+          })}
         >
-          Next
+          {t("auto.next", { defaultValue: "Next" })}
         </button>
       </div>
     );
@@ -577,7 +606,9 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="admin-dashboard-loading" role="status" aria-live="polite">
-        Loading admin dashboard...
+        {t("auto.loading_admin_dashboard", {
+          defaultValue: "Loading admin dashboard...",
+        })}
       </div>
     );
   }
@@ -593,8 +624,12 @@ const AdminDashboard = () => {
                 shield_person
               </span>
             </div>
-            <h3>Admin Panel</h3>
-            <p>System control center</p>
+            <h3>{t("auto.admin_panel", { defaultValue: "Admin Panel" })}</h3>
+            <p>
+              {t("auto.system_control_center", {
+                defaultValue: "System control center",
+              })}
+            </p>
           </div>
 
           <nav className="sidebar-nav">
@@ -635,14 +670,18 @@ const AdminDashboard = () => {
               className="logout-btn"
               onClick={logout}
               type="button"
-              aria-label="Logout from admin dashboard"
+              aria-label={t("auto.logout_from_admin_dashboard", {
+                defaultValue: "Logout from admin dashboard",
+              })}
             >
               <span className="material-symbols-outlined" aria-hidden="true">
                 logout
               </span>
-              Logout
+              {t("auto.logout", { defaultValue: "Logout" })}
             </button>
-            <div className="copyright">SmartHire Admin</div>
+            <div className="copyright">
+              {t("auto.smarthire_admin", { defaultValue: "SmartHire Admin" })}
+            </div>
           </div>
         </aside>
 
@@ -651,9 +690,19 @@ const AdminDashboard = () => {
             <>
               <div className="admin-page-header">
                 <div>
-                  <h1>Admin Dashboard</h1>
+                  <h1>
+                    {t("auto.admin_dashboard", {
+                      defaultValue: "Admin Dashboard",
+                    })}
+                  </h1>
                   <p>
-                    Monitor platform activity and manage the system efficiently.
+                    {t(
+                      "auto.monitor_platform_activity_and_manage_the_system_efficie",
+                      {
+                        defaultValue:
+                          "Monitor platform activity and manage the system efficiently.",
+                      },
+                    )}
                   </p>
                 </div>
               </div>
@@ -663,7 +712,9 @@ const AdminDashboard = () => {
                   {/* Date Range Picker */}
                   <div className="date-range-group">
                     <label htmlFor="date-range-select" className="sr-only">
-                      Select analytics date range
+                      {t("auto.select_analytics_date_range", {
+                        defaultValue: "Select analytics date range",
+                      })}
                     </label>
                     <select
                       id="date-range-select"
@@ -674,10 +725,22 @@ const AdminDashboard = () => {
                       }
                       onChange={(e) => handleDataRangeChange(e.target.value)}
                     >
-                      <option value="7">Last 7 Days</option>
-                      <option value="30">Last 30 Days</option>
-                      <option value="90">Last 90 Days</option>
-                      <option value="custom">Custom...</option>
+                      <option value="7">
+                        {t("auto.last_7_days", { defaultValue: "Last 7 Days" })}
+                      </option>
+                      <option value="30">
+                        {t("auto.last_30_days", {
+                          defaultValue: "Last 30 Days",
+                        })}
+                      </option>
+                      <option value="90">
+                        {t("auto.last_90_days", {
+                          defaultValue: "Last 90 Days",
+                        })}
+                      </option>
+                      <option value="custom">
+                        {t("auto.custom", { defaultValue: "Custom..." })}
+                      </option>
                     </select>
                     {datePickerMode === "custom" && (
                       <div className="custom-date-inputs">
@@ -686,7 +749,9 @@ const AdminDashboard = () => {
                             htmlFor="custom-start-date"
                             className="sr-only"
                           >
-                            Start date
+                            {t("auto.start_date", {
+                              defaultValue: "Start date",
+                            })}
                           </label>
 
                           <input
@@ -701,7 +766,7 @@ const AdminDashboard = () => {
                         <span aria-hidden="true">to</span>
                         <>
                           <label htmlFor="custom-end-date" className="sr-only">
-                            End date
+                            {t("auto.end_date", { defaultValue: "End date" })}
                           </label>
 
                           <input
@@ -722,13 +787,19 @@ const AdminDashboard = () => {
                     <label className="toggle-switch">
                       <input
                         type="checkbox"
-                        aria-label="Enable auto refresh"
+                        aria-label={t("auto.enable_auto_refresh", {
+                          defaultValue: "Enable auto refresh",
+                        })}
                         checked={autoRefresh}
                         onChange={() => setAutoRefresh(!autoRefresh)}
                       />
                       <span className="slider" aria-hidden="true"></span>
                     </label>
-                    <span>Auto-refresh (5 min)</span>
+                    <span>
+                      {t("auto.auto_refresh_5_min", {
+                        defaultValue: "Auto-refresh (5 min)",
+                      })}
+                    </span>
                     {lastRefresh && (
                       <span className="last-refresh">
                         Last: {lastRefresh.toLocaleTimeString()}
@@ -754,31 +825,57 @@ const AdminDashboard = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="empty-state">No KPI data available</div>
+                  <div className="empty-state">
+                    {t("auto.no_kpi_data_available", {
+                      defaultValue: "No KPI data available",
+                    })}
+                  </div>
                 )}
               </div>
 
               {/* CHARTS SECTION - LIVE DATA */}
               <div className="admin-section">
                 <div className="admin-section-header">
-                  <h2>Growth Analytics</h2>
-                  <span className="admin-count">Last 30 days</span>
+                  <h2>
+                    {t("auto.growth_analytics", {
+                      defaultValue: "Growth Analytics",
+                    })}
+                  </h2>
+                  <span className="admin-count">
+                    {t("auto.last_30_days_255749", {
+                      defaultValue: "Last 30 days",
+                    })}
+                  </span>
                 </div>
 
                 {chartLoading ? (
-                  <div className="empty-state">Loading charts...</div>
+                  <div className="empty-state">
+                    {t("auto.loading_charts", {
+                      defaultValue: "Loading charts...",
+                    })}
+                  </div>
                 ) : (
                   <div className="charts-grid">
                     {/* LINE CHART */}
                     <div className="chart-card">
                       <div className="chart-card-header">
-                        <h3>User Growth</h3>
-                        <p>New users per day</p>
+                        <h3>
+                          {t("auto.user_growth", {
+                            defaultValue: "User Growth",
+                          })}
+                        </h3>
+                        <p>
+                          {t("auto.new_users_per_day", {
+                            defaultValue: "New users per day",
+                          })}
+                        </p>
                         <button
                           className="export-btn"
                           onClick={exportUsersCSV}
                           type="button"
-                          aria-label="Download users CSV"
+                          aria-label={t("auto.download_users_csv", {
+                            defaultValue: "Download users CSV",
+                          })}
                         >
                           <span
                             className="material-symbols-outlined"
@@ -815,7 +912,9 @@ const AdminDashboard = () => {
                           </ResponsiveContainer>
                         ) : (
                           <div className="empty-chart">
-                            No user data available
+                            {t("auto.no_user_data_available", {
+                              defaultValue: "No user data available",
+                            })}
                           </div>
                         )}
                       </div>
@@ -824,13 +923,23 @@ const AdminDashboard = () => {
                     {/* BAR CHART */}
                     <div className="chart-card">
                       <div className="chart-card-header">
-                        <h3>Jobs Posted per Day</h3>
-                        <p>New jobs per day</p>
+                        <h3>
+                          {t("auto.jobs_posted_per_day", {
+                            defaultValue: "Jobs Posted per Day",
+                          })}
+                        </h3>
+                        <p>
+                          {t("auto.new_jobs_per_day", {
+                            defaultValue: "New jobs per day",
+                          })}
+                        </p>
                         <button
                           className="export-btn"
                           onClick={exportJobsCSV}
                           type="button"
-                          aria-label="Download jobs CSV"
+                          aria-label={t("auto.download_jobs_csv", {
+                            defaultValue: "Download jobs CSV",
+                          })}
                         >
                           <span
                             className="material-symbols-outlined"
@@ -865,7 +974,9 @@ const AdminDashboard = () => {
                           </ResponsiveContainer>
                         ) : (
                           <div className="empty-chart">
-                            No job data available
+                            {t("auto.no_job_data_available", {
+                              defaultValue: "No job data available",
+                            })}
                           </div>
                         )}
                       </div>
@@ -874,13 +985,24 @@ const AdminDashboard = () => {
                     {/* PIE CHART (NEW - SPANS FULL WIDTH) */}
                     <div className="chart-card pie-card">
                       <div className="chart-card-header">
-                        <h3>Job Type Distribution</h3>
-                        <p>Active jobs by type</p>
+                        <h3>
+                          {t("auto.job_type_distribution", {
+                            defaultValue: "Job Type Distribution",
+                          })}
+                        </h3>
+                        <p>
+                          {t("auto.active_jobs_by_type", {
+                            defaultValue: "Active jobs by type",
+                          })}
+                        </p>
                         <button
                           className="export-btn"
                           onClick={exportJobTypesCSV}
                           type="button"
-                          aria-label="Download job type analytics CSV"
+                          aria-label={t(
+                            "auto.download_job_type_analytics_csv",
+                            { defaultValue: "Download job type analytics CSV" },
+                          )}
                         >
                           <span
                             className="material-symbols-outlined"
@@ -922,7 +1044,9 @@ const AdminDashboard = () => {
                           </ResponsiveContainer>
                         ) : (
                           <div className="empty-chart">
-                            No job type data available
+                            {t("auto.no_job_type_data_available", {
+                              defaultValue: "No job type data available",
+                            })}
                           </div>
                         )}
                       </div>
@@ -935,12 +1059,16 @@ const AdminDashboard = () => {
               <div className="overview-grid">
                 <section className="admin-section overview-panel">
                   <div className="admin-section-header">
-                    <h2>Recent Users</h2>
+                    <h2>
+                      {t("auto.recent_users", { defaultValue: "Recent Users" })}
+                    </h2>
                     <button
                       className="export-btn"
                       onClick={exportUsersTableCSV}
                       type="button"
-                      aria-label="Download users CSV"
+                      aria-label={t("auto.download_users_csv", {
+                        defaultValue: "Download users CSV",
+                      })}
                     >
                       <span
                         className="material-symbols-outlined"
@@ -952,16 +1080,24 @@ const AdminDashboard = () => {
                     </button>
                   </div>
                   {users.length === 0 ? (
-                    <div className="empty-state">No recent users.</div>
+                    <div className="empty-state">
+                      {t("auto.no_recent_users", {
+                        defaultValue: "No recent users.",
+                      })}
+                    </div>
                   ) : (
                     <div className="table-container">
                       <table className="data-table">
                         <thead>
                           <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Joined</th>
+                            <th>{t("auto.name", { defaultValue: "Name" })}</th>
+                            <th>
+                              {t("auto.email", { defaultValue: "Email" })}
+                            </th>
+                            <th>{t("auto.role", { defaultValue: "Role" })}</th>
+                            <th>
+                              {t("auto.joined", { defaultValue: "Joined" })}
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -987,12 +1123,16 @@ const AdminDashboard = () => {
 
                 <section className="admin-section overview-panel">
                   <div className="admin-section-header">
-                    <h2>Recent Jobs</h2>
+                    <h2>
+                      {t("auto.recent_jobs", { defaultValue: "Recent Jobs" })}
+                    </h2>
                     <button
                       className="export-btn"
                       onClick={exportJobsTableCSV}
                       type="button"
-                      aria-label="Download jobs CSV"
+                      aria-label={t("auto.download_jobs_csv", {
+                        defaultValue: "Download jobs CSV",
+                      })}
                     >
                       <span
                         className="material-symbols-outlined"
@@ -1004,16 +1144,28 @@ const AdminDashboard = () => {
                     </button>
                   </div>
                   {jobs.length === 0 ? (
-                    <div className="empty-state">No jobs posted yet.</div>
+                    <div className="empty-state">
+                      {t("auto.no_jobs_posted_yet", {
+                        defaultValue: "No jobs posted yet.",
+                      })}
+                    </div>
                   ) : (
                     <div className="table-container">
                       <table className="data-table">
                         <thead>
                           <tr>
-                            <th>Title</th>
-                            <th>Company</th>
-                            <th>Status</th>
-                            <th>Posted</th>
+                            <th>
+                              {t("auto.title", { defaultValue: "Title" })}
+                            </th>
+                            <th>
+                              {t("auto.company", { defaultValue: "Company" })}
+                            </th>
+                            <th>
+                              {t("auto.status", { defaultValue: "Status" })}
+                            </th>
+                            <th>
+                              {t("auto.posted", { defaultValue: "Posted" })}
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1050,62 +1202,94 @@ const AdminDashboard = () => {
           {activeTab === "users" && (
             <section className="admin-section">
               <div className="admin-section-header">
-                <h2>Users</h2>
+                <h2>{t("auto.users", { defaultValue: "Users" })}</h2>
                 <span className="admin-count">
                   {filteredUsers.length} matched / {stats.totalUsers} total
                 </span>
               </div>
               <div className="table-controls admin-filters">
                 <label htmlFor="user-search" className="sr-only">
-                  Search users by name or email
+                  {t("auto.search_users_by_name_or_email", {
+                    defaultValue: "Search users by name or email",
+                  })}
                 </label>
                 <input
                   type="text"
                   id="user-search"
-                  placeholder="Search by name or email"
+                  placeholder={t("auto.search_by_name_or_email", {
+                    defaultValue: "Search by name or email",
+                  })}
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                 />
                 <label htmlFor="user-role-filter" className="sr-only">
-                  Filter users by role
+                  {t("auto.filter_users_by_role", {
+                    defaultValue: "Filter users by role",
+                  })}
                 </label>
                 <select
                   id="user-role-filter"
                   value={userRoleFilter}
                   onChange={(e) => setUserRoleFilter(e.target.value)}
                 >
-                  <option value="all">All roles</option>
-                  <option value="job_seeker">Job Seeker</option>
-                  <option value="employer">Employer</option>
-                  <option value="admin">Admin</option>
+                  <option value="all">
+                    {t("auto.all_roles", { defaultValue: "All roles" })}
+                  </option>
+                  <option value="job_seeker">
+                    {t("auto.job_seeker", { defaultValue: "Job Seeker" })}
+                  </option>
+                  <option value="employer">
+                    {t("auto.employer", { defaultValue: "Employer" })}
+                  </option>
+                  <option value="admin">
+                    {t("auto.admin", { defaultValue: "Admin" })}
+                  </option>
                 </select>
                 <label htmlFor="user-status-filter" className="sr-only">
-                  Filter users by status
+                  {t("auto.filter_users_by_status", {
+                    defaultValue: "Filter users by status",
+                  })}
                 </label>
                 <select
                   id="user-status-filter"
                   value={userStatusFilter}
                   onChange={(e) => setUserStatusFilter(e.target.value)}
                 >
-                  <option value="all">All statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="all">
+                    {t("auto.all_statuses", { defaultValue: "All statuses" })}
+                  </option>
+                  <option value="active">
+                    {t("auto.active", { defaultValue: "Active" })}
+                  </option>
+                  <option value="inactive">
+                    {t("auto.inactive", { defaultValue: "Inactive" })}
+                  </option>
                 </select>
               </div>
               {filteredUsers.length === 0 ? (
-                <div className="empty-state">No users found.</div>
+                <div className="empty-state">
+                  {t("auto.no_users_found", {
+                    defaultValue: "No users found.",
+                  })}
+                </div>
               ) : (
                 <>
                   <div className="table-container">
                     <table className="data-table">
                       <thead>
                         <tr>
-                          <th>Name</th>
-                          <th>Email</th>
-                          <th>Role</th>
-                          <th>Status</th>
-                          <th>Created</th>
-                          <th>Actions</th>
+                          <th>{t("auto.name", { defaultValue: "Name" })}</th>
+                          <th>{t("auto.email", { defaultValue: "Email" })}</th>
+                          <th>{t("auto.role", { defaultValue: "Role" })}</th>
+                          <th>
+                            {t("auto.status", { defaultValue: "Status" })}
+                          </th>
+                          <th>
+                            {t("auto.created", { defaultValue: "Created" })}
+                          </th>
+                          <th>
+                            {t("auto.actions", { defaultValue: "Actions" })}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1168,65 +1352,107 @@ const AdminDashboard = () => {
           {activeTab === "jobs" && (
             <section className="admin-section">
               <div className="admin-section-header">
-                <h2>Jobs</h2>
+                <h2>{t("auto.jobs", { defaultValue: "Jobs" })}</h2>
                 <span className="admin-count">
                   {filteredJobs.length} matched / {stats.totalJobs} total
                 </span>
               </div>
               <div className="table-controls admin-filters">
                 <label htmlFor="job-search" className="sr-only">
-                  Search jobs
+                  {t("auto.search_jobs", { defaultValue: "Search jobs" })}
                 </label>
                 <input
                   type="text"
                   id="job-search"
-                  placeholder="Search title, company, or location"
+                  placeholder={t("auto.search_title_company_or_location", {
+                    defaultValue: "Search title, company, or location",
+                  })}
                   value={jobSearch}
                   onChange={(e) => setJobSearch(e.target.value)}
                 />
                 <label htmlFor="job-status-filter" className="sr-only">
-                  Filter jobs by status
+                  {t("auto.filter_jobs_by_status", {
+                    defaultValue: "Filter jobs by status",
+                  })}
                 </label>
                 <select
                   id="job-status-filter"
                   value={jobStatusFilter}
                   onChange={(e) => setJobStatusFilter(e.target.value)}
                 >
-                  <option value="all">All statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="all">
+                    {t("auto.all_statuses", { defaultValue: "All statuses" })}
+                  </option>
+                  <option value="active">
+                    {t("auto.active", { defaultValue: "Active" })}
+                  </option>
+                  <option value="inactive">
+                    {t("auto.inactive", { defaultValue: "Inactive" })}
+                  </option>
                 </select>
                 <label htmlFor="job-type-filter" className="sr-only">
-                  Filter jobs by type
+                  {t("auto.filter_jobs_by_type", {
+                    defaultValue: "Filter jobs by type",
+                  })}
                 </label>
                 <select
                   id="job-type-filter"
                   value={jobTypeFilter}
                   onChange={(e) => setJobTypeFilter(e.target.value)}
                 >
-                  <option value="all">All job types</option>
-                  <option value="full-time">Full‑time</option>
-                  <option value="part-time">Part‑time</option>
-                  <option value="remote">Remote</option>
-                  <option value="contract">Contract</option>
-                  <option value="internship">Internship</option>
+                  <option value="all">
+                    {t("auto.all_job_types", { defaultValue: "All job types" })}
+                  </option>
+                  <option value="full-time">
+                    {t("auto.full_time_ef04db", {
+                      defaultValue: "Full\u2011time",
+                    })}
+                  </option>
+                  <option value="part-time">
+                    {t("auto.part_time_fc0764", {
+                      defaultValue: "Part\u2011time",
+                    })}
+                  </option>
+                  <option value="remote">
+                    {t("auto.remote", { defaultValue: "Remote" })}
+                  </option>
+                  <option value="contract">
+                    {t("auto.contract", { defaultValue: "Contract" })}
+                  </option>
+                  <option value="internship">
+                    {t("auto.internship", { defaultValue: "Internship" })}
+                  </option>
                 </select>
               </div>
               {filteredJobs.length === 0 ? (
-                <div className="empty-state">No jobs found.</div>
+                <div className="empty-state">
+                  {t("auto.no_jobs_found", { defaultValue: "No jobs found." })}
+                </div>
               ) : (
                 <>
                   <div className="table-container">
                     <table className="data-table">
                       <thead>
                         <tr>
-                          <th>Title</th>
-                          <th>Company</th>
-                          <th>Location</th>
-                          <th>Job Type</th>
-                          <th>Status</th>
-                          <th>Posted</th>
-                          <th>Actions</th>
+                          <th>{t("auto.title", { defaultValue: "Title" })}</th>
+                          <th>
+                            {t("auto.company", { defaultValue: "Company" })}
+                          </th>
+                          <th>
+                            {t("auto.location", { defaultValue: "Location" })}
+                          </th>
+                          <th>
+                            {t("auto.job_type", { defaultValue: "Job Type" })}
+                          </th>
+                          <th>
+                            {t("auto.status", { defaultValue: "Status" })}
+                          </th>
+                          <th>
+                            {t("auto.posted", { defaultValue: "Posted" })}
+                          </th>
+                          <th>
+                            {t("auto.actions", { defaultValue: "Actions" })}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1284,12 +1510,14 @@ const AdminDashboard = () => {
           {activeTab === "companies" && (
             <section className="admin-section">
               <div className="admin-section-header">
-                <h2>Companies</h2>
+                <h2>{t("auto.companies", { defaultValue: "Companies" })}</h2>
                 <button
                   className="export-btn"
                   onClick={exportCompaniesTableCSV}
                   type="button"
-                  aria-label="Download companies CSV"
+                  aria-label={t("auto.download_companies_csv", {
+                    defaultValue: "Download companies CSV",
+                  })}
                 >
                   <span
                     className="material-symbols-outlined"
@@ -1306,27 +1534,39 @@ const AdminDashboard = () => {
               </div>
               <div className="table-controls admin-filters">
                 <label htmlFor="company-search" className="sr-only">
-                  Search companies
+                  {t("auto.search_companies", {
+                    defaultValue: "Search companies",
+                  })}
                 </label>
                 <input
                   type="text"
                   id="company-search"
-                  placeholder="Search company or location"
+                  placeholder={t("auto.search_company_or_location", {
+                    defaultValue: "Search company or location",
+                  })}
                   value={companySearch}
                   onChange={(e) => setCompanySearch(e.target.value)}
                 />
               </div>
               {filteredCompanies.length === 0 ? (
-                <div className="empty-state">No companies found.</div>
+                <div className="empty-state">
+                  {t("auto.no_companies_found_47524e", {
+                    defaultValue: "No companies found.",
+                  })}
+                </div>
               ) : (
                 <>
                   <div className="table-container">
                     <table className="data-table">
                       <thead>
                         <tr>
-                          <th>Name</th>
-                          <th>Location</th>
-                          <th>Created</th>
+                          <th>{t("auto.name", { defaultValue: "Name" })}</th>
+                          <th>
+                            {t("auto.location", { defaultValue: "Location" })}
+                          </th>
+                          <th>
+                            {t("auto.created", { defaultValue: "Created" })}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1358,12 +1598,16 @@ const AdminDashboard = () => {
           {activeTab === "reports" && (
             <section className="admin-section">
               <div className="admin-section-header">
-                <h2>Reports Queue</h2>
+                <h2>
+                  {t("auto.reports_queue", { defaultValue: "Reports Queue" })}
+                </h2>
                 <button
                   className="export-btn"
                   onClick={exportReportsTableCSV}
                   type="button"
-                  aria-label="Download reports CSV"
+                  aria-label={t("auto.download_reports_csv", {
+                    defaultValue: "Download reports CSV",
+                  })}
                 >
                   <span
                     className="material-symbols-outlined"
@@ -1376,7 +1620,8 @@ const AdminDashboard = () => {
                 <span className="admin-count">
                   {reportStats ? (
                     <>
-                      Pending: <strong>{reportStats.pending}</strong> | Total:{" "}
+                      {t("auto.pending", { defaultValue: "Pending:" })}
+                      <strong>{reportStats.pending}</strong> | Total:{" "}
                       <strong>{reportStats.total}</strong>
                     </>
                   ) : (
@@ -1397,7 +1642,9 @@ const AdminDashboard = () => {
                   }}
                 >
                   <label htmlFor="report-status-filter" className="sr-only">
-                    Filter reports by status
+                    {t("auto.filter_reports_by_status", {
+                      defaultValue: "Filter reports by status",
+                    })}
                   </label>
                   <select
                     id="report-status-filter"
@@ -1407,15 +1654,27 @@ const AdminDashboard = () => {
                       setReportPage(1);
                     }}
                   >
-                    <option value="all">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="removed">Removed</option>
-                    <option value="dismissed">Dismissed</option>
+                    <option value="all">
+                      {t("auto.all_status", { defaultValue: "All Status" })}
+                    </option>
+                    <option value="pending">
+                      {t("auto.pending_2d13df", { defaultValue: "Pending" })}
+                    </option>
+                    <option value="approved">
+                      {t("auto.approved", { defaultValue: "Approved" })}
+                    </option>
+                    <option value="removed">
+                      {t("auto.removed", { defaultValue: "Removed" })}
+                    </option>
+                    <option value="dismissed">
+                      {t("auto.dismissed", { defaultValue: "Dismissed" })}
+                    </option>
                   </select>
 
                   <label htmlFor="report-reason-filter" className="sr-only">
-                    Filter reports by reason
+                    {t("auto.filter_reports_by_reason", {
+                      defaultValue: "Filter reports by reason",
+                    })}
                   </label>
                   <select
                     id="report-reason-filter"
@@ -1425,12 +1684,26 @@ const AdminDashboard = () => {
                       setReportPage(1);
                     }}
                   >
-                    <option value="all">All Reasons</option>
-                    <option value="spam">Spam</option>
-                    <option value="fraud">Fraud</option>
-                    <option value="inappropriate">Inappropriate</option>
-                    <option value="duplicate">Duplicate</option>
-                    <option value="other">Other</option>
+                    <option value="all">
+                      {t("auto.all_reasons", { defaultValue: "All Reasons" })}
+                    </option>
+                    <option value="spam">
+                      {t("auto.spam", { defaultValue: "Spam" })}
+                    </option>
+                    <option value="fraud">
+                      {t("auto.fraud", { defaultValue: "Fraud" })}
+                    </option>
+                    <option value="inappropriate">
+                      {t("auto.inappropriate", {
+                        defaultValue: "Inappropriate",
+                      })}
+                    </option>
+                    <option value="duplicate">
+                      {t("auto.duplicate", { defaultValue: "Duplicate" })}
+                    </option>
+                    <option value="other">
+                      {t("auto.other", { defaultValue: "Other" })}
+                    </option>
                   </select>
                 </div>
                 <span className="admin-count">
@@ -1440,10 +1713,16 @@ const AdminDashboard = () => {
 
               {/* Reports Table */}
               {reportLoading ? (
-                <div className="empty-state">Loading reports...</div>
+                <div className="empty-state">
+                  {t("auto.loading_reports", {
+                    defaultValue: "Loading reports...",
+                  })}
+                </div>
               ) : reports.length === 0 ? (
                 <div className="empty-state">
-                  No reports found matching your criteria.
+                  {t("auto.no_reports_found_matching_your_criteria", {
+                    defaultValue: "No reports found matching your criteria.",
+                  })}
                 </div>
               ) : (
                 <>
@@ -1451,12 +1730,22 @@ const AdminDashboard = () => {
                     <table className="data-table">
                       <thead>
                         <tr>
-                          <th>ID</th>
-                          <th>Job Title</th>
-                          <th>Reporter</th>
-                          <th>Reason</th>
-                          <th>Status</th>
-                          <th>Actions</th>
+                          <th>{t("auto.id", { defaultValue: "ID" })}</th>
+                          <th>
+                            {t("auto.job_title", { defaultValue: "Job Title" })}
+                          </th>
+                          <th>
+                            {t("auto.reporter", { defaultValue: "Reporter" })}
+                          </th>
+                          <th>
+                            {t("auto.reason", { defaultValue: "Reason" })}
+                          </th>
+                          <th>
+                            {t("auto.status", { defaultValue: "Status" })}
+                          </th>
+                          <th>
+                            {t("auto.actions", { defaultValue: "Actions" })}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1471,7 +1760,13 @@ const AdminDashboard = () => {
                                 color: "var(--gray-color)",
                               }}
                             >
-                              No reports found matching your criteria.
+                              {t(
+                                "auto.no_reports_found_matching_your_criteria",
+                                {
+                                  defaultValue:
+                                    "No reports found matching your criteria.",
+                                },
+                              )}
                             </td>
                           </tr>
                         ) : (
@@ -1523,7 +1818,9 @@ const AdminDashboard = () => {
                                       >
                                         check_circle
                                       </span>
-                                      Approve
+                                      {t("auto.approve", {
+                                        defaultValue: "Approve",
+                                      })}
                                     </button>
                                     <button
                                       className="table-action-btn dismiss"
@@ -1543,7 +1840,9 @@ const AdminDashboard = () => {
                                       >
                                         block
                                       </span>
-                                      Dismiss
+                                      {t("auto.dismiss", {
+                                        defaultValue: "Dismiss",
+                                      })}
                                     </button>
                                     <button
                                       className="table-action-btn remove"
@@ -1563,7 +1862,9 @@ const AdminDashboard = () => {
                                       >
                                         delete
                                       </span>
-                                      Remove Job
+                                      {t("auto.remove_job", {
+                                        defaultValue: "Remove Job",
+                                      })}
                                     </button>
                                   </>
                                 )}
@@ -1574,7 +1875,9 @@ const AdminDashboard = () => {
                                       color: "var(--gray-color)",
                                     }}
                                   >
-                                    Resolved
+                                    {t("auto.resolved", {
+                                      defaultValue: "Resolved",
+                                    })}
                                   </span>
                                 )}
                               </td>
@@ -1610,19 +1913,28 @@ const AdminDashboard = () => {
             aria-labelledby="resolve-report-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 id="resolve-report-title">Resolve Report</h3>
+            <h3 id="resolve-report-title">
+              {t("auto.resolve_report", { defaultValue: "Resolve Report" })}
+            </h3>
             <p style={{ marginBottom: "16px" }}>
-              <strong>Action:</strong>{" "}
+              <strong>{t("auto.action", { defaultValue: "Action:" })}</strong>{" "}
               <span className="capitalize-text">{actionType}</span>
               <br />
-              <strong>Job:</strong> {selectedReport?.job_title}
+              <strong>{t("auto.job", { defaultValue: "Job:" })}</strong>{" "}
+              {selectedReport?.job_title}
             </p>
             <div className="form-group">
-              <label htmlFor="notes">Resolution Notes (Optional)</label>
+              <label htmlFor="notes">
+                {t("auto.resolution_notes_optional", {
+                  defaultValue: "Resolution Notes (Optional)",
+                })}
+              </label>
               <textarea
                 id="notes"
                 rows="3"
-                placeholder="Add internal notes for this resolution..."
+                placeholder={t("auto.add_internal_notes_for_this_resolution", {
+                  defaultValue: "Add internal notes for this resolution...",
+                })}
                 value={actionNotes}
                 onChange={(e) => setActionNotes(e.target.value)}
                 style={{
@@ -1646,7 +1958,7 @@ const AdminDashboard = () => {
                 type="button"
                 onClick={closeModal}
               >
-                Cancel
+                {t("auto.cancel", { defaultValue: "Cancel" })}
               </button>
               <button
                 className={`admin-btn ${actionType === "removed" ? "admin-btn-danger" : "admin-btn-primary"}`}

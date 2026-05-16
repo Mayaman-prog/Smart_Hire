@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -8,6 +9,7 @@ import Input from "../../components/common/Input/Input";
 import "./RegisterPage.css";
 
 const RegisterPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState("job_seeker"); // For UI and payload
@@ -42,7 +44,11 @@ const RegisterPage = () => {
       };
       const response = await authAPI.register(payload);
       if (response.data.success) {
-        toast.success("Registration successful! Please login.");
+        toast.success(
+          t("auto.registration_successful_please_login", {
+            defaultValue: "Registration successful! Please login.",
+          }),
+        );
         navigate("/login");
       }
     } catch (error) {
@@ -53,7 +59,11 @@ const RegisterPage = () => {
       } else if (status === 400 && message) {
         toast.error(message);
       } else {
-        toast.error("Registration failed. Please try again.");
+        toast.error(
+          t("auto.registration_failed_please_try_again", {
+            defaultValue: "Registration failed. Please try again.",
+          }),
+        );
       }
     } finally {
       setIsLoading(false);
@@ -88,8 +98,16 @@ const RegisterPage = () => {
         <div className="register-form-panel">
           <div className="form-wrapper">
             <div className="form-header">
-              <h2>Create an Account</h2>
-              <p>Join SmartHire and start your career journey.</p>
+              <h2>
+                {t("auto.create_an_account", {
+                  defaultValue: "Create an Account",
+                })}
+              </h2>
+              <p>
+                {t("auto.join_smarthire_and_start_your_career_journey", {
+                  defaultValue: "Join SmartHire and start your career journey.",
+                })}
+              </p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="register-form">
@@ -100,14 +118,14 @@ const RegisterPage = () => {
                   className={`role-btn ${role === "employer" ? "active" : ""}`}
                   onClick={() => setRole("employer")}
                 >
-                  Employer
+                  {t("auto.employer", { defaultValue: "Employer" })}
                 </button>
                 <button
                   type="button"
                   className={`role-btn ${role === "job_seeker" ? "active" : ""}`}
                   onClick={() => setRole("job_seeker")}
                 >
-                  Job Seeker
+                  {t("auto.job_seeker", { defaultValue: "Job Seeker" })}
                 </button>
               </div>
 
@@ -116,7 +134,9 @@ const RegisterPage = () => {
                 <Input
                   id="fullName"
                   type="text"
-                  placeholder="Full Name*"
+                  placeholder={t("auto.full_name", {
+                    defaultValue: "Full Name*",
+                  })}
                   icon="person"
                   error={errors.fullName?.message}
                   {...register("fullName", {
@@ -139,7 +159,9 @@ const RegisterPage = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Email ID*"
+                  placeholder={t("auto.email_id", {
+                    defaultValue: "Email ID*",
+                  })}
                   icon="mail"
                   error={errors.email?.message}
                   {...register("email", {
@@ -157,7 +179,9 @@ const RegisterPage = () => {
                 <Input
                   id="mobile"
                   type="tel"
-                  placeholder="Mobile Number*"
+                  placeholder={t("auto.mobile_number", {
+                    defaultValue: "Mobile Number*",
+                  })}
                   icon="phone"
                   {...register("mobile", {
                     required: "Mobile number is required",
@@ -174,7 +198,9 @@ const RegisterPage = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Password*"
+                  placeholder={t("auto.password", {
+                    defaultValue: "Password*",
+                  })}
                   icon="lock"
                   error={errors.password?.message}
                   {...register("password", {
@@ -196,7 +222,9 @@ const RegisterPage = () => {
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="Confirm Password*"
+                  placeholder={t("auto.confirm_password", {
+                    defaultValue: "Confirm Password*",
+                  })}
                   icon="lock"
                   error={errors.confirmPassword?.message}
                   {...register("confirmPassword", {
@@ -213,7 +241,9 @@ const RegisterPage = () => {
                   <Input
                     id="companyName"
                     type="text"
-                    placeholder="Company Name*"
+                    placeholder={t("auto.company_name", {
+                      defaultValue: "Company Name*",
+                    })}
                     icon="business"
                     error={errors.companyName?.message}
                     {...register("companyName", {
@@ -226,17 +256,29 @@ const RegisterPage = () => {
               {/* Experienced / Fresher Cards */}
               <div className="user-type-group">
                 <div className="user-type-card">
-                  <h4>Experienced</h4>
+                  <h4>
+                    {t("auto.experienced", { defaultValue: "Experienced" })}
+                  </h4>
                   <p>
-                    Already have experience? Leverage our AI to discover
-                    higher-level roles.
+                    {t(
+                      "auto.already_have_experience_leverage_our_ai_to_discover_hig",
+                      {
+                        defaultValue:
+                          "Already have experience? Leverage our AI to discover higher-level roles.",
+                      },
+                    )}
                   </p>
                 </div>
                 <div className="user-type-card">
-                  <h4>Fresher</h4>
+                  <h4>{t("auto.fresher", { defaultValue: "Fresher" })}</h4>
                   <p>
-                    New to the job market? SmartHire offers plenty of
-                    opportunities for freshers.
+                    {t(
+                      "auto.new_to_the_job_market_smarthire_offers_plenty_of_opport",
+                      {
+                        defaultValue:
+                          "New to the job market? SmartHire offers plenty of opportunities for freshers.",
+                      },
+                    )}
                   </p>
                 </div>
               </div>
@@ -247,8 +289,16 @@ const RegisterPage = () => {
                   info
                 </span>
                 By clicking 'Create Account', you agree to our{" "}
-                <Link to="/terms">Terms & Conditions</Link> and{" "}
-                <Link to="/privacy">Privacy Policy</Link>.
+                <Link to="/terms">
+                  {t("auto.terms_conditions", {
+                    defaultValue: "Terms & Conditions",
+                  })}
+                </Link>{" "}
+                and{" "}
+                <Link to="/privacy">
+                  {t("auto.privacy_policy", { defaultValue: "Privacy Policy" })}
+                </Link>
+                .
               </p>
 
               {/* Submit Button */}
@@ -267,7 +317,12 @@ const RegisterPage = () => {
               {/* Login Link */}
               <div className="login-link">
                 <p>
-                  Already have an account? <Link to="/login">Sign in</Link>
+                  {t("auto.already_have_an_account", {
+                    defaultValue: "Already have an account?",
+                  })}
+                  <Link to="/login">
+                    {t("auto.sign_in_b6d422", { defaultValue: "Sign in" })}
+                  </Link>
                 </p>
               </div>
             </form>

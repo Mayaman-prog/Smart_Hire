@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import api, {
@@ -19,6 +20,7 @@ import { useFocusTrap } from "../../hooks/useFocusTrap";
 import "./JobDetailsPage.css";
 
 const JobDetailsPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
@@ -41,6 +43,14 @@ const JobDetailsPage = () => {
   const [showOneClickConfirmModal, setShowOneClickConfirmModal] =
     useState(false);
 
+  // Cover letter states
+  const [coverLetters, setCoverLetters] = useState([]);
+  const [selectedCoverId, setSelectedCoverId] = useState(null);
+  const [coverContent, setCoverContent] = useState("");
+  const [isEditingCover, setIsEditingCover] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [applying, setApplying] = useState(false);
+
   const reportModalRef = useFocusTrap(showReportModal, () =>
     setShowReportModal(false),
   );
@@ -53,30 +63,39 @@ const JobDetailsPage = () => {
     setShowOneClickConfirmModal(false),
   );
 
-  // Cover letter states
-  const [coverLetters, setCoverLetters] = useState([]);
-  const [selectedCoverId, setSelectedCoverId] = useState(null);
-  const [coverContent, setCoverContent] = useState("");
-  const [isEditingCover, setIsEditingCover] = useState(false);
-  const [showApplyModal, setShowApplyModal] = useState(false);
-  const [applying, setApplying] = useState(false);
-
   const getRelativeDate = (date) => {
-    if (!date) return "Recently";
+    if (!date) {
+      return t("date.recently", { defaultValue: "Recently" });
+    }
+
     const posted = new Date(date);
     const today = new Date();
     const diffDays = Math.ceil((today - posted) / (1000 * 60 * 60 * 24));
 
-    if (diffDays <= 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    return `${diffDays} days ago`;
+    if (diffDays <= 0) {
+      return t("date.today", { defaultValue: "Today" });
+    }
+
+    if (diffDays === 1) {
+      return t("date.yesterday", { defaultValue: "Yesterday" });
+    }
+
+    return t("date.daysAgo", {
+      count: diffDays,
+      defaultValue: "{{count}} days ago",
+    });
   };
 
   const formatSalary = (min, max) => {
     const hasMin = min !== null && min !== undefined;
     const hasMax = max !== null && max !== undefined;
 
-    if (!hasMin && !hasMax) return "Salary not disclosed";
+    if (!hasMin && !hasMax) {
+      return t("jobDetails.salaryNotDisclosed", {
+        defaultValue: "Salary not disclosed",
+      });
+    }
+
     if (hasMin && !hasMax) return `$${Number(min).toLocaleString()}`;
     if (!hasMin && hasMax) return `$${Number(max).toLocaleString()}`;
 
@@ -85,13 +104,14 @@ const JobDetailsPage = () => {
 
   const getJobTypeLabel = (type) => {
     const map = {
-      "full-time": "Full-time",
-      "part-time": "Part-time",
-      remote: "Remote",
-      contract: "Contract",
-      internship: "Internship",
+      "full-time": t("jobTypes.fullTime", { defaultValue: "Full-time" }),
+      "part-time": t("jobTypes.partTime", { defaultValue: "Part-time" }),
+      remote: t("jobTypes.remote", { defaultValue: "Remote" }),
+      contract: t("jobTypes.contract", { defaultValue: "Contract" }),
+      internship: t("jobTypes.internship", { defaultValue: "Internship" }),
     };
-    return map[type] || type || "Other";
+
+    return map[type] || type || t("jobTypes.other", { defaultValue: "Other" });
   };
 
   const getJobTypeClass = (type) => {
@@ -142,8 +162,11 @@ const JobDetailsPage = () => {
       } catch (err) {
         const message =
           err.response?.status === 404
-            ? "Job not found"
-            : err.response?.data?.message || "Failed to load job details";
+            ? t("jobDetails.jobNotFound", { defaultValue: "Job not found" })
+            : err.response?.data?.message ||
+              t("jobDetails.loadError", {
+                defaultValue: "Failed to load job details",
+              });
 
         setError(message);
         toast.error(message);
@@ -195,7 +218,11 @@ const JobDetailsPage = () => {
       }
     } catch (err) {
       console.error("Failed to load cover letters:", err);
-      toast.error("Could not load cover letters");
+      toast.error(
+        t("auto.could_not_load_cover_letters", {
+          defaultValue: "Could not load cover letters",
+        }),
+      );
     }
   };
 
@@ -228,14 +255,25 @@ const JobDetailsPage = () => {
         cover_letter: coverContent,
       });
       setHasApplied(true);
-      toast.success("Application submitted successfully!");
+      toast.success(
+        t("auto.application_submitted_successfully", {
+          defaultValue: "Application submitted successfully!",
+        }),
+      );
       setShowApplyModal(false);
     } catch (err) {
       if (err.response?.status === 409) {
         setHasApplied(true);
-        toast.error("You have already applied to this job");
+        toast.error(
+          t("auto.you_have_already_applied_to_this_job", {
+            defaultValue: "You have already applied to this job",
+          }),
+        );
       } else {
-        toast.error(err.response?.data?.message || "Failed to apply");
+        toast.error(
+          err.response?.data?.message ||
+            t("jobDetails.applyError", { defaultValue: "Failed to apply" }),
+        );
       }
     } finally {
       setApplying(false);
@@ -249,15 +287,27 @@ const JobDetailsPage = () => {
       // The backend must support `useResume: true` to use stored profile & default cover letter
       await applicationAPI.applyForJob(job.id, { useResume: true });
       setHasApplied(true);
-      toast.success("Application submitted successfully using your resume!");
+      toast.success(
+        t("auto.application_submitted_successfully_using_your_resume", {
+          defaultValue: "Application submitted successfully using your resume!",
+        }),
+      );
       setShowOneClickConfirmModal(false);
     } catch (err) {
       console.error(err);
       if (err.response?.data?.message === "Profile incomplete") {
-        toast.error("Your profile is incomplete. Please complete it first.");
+        toast.error(
+          t("auto.your_profile_is_incomplete_please_complete_it_first", {
+            defaultValue:
+              "Your profile is incomplete. Please complete it first.",
+          }),
+        );
         navigate("/dashboard/seeker?tab=profile");
       } else {
-        toast.error(err.response?.data?.message || "Failed to apply");
+        toast.error(
+          err.response?.data?.message ||
+            t("jobDetails.applyError", { defaultValue: "Failed to apply" }),
+        );
       }
     } finally {
       setApplying(false);
@@ -268,18 +318,30 @@ const JobDetailsPage = () => {
   const handleApply = async () => {
     if (!isAuthenticated) {
       sessionStorage.setItem("redirectAfterLogin", `/jobs/${id}`);
-      toast.error("Please login to apply for this job");
+      toast.error(
+        t("auto.please_login_to_apply_for_this_job", {
+          defaultValue: "Please login to apply for this job",
+        }),
+      );
       navigate("/login");
       return;
     }
 
     if (user?.role !== "job_seeker") {
-      toast.error("Only job seekers can apply for jobs");
+      toast.error(
+        t("auto.only_job_seekers_can_apply_for_jobs", {
+          defaultValue: "Only job seekers can apply for jobs",
+        }),
+      );
       return;
     }
 
     if (!job?.id) {
-      toast.error("Job details are not available");
+      toast.error(
+        t("auto.job_details_are_not_available", {
+          defaultValue: "Job details are not available",
+        }),
+      );
       return;
     }
 
@@ -290,13 +352,21 @@ const JobDetailsPage = () => {
   const handleSaveJob = async () => {
     if (!isAuthenticated) {
       sessionStorage.setItem("redirectAfterLogin", `/jobs/${id}`);
-      toast.error("Please login to save jobs");
+      toast.error(
+        t("auto.please_login_to_save_jobs", {
+          defaultValue: "Please login to save jobs",
+        }),
+      );
       navigate("/login");
       return;
     }
 
     if (user?.role !== "job_seeker") {
-      toast.error("Only job seekers can save jobs");
+      toast.error(
+        t("auto.only_job_seekers_can_save_jobs", {
+          defaultValue: "Only job seekers can save jobs",
+        }),
+      );
       return;
     }
 
@@ -308,18 +378,27 @@ const JobDetailsPage = () => {
       if (isSaved) {
         await savedJobsAPI.removeSavedJob(job.id);
         setIsSaved(false);
-        toast.success("Job removed from saved");
+        toast.success(
+          t("auto.job_removed_from_saved", {
+            defaultValue: "Job removed from saved",
+          }),
+        );
       } else {
         await savedJobsAPI.saveJob(job.id);
         setIsSaved(true);
-        toast.success("Job saved");
+        toast.success(t("auto.job_saved", { defaultValue: "Job saved" }));
       }
     } catch (err) {
       if (err.response?.status === 409) {
         setIsSaved(true);
-        toast.error("Job already saved");
+        toast.error(
+          t("auto.job_already_saved", { defaultValue: "Job already saved" }),
+        );
       } else {
-        toast.error(err.response?.data?.message || "Failed to save job");
+        toast.error(
+          err.response?.data?.message ||
+            t("jobDetails.saveError", { defaultValue: "Failed to save job" }),
+        );
       }
     } finally {
       setSaving(false);
@@ -329,9 +408,15 @@ const JobDetailsPage = () => {
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success("Link copied to clipboard!");
+      toast.success(
+        t("auto.link_copied_to_clipboard", {
+          defaultValue: "Link copied to clipboard!",
+        }),
+      );
     } catch {
-      toast.error("Failed to copy link");
+      toast.error(
+        t("auto.failed_to_copy_link", { defaultValue: "Failed to copy link" }),
+      );
     }
   };
 
@@ -344,11 +429,19 @@ const JobDetailsPage = () => {
         reason: reportReason,
         description: reportDescription.trim() || undefined,
       });
-      toast.success("Report submitted. Thank you for helping us improve.");
+      toast.success(
+        t("auto.report_submitted_thank_you_for_helping_us_improve", {
+          defaultValue: "Report submitted. Thank you for helping us improve.",
+        }),
+      );
       setAlreadyReported(true);
       setShowReportModal(false);
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to submit report.";
+      const msg =
+        error.response?.data?.message ||
+        t("jobDetails.reportSubmitError", {
+          defaultValue: "Failed to submit report.",
+        });
       toast.error(msg);
     } finally {
       setReporting(false);
@@ -363,14 +456,23 @@ const JobDetailsPage = () => {
     job.company_name === user.company_name;
 
   if (loading) {
-    return <div className="loading-skeleton">Loading...</div>;
+    return (
+      <div className="loading-skeleton">
+        {t("auto.loading", { defaultValue: "Loading..." })}
+      </div>
+    );
   }
 
   if (error || !job) {
     return (
       <div className="error-state">
-        <h2>{error || "Job Not Found"}</h2>
-        <button onClick={() => navigate("/jobs")}>Browse Jobs</button>
+        <h2>
+          {error ||
+            t("jobDetails.jobNotFoundTitle", { defaultValue: "Job Not Found" })}
+        </h2>
+        <button onClick={() => navigate("/jobs")}>
+          {t("auto.browse_jobs", { defaultValue: "Browse Jobs" })}
+        </button>
       </div>
     );
   }
@@ -383,9 +485,19 @@ const JobDetailsPage = () => {
           <div className="match-insights">
             <div className="match-icon">⭐</div>
             <div className="match-content">
-              <h2>SmartHire Match Insights</h2>
+              <h2>
+                {t("auto.smarthire_match_insights", {
+                  defaultValue: "SmartHire Match Insights",
+                })}
+              </h2>
               <p>
-                Based on your profile, you are a strong match for this role.
+                {t(
+                  "auto.based_on_your_profile_you_are_a_strong_match_for_this_r",
+                  {
+                    defaultValue:
+                      "Based on your profile, you are a strong match for this role.",
+                  },
+                )}
               </p>
             </div>
           </div>
@@ -403,14 +515,20 @@ const JobDetailsPage = () => {
               to={job.company_id ? `/companies/${job.company_id}` : "#"}
               className="company-link"
             >
-              {job.company_name || "Company"}
+              {job.company_name ||
+                t("common.company", { defaultValue: "Company" })}
               {job.company_verified ? (
-                <span className="verified-badge">✓ Verified</span>
+                <span className="verified-badge">
+                  {t("common.verified", { defaultValue: "✓ Verified" })}
+                </span>
               ) : null}
             </Link>
 
             <div className="posted-date">
-              Posted {getRelativeDate(job.created_at)}
+              {t("jobDetails.postedDate", {
+                date: getRelativeDate(job.created_at),
+                defaultValue: "Posted {{date}}",
+              })}
             </div>
           </div>
 
@@ -424,12 +542,14 @@ const JobDetailsPage = () => {
               <span className="material-symbols-outlined">
                 {isSaved ? "favorite" : "favorite_border"}
               </span>
-              {saving ? " Saving..." : " Save"}
+              {saving
+                ? t("jobDetails.saving", { defaultValue: " Saving..." })
+                : t("jobDetails.save", { defaultValue: " Save" })}
             </button>
 
             <button className="share-btn" onClick={handleShare} type="button">
               <span className="material-symbols-outlined">share</span>
-              Share
+              {t("auto.share", { defaultValue: "Share" })}
             </button>
             {isAuthenticated ? (
               <button
@@ -439,25 +559,35 @@ const JobDetailsPage = () => {
                 type="button"
                 title={
                   alreadyReported
-                    ? "You have already reported this job"
-                    : "Report this job"
+                    ? t("jobDetails.alreadyReportedTitle", {
+                        defaultValue: "You have already reported this job",
+                      })
+                    : t("jobDetails.reportThisJobTitle", {
+                        defaultValue: "Report this job",
+                      })
                 }
               >
                 <span className="material-symbols-outlined">flag</span>
-                {alreadyReported ? " Reported" : " Report"}
+                {alreadyReported
+                  ? t("jobDetails.reported", { defaultValue: " Reported" })
+                  : t("jobDetails.report", { defaultValue: " Report" })}
               </button>
             ) : (
               <button
                 className="report-btn"
                 onClick={() => {
                   sessionStorage.setItem("redirectAfterLogin", `/jobs/${id}`);
-                  toast.error("Please login to report jobs");
+                  toast.error(
+                    t("auto.please_login_to_report_jobs", {
+                      defaultValue: "Please login to report jobs",
+                    }),
+                  );
                   navigate("/login");
                 }}
                 type="button"
               >
                 <span className="material-symbols-outlined">flag</span>
-                Report
+                {t("auto.report", { defaultValue: "Report" })}
               </button>
             )}
           </div>
@@ -467,7 +597,9 @@ const JobDetailsPage = () => {
           {isOwnEmployerJob ? (
             <div className="employer-note">
               <span className="material-symbols-outlined">info</span>
-              You are viewing your own job posting
+              {t("auto.you_are_viewing_your_own_job_posting", {
+                defaultValue: "You are viewing your own job posting",
+              })}
             </div>
           ) : (
             <>
@@ -479,7 +611,11 @@ const JobDetailsPage = () => {
                   disabled={hasApplied || applying}
                   type="button"
                 >
-                  {applying ? "Applying..." : "⚡ Apply with Resume"}
+                  {applying
+                    ? t("auto.applying", { defaultValue: "Applying..." })
+                    : t("jobDetails.applyWithResume", {
+                        defaultValue: "⚡ Apply with Resume",
+                      })}
                 </button>
               )}
 
@@ -491,19 +627,22 @@ const JobDetailsPage = () => {
               >
                 {applying ? (
                   <>
-                    <span className="spinner"></span> Applying...
+                    <span className="spinner"></span>
+                    {t("auto.applying", { defaultValue: "Applying..." })}
                   </>
                 ) : hasApplied ? (
                   <>
                     <span className="material-symbols-outlined">
                       check_circle
                     </span>
-                    Already Applied
+                    {t("auto.already_applied", {
+                      defaultValue: "Already Applied",
+                    })}
                   </>
                 ) : (
                   <>
                     <span className="material-symbols-outlined">send</span>
-                    Apply Now
+                    {t("auto.apply_now", { defaultValue: "Apply Now" })}
                   </>
                 )}
               </button>
@@ -515,15 +654,18 @@ const JobDetailsPage = () => {
           <div className="metadata-item">
             <span className="material-symbols-outlined">location_on</span>
             <div>
-              <label>Location</label>
-              <p>{job.location || "Remote"}</p>
+              <label>{t("auto.location", { defaultValue: "Location" })}</label>
+              <p>
+                {job.location ||
+                  t("jobTypes.remote", { defaultValue: "Remote" })}
+              </p>
             </div>
           </div>
 
           <div className="metadata-item">
             <span className="material-symbols-outlined">work</span>
             <div>
-              <label>Job Type</label>
+              <label>{t("auto.job_type", { defaultValue: "Job Type" })}</label>
               <p className={`job-type-badge ${getJobTypeClass(job.job_type)}`}>
                 {getJobTypeLabel(job.job_type)}
               </p>
@@ -533,7 +675,9 @@ const JobDetailsPage = () => {
           <div className="metadata-item">
             <span className="material-symbols-outlined">attach_money</span>
             <div>
-              <label>Salary Range</label>
+              <label>
+                {t("auto.salary_range", { defaultValue: "Salary Range" })}
+              </label>
               <div className="salary-display">
                 {formatSalary(job.salary_min, job.salary_max)}
                 <SalaryComparisonBadge
@@ -550,19 +694,34 @@ const JobDetailsPage = () => {
         <div className="job-content-grid">
           <section className="job-main-content">
             <div className="content-card">
-              <h2>Job Description</h2>
+              <h2>
+                {t("auto.job_description_3a4954", {
+                  defaultValue: "Job Description",
+                })}
+              </h2>
               <p className="description-text">
-                {job.description || "No description provided."}
+                {job.description ||
+                  t("jobDetails.noDescription", {
+                    defaultValue: "No description provided.",
+                  })}
               </p>
             </div>
 
             <div className="content-card">
-              <h2>Requirements</h2>
+              <h2>
+                {t("auto.requirements_5a2ebf", {
+                  defaultValue: "Requirements",
+                })}
+              </h2>
               <div className="requirements-text">
                 {job.requirements ? (
                   <pre className="plain-text-block">{job.requirements}</pre>
                 ) : (
-                  <p>No requirements listed.</p>
+                  <p>
+                    {t("auto.no_requirements_listed", {
+                      defaultValue: "No requirements listed.",
+                    })}
+                  </p>
                 )}
               </div>
             </div>
@@ -570,17 +729,30 @@ const JobDetailsPage = () => {
 
           <aside className="job-sidebar">
             <div className="sidebar-card">
-              <h3>Company Overview</h3>
+              <h3>
+                {t("auto.company_overview", {
+                  defaultValue: "Company Overview",
+                })}
+              </h3>
               <p>
-                <strong>Name:</strong> {job.company_name || "Company"}
+                <strong>
+                  {t("auto.name_4e140b", { defaultValue: "Name:" })}
+                </strong>{" "}
+                {job.company_name ||
+                  t("common.company", { defaultValue: "Company" })}
               </p>
               <p>
-                <strong>Location:</strong>{" "}
-                {job.company_location || "Not specified"}
+                <strong>
+                  {t("auto.location_be9469", { defaultValue: "Location:" })}
+                </strong>{" "}
+                {job.company_location ||
+                  t("common.notSpecified", { defaultValue: "Not specified" })}
               </p>
               {job.company_website ? (
                 <p>
-                  <strong>Website:</strong>{" "}
+                  <strong>
+                    {t("auto.website_e5cb84", { defaultValue: "Website:" })}
+                  </strong>{" "}
                   <a
                     href={job.company_website}
                     target="_blank"
@@ -600,7 +772,9 @@ const JobDetailsPage = () => {
         {similarJobs.length > 0 && (
           <section className="similar-jobs-section">
             <div className="section-header">
-              <h2>Similar Jobs</h2>
+              <h2>
+                {t("auto.similar_jobs", { defaultValue: "Similar Jobs" })}
+              </h2>
             </div>
 
             <div className="similar-jobs-grid">
@@ -627,10 +801,14 @@ const JobDetailsPage = () => {
             tabIndex="-1"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="report-job-modal-title">Report Job</h2>
+            <h2 id="report-job-modal-title">
+              {t("auto.report_job", { defaultValue: "Report Job" })}
+            </h2>
             <form onSubmit={handleReportSubmit}>
               <div className="form-group">
-                <label htmlFor="report-reason">Reason *</label>
+                <label htmlFor="report-reason">
+                  {t("auto.reason_d09f95", { defaultValue: "Reason *" })}
+                </label>
                 <select
                   id="report-reason"
                   value={reportReason}
@@ -638,23 +816,37 @@ const JobDetailsPage = () => {
                   required
                   data-autofocus
                 >
-                  <option value="spam">Spam</option>
-                  <option value="fraud">Fraud</option>
-                  <option value="inappropriate">Inappropriate</option>
-                  <option value="duplicate">Duplicate</option>
-                  <option value="other">Other</option>
+                  <option value="spam">
+                    {t("auto.spam", { defaultValue: "Spam" })}
+                  </option>
+                  <option value="fraud">
+                    {t("auto.fraud", { defaultValue: "Fraud" })}
+                  </option>
+                  <option value="inappropriate">
+                    {t("auto.inappropriate", { defaultValue: "Inappropriate" })}
+                  </option>
+                  <option value="duplicate">
+                    {t("auto.duplicate", { defaultValue: "Duplicate" })}
+                  </option>
+                  <option value="other">
+                    {t("auto.other", { defaultValue: "Other" })}
+                  </option>
                 </select>
               </div>
               <div className="form-group">
                 <label htmlFor="report-description">
-                  Additional details (optional)
+                  {t("auto.additional_details_optional", {
+                    defaultValue: "Additional details (optional)",
+                  })}
                 </label>
                 <textarea
                   id="report-description"
                   rows={4}
                   value={reportDescription}
                   onChange={(e) => setReportDescription(e.target.value)}
-                  placeholder="Provide more context..."
+                  placeholder={t("auto.provide_more_context", {
+                    defaultValue: "Provide more context...",
+                  })}
                   maxLength={500}
                 />
               </div>
@@ -664,14 +856,20 @@ const JobDetailsPage = () => {
                   className="btn-primary"
                   disabled={reporting}
                 >
-                  {reporting ? "Submitting..." : "Submit Report"}
+                  {reporting
+                    ? t("jobDetails.submitting", {
+                        defaultValue: "Submitting...",
+                      })
+                    : t("jobDetails.submitReport", {
+                        defaultValue: "Submit Report",
+                      })}
                 </button>
                 <button
                   type="button"
                   className="btn-secondary"
                   onClick={() => setShowReportModal(false)}
                 >
-                  Cancel
+                  {t("auto.cancel", { defaultValue: "Cancel" })}
                 </button>
               </div>
             </form>
@@ -691,17 +889,30 @@ const JobDetailsPage = () => {
             tabIndex="-1"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="apply-job-modal-title">Apply for {job?.title}</h2>
+            <h2 id="apply-job-modal-title">
+              {t("jobDetails.applyForJob", {
+                title: job?.title,
+                defaultValue: "Apply for {{title}}",
+              })}
+            </h2>
 
             {coverLetters.length === 0 ? (
               <p>
-                You have no cover letters. Create one in your dashboard first.
+                {t(
+                  "auto.you_have_no_cover_letters_create_one_in_your_dashboard",
+                  {
+                    defaultValue:
+                      "You have no cover letters. Create one in your dashboard first.",
+                  },
+                )}
               </p>
             ) : (
               <>
                 <div className="form-group">
                   <label htmlFor="cover-letter-template">
-                    Cover Letter Template
+                    {t("auto.cover_letter_template", {
+                      defaultValue: "Cover Letter Template",
+                    })}
                   </label>
                   <select
                     id="cover-letter-template"
@@ -711,7 +922,12 @@ const JobDetailsPage = () => {
                   >
                     {coverLetters.map((cl) => (
                       <option key={cl.id} value={cl.id}>
-                        {cl.name} {cl.is_default ? "⭐ (Default)" : ""}
+                        {cl.name}{" "}
+                        {cl.is_default
+                          ? t("jobDetails.defaultCoverLetter", {
+                              defaultValue: "⭐ (Default)",
+                            })
+                          : ""}
                       </option>
                     ))}
                   </select>
@@ -719,13 +935,17 @@ const JobDetailsPage = () => {
 
                 <div className="cover-letter-preview">
                   <div className="preview-header">
-                    <h3>Preview</h3>
+                    <h3>{t("auto.preview", { defaultValue: "Preview" })}</h3>
                     <button
                       type="button"
                       className="btn-edit-toggle"
                       onClick={toggleEdit}
                     >
-                      {isEditingCover ? "Cancel Edit" : "Edit"}
+                      {isEditingCover
+                        ? t("jobDetails.cancelEdit", {
+                            defaultValue: "Cancel Edit",
+                          })
+                        : t("auto.edit", { defaultValue: "Edit" })}
                     </button>
                   </div>
 
@@ -759,14 +979,20 @@ const JobDetailsPage = () => {
                 onClick={handleApplySubmit}
                 disabled={applying || coverLetters.length === 0}
               >
-                {applying ? "Submitting..." : "Submit Application"}
+                {applying
+                  ? t("jobDetails.submitting", {
+                      defaultValue: "Submitting...",
+                    })
+                  : t("jobDetails.submitApplication", {
+                      defaultValue: "Submit Application",
+                    })}
               </button>
               <button
                 type="button"
                 className="btn-secondary"
                 onClick={() => setShowApplyModal(false)}
               >
-                Cancel
+                {t("auto.cancel", { defaultValue: "Cancel" })}
               </button>
             </div>
           </div>
@@ -788,27 +1014,40 @@ const JobDetailsPage = () => {
             tabIndex="-1"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="quick-apply-modal-title">Quick Apply with Resume</h2>
+            <h2 id="quick-apply-modal-title">
+              {t("auto.quick_apply_with_resume", {
+                defaultValue: "Quick Apply with Resume",
+              })}
+            </h2>
             <p>
-              You are about to apply for <strong>{job?.title}</strong> at{" "}
-              <strong>{job?.company_name}</strong> using your stored resume data
-              and default cover letter.
+              {t("jobDetails.quickApplyDescription", {
+                title: job?.title,
+                company: job?.company_name,
+                defaultValue:
+                  "You are about to apply for {{title}} at {{company}} using your stored resume data and default cover letter.",
+              })}
             </p>
             <div className="modal-actions">
               <button
-              type="button"
+                type="button"
                 className="btn-primary"
                 onClick={handleOneClickApply}
                 disabled={applying}
               >
-                {applying ? "Submitting..." : "Confirm & Apply"}
+                {applying
+                  ? t("jobDetails.submitting", {
+                      defaultValue: "Submitting...",
+                    })
+                  : t("jobDetails.confirmApply", {
+                      defaultValue: "Confirm & Apply",
+                    })}
               </button>
               <button
-              type="button"
+                type="button"
                 className="btn-secondary"
                 onClick={() => setShowOneClickConfirmModal(false)}
               >
-                Cancel
+                {t("auto.cancel", { defaultValue: "Cancel" })}
               </button>
             </div>
           </div>

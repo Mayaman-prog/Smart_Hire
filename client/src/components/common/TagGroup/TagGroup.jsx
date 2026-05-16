@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Tag from "../Tag/Tag";
 import "./TagGroup.css";
 
 const TagGroup = ({ tags, maxDisplay = 3, showExpand = true }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   if (!tags || tags.length === 0) {
@@ -35,9 +37,9 @@ const TagGroup = ({ tags, maxDisplay = 3, showExpand = true }) => {
           className="tag-more-btn"
           onClick={toggleExpand}
           type="button"
-          aria-label={`Show ${remainingCount} more tags`}
+          aria-label={t("tags.showMoreAria", { count: remainingCount })}
         >
-          +{remainingCount} more
+          +{remainingCount} {t("tags.more")}
         </button>
       )}
 
@@ -46,9 +48,9 @@ const TagGroup = ({ tags, maxDisplay = 3, showExpand = true }) => {
           className="tag-less-btn"
           onClick={toggleExpand}
           type="button"
-          aria-label="Show fewer tags"
+          aria-label={t("tags.showFewerAria")}
         >
-          Show less
+          {t("tags.showLess")}
         </button>
       )}
     </div>

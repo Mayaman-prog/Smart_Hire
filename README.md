@@ -159,6 +159,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Modal focus returns to the triggering element after close
 - Mobile filter drawer, Save Search modal, Report Job modal, Apply modal, and Quick Apply modal updated for keyboard accessibility
 - **Job Matching Algorithm** – Backend recommendation system that calculates personalised job match scores using user skills, previous applications, saved jobs, location preference, job type, salary alignment, and TF-IDF keyword overlap.
+- **Recommended for You Section** – Frontend recommendation UI integrated into both the HomePage and Job Seeker Dashboard. The section fetches the top recommended jobs from `GET /api/jobs/recommended`, sorts them by highest match score, and displays them using the reusable `JobCard` component. Includes loading state, empty state, error handling, accessibility support, localisation support (English, Spanish, French), responsive layouts, and dark mode compatibility.
 - **Audit Logging** – Security-sensitive backend actions are recorded in the `audit_logs` table for accountability, monitoring, and forensic investigation.
 - Multi-language localisation support (English, Spanish, French)
 - Dynamic frontend translation using i18next
@@ -1138,6 +1139,7 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - Call-to-action buttons (Search Jobs, Post a Job) with authentication check
 - Search bar with keyword and location inputs using Google Material Icons
 - Featured jobs section fetching from backend/API data
+- “Recommended for You” section displayed below featured jobs for authenticated job seekers
 - Loading skeleton animation while fetching data
 - Empty state when no featured jobs available
 - Error state with retry button
@@ -1242,6 +1244,55 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - Save to wishlist functionality (heart icon)
 - Click navigation to job details page (`/jobs/${id}`)
 - Hover effects: scale transform (1.02), shadow increase, border color change
+
+### RecommendedJobsSection
+
+**Features:**
+
+- Displays personalised recommended jobs for authenticated job seekers
+- Integrated into both the HomePage and JobSeekerDashboard
+- Fetches recommendations from:
+  `GET /api/jobs/recommended`
+- Uses the reusable `JobCard` component for consistent UI design
+- Jobs are automatically sorted by highest match score
+- Match score badge displayed on each recommendation card
+- Responsive CSS grid layout using advanced media queries
+- Empty state shown when recommendations are unavailable:
+`Could not load recommended jobs right now.`
+- Loading state with accessible role="status"
+- Error handling with accessible role="alert"
+- Fully compatible with:
+  - Global dark mode system
+  - Existing localisation system
+  - Keyboard accessibility improvements
+  - Responsive dashboard layouts
+- Translation support added for:
+  - English
+  - Spanish
+  - French
+- Uses semantic CSS variables for theme consistency
+- Supports touch devices, reduced motion preferences, high contrast mode, landscape layouts, and print styles
+
+**Accessibility Features:**
+
+- Section uses semantic heading hierarchy
+- Accessible loading and error states
+- ARIA labels for recommendation list
+- Screen-reader friendly match score labels
+- Keyboard accessible job cards
+- Fully compatible with existing Skip to Content navigation
+
+**Responsive Behaviour:**
+
+- 4-column layout on ultra-wide screens
+- 3-column desktop layout
+- 2-column tablet landscape layout
+- 1-column mobile layout
+- Mobile landscape optimization
+- Touch-device optimization
+- Reduced motion accessibility support
+- High contrast mode support
+- Print-friendly layout support
 
 ### CompanyCard
 
@@ -1362,6 +1413,7 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
   - Drag‑and‑drop resume upload with real‑time progress bar, client‑side validation (PDF, DOC, DOCX, max 5 MB), delete functionality, and dynamic profile strength update
   - **Auto‑fill profile fields from parsed resume data** – after upload, the system extracts full name, email, phone, skills, work experience, and education. A **preview panel** shows extracted data next to editable form fields. The user can edit any field before saving. **Save Profile** persists final values; **Discard** reverts to original profile data.
 - Fully integrated with backend APIs for applications, saved jobs, profile updates, recommended jobs, and notifications
+- Personalised “Recommended for You” section using AI-generated job match scores
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
 

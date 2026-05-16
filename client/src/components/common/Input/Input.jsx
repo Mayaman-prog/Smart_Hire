@@ -1,4 +1,5 @@
 import React, { useState, forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 import "./Input.css";
 
 // Input component - supports text, email, password, textarea, select
@@ -21,12 +22,14 @@ const Input = forwardRef(
       options = [],
       showPasswordToggle = true,
       className = "",
-      icon, // Left icon (material icon name)
-      rightIcon, // Custom right icon component (for password toggle)
-      ...props // Forward any additional props (like react-hook-form register)
+      icon,
+      rightIcon,
+      ...props
     },
     ref,
   ) => {
+    const { t } = useTranslation();
+
     // Toggle password visibility
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === "password";
@@ -36,7 +39,8 @@ const Input = forwardRef(
     // Generate unique ID if not provided
     const inputId =
       id || name || `input-${Math.random().toString(36).substr(2, 9)}`;
-    const accessibleLabel = label || placeholder || name || "Input field";
+    const accessibleLabel =
+      label || placeholder || name || t("common.inputField");
 
     // Show text when eye icon is clicked
     const inputType = isPassword && showPassword ? "text" : type;
@@ -112,7 +116,7 @@ const Input = forwardRef(
             aria-describedby={error ? `${inputId}-error` : undefined}
             {...props}
           >
-            <option value="">Select an option</option>
+            <option value="">{t("common.selectOption")}</option>
             {options.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -172,7 +176,7 @@ const Input = forwardRef(
             {...props}
           />
 
-          {/* Custom right icon (if provided) */}
+          {/* Custom right icon */}
           {rightIcon && <div className="input-icon right">{rightIcon}</div>}
 
           {/* Built-in password toggle */}

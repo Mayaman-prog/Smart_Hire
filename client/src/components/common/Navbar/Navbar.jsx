@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import { useAuth } from "../../../contexts/AuthContext";
 import { ThemeContext } from "../../../contexts/ThemeContext";
 import toast from "react-hot-toast";
@@ -11,6 +13,7 @@ const Navbar = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const isSystemDark = window.matchMedia(
@@ -22,6 +25,11 @@ const Navbar = () => {
 
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
+  const { t } = useTranslation();
+
+  const translate = (key, defaultValue) => {
+    return t(key, { defaultValue });
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -53,7 +61,9 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    toast.success("Logged out successfully");
+    toast.success(
+      t("toast.loggedOut", { defaultValue: "Logged out successfully" }),
+    );
     navigate("/");
     setIsUserDropdownOpen(false);
     setIsMobileMenuOpen(false);
@@ -62,59 +72,72 @@ const Navbar = () => {
   // NAVIGATION LINKS (Main Navbar)
   const getNavLinks = () => {
     const commonLinks = [
-      { path: "/", label: "Home", icon: "home" },
-      { path: "/jobs", label: "Find Jobs", icon: "search" },
+      {
+        path: "/",
+        label: translate("nav.home", "Home"),
+        icon: "home",
+      },
+      {
+        path: "/jobs",
+        label: translate("nav.findJobs", "Find Jobs"),
+        icon: "search",
+      },
     ];
+
     if (!isAuthenticated) return commonLinks;
 
     const roleSpecificLinks = [];
+
     switch (user?.role) {
       case "job_seeker":
         roleSpecificLinks.push({
           path: "/dashboard/seeker",
-          label: "Dashboard",
+          label: translate("nav.dashboard", "Dashboard"),
           icon: "dashboard",
         });
-        // TEMPORARILY REMOVED TO PREVENT 404 – add later when `/profile` route exists
-        // roleSpecificLinks.push({
-        //   path: "/profile",
-        //   label: "Upload Resume",
-        //   icon: "upload_file",
-        // });
         break;
+      // TEMPORARILY REMOVED TO PREVENT 404 – add later when `/profile` route exists
+      // roleSpecificLinks.push({
+      //   path: "/profile",
+      //   label: "Upload Resume",
+      //   icon: "upload_file",
+      // });
+
       case "employer":
         roleSpecificLinks.push({
           path: "/dashboard/employer",
-          label: "Dashboard",
+          label: translate("nav.dashboard", "Dashboard"),
           icon: "dashboard",
         });
         roleSpecificLinks.push({
           path: "/dashboard/employer/post-job",
-          label: "Post a Job",
+          label: translate("nav.postJob", "Post a Job"),
           icon: "work",
         });
         roleSpecificLinks.push({
           path: "/dashboard/employer/my-jobs",
-          label: "My Jobs",
+          label: translate("nav.myJobs", "My Jobs"),
           icon: "list",
         });
         roleSpecificLinks.push({
           path: "/dashboard/employer/candidates",
-          label: "Candidates",
+          label: translate("nav.candidates", "Candidates"),
           icon: "group",
         });
         break;
+
       case "admin":
         roleSpecificLinks.push({
           path: "/dashboard/admin",
-          label: "Admin Panel",
+          label: translate("nav.adminPanel", "Admin Panel"),
           icon: "admin_panel_settings",
         });
         break;
+
       default:
         roleSpecificLinks.push({
           path: "/dashboard",
-          label: "Dashboard",
+          label: translate("nav.dashboard", "Dashboard"),
           icon: "dashboard",
         });
     }
@@ -144,7 +167,7 @@ const Navbar = () => {
     if (user?.role === "employer") {
       items.push({
         path: "/dashboard/employer/post-job",
-        label: "Post a Job",
+        label: translate("nav.postJob", "Post a Job"),
         icon: "post_add",
       });
     }
@@ -152,20 +175,20 @@ const Navbar = () => {
     // Dashboard
     items.push({
       path: getDashboardPath(),
-      label: "Dashboard",
+      label: translate("nav.dashboard", "Dashboard"),
       icon: "dashboard",
     });
 
     items.push({
       path: getProfilePath(),
-      label: "Profile",
+      label: translate("nav.profile", "Profile"),
       icon: "person",
     });
 
     if (user?.role === "admin") {
       items.push({
         path: "/dashboard/admin",
-        label: "Admin Panel",
+        label: translate("nav.adminPanel", "Admin Panel"),
         icon: "admin_panel_settings",
       });
     }
@@ -190,11 +213,11 @@ const Navbar = () => {
   const getRoleLabel = () => {
     switch (user?.role) {
       case "employer":
-        return "Employer";
+        return translate("roles.employer", "Employer");
       case "admin":
-        return "Admin";
+        return translate("roles.admin", "Admin");
       default:
-        return "Job Seeker";
+        return translate("roles.jobSeeker", "Job Seeker");
     }
   };
 
@@ -212,14 +235,20 @@ const Navbar = () => {
   // RENDER
   return (
     <>
-      <nav className="navbar">
+      <nav
+        className="navbar"
+        aria-label={translate("nav.primaryNavigation", "Primary navigation")}
+      >
         <div className="navbar-container">
           <Link
             to="/"
             className="logo"
             onClick={() => setIsMobileMenuOpen(false)}
+            aria-label={translate("nav.smartHireHome", "SmartHire home")}
           >
-            <span className="material-symbols-outlined">work</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              work
+            </span>
             <span className="logo-text">
               Smart<span className="logo-highlight">Hire</span>
             </span>
@@ -239,13 +268,16 @@ const Navbar = () => {
                   isActive ? "nav-link active" : "nav-link"
                 }
               >
-                <span className="material-symbols-outlined">{link.icon}</span>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  {link.icon}
+                </span>
                 {link.label}
               </NavLink>
             ))}
           </div>
 
           <div className="nav-right">
+            <LanguageSwitcher />
             {isAuthenticated ? (
               <div className="user-menu">
                 {/* Notification Bell */}
@@ -253,9 +285,15 @@ const Navbar = () => {
                   <button
                     className="icon-btn"
                     type="button"
-                    aria-label="View notifications"
+                    aria-label={translate(
+                      "nav.viewNotifications",
+                      "View notifications",
+                    )}
                   >
-                    <span className="material-symbols-outlined">
+                    <span
+                      className="material-symbols-outlined"
+                      aria-hidden="true"
+                    >
                       notifications
                     </span>
                   </button>
@@ -263,36 +301,56 @@ const Navbar = () => {
 
                 {/* User Trigger Button */}
                 <button
+                  ref={buttonRef}
                   className="user-trigger-btn"
+                  type="button"
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                   aria-expanded={isUserDropdownOpen}
                   aria-haspopup="menu"
+                  aria-controls="user-dropdown-menu"
                   aria-label={
-                    isUserDropdownOpen ? "Close user menu" : "Open user menu"
+                    isUserDropdownOpen
+                      ? translate("nav.closeUserMenu", "Close user menu")
+                      : translate("nav.openUserMenu", "Open user menu")
                   }
                 >
                   <span className="user-trigger-icon">
-                    <span className="material-symbols-outlined">
+                    <span
+                      className="material-symbols-outlined"
+                      aria-hidden="true"
+                    >
                       {getTriggerIcon()}
                     </span>
                   </span>
-                  <span className="material-symbols-outlined arrow-icon">
+                  <span
+                    className="material-symbols-outlined arrow-icon"
+                    aria-hidden="true"
+                  >
                     arrow_drop_down
                   </span>
                 </button>
 
                 {/* Dropdown Menu */}
                 {isUserDropdownOpen && (
-                  <div ref={dropdownRef} className="dropdown-menu">
+                  <div
+                    id="user-dropdown-menu"
+                    ref={dropdownRef}
+                    className="dropdown-menu"
+                    role="menu"
+                    aria-label={translate("nav.userMenu", "User menu")}
+                  >
                     <div className="dropdown-user-info">
                       <div className="user-avatar-circle">
-                        <span className="material-symbols-outlined">
+                        <span
+                          className="material-symbols-outlined"
+                          aria-hidden="true"
+                        >
                           {getTriggerIcon()}
                         </span>
                       </div>
                       <div className="user-text-info">
                         <p className="dropdown-user-name">
-                          {user?.name || "User"}
+                          {user?.name || translate("nav.defaultUser", "User")}
                         </p>
                         <p className="dropdown-user-email">{user?.email}</p>
                         <span className={getRoleBadgeClass()}>
@@ -300,38 +358,59 @@ const Navbar = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-divider" aria-hidden="true"></div>
                     {dropdownItems.map((item) => (
                       <NavLink
                         key={item.path}
                         to={item.path}
                         className="dropdown-item"
+                        role="menuitem"
                         onClick={() => setIsUserDropdownOpen(false)}
+                        aria-label={item.label}
                       >
-                        <span className="material-symbols-outlined">
+                        <span
+                          className="material-symbols-outlined"
+                          aria-hidden="true"
+                        >
                           {item.icon}
                         </span>
                         {item.label}
                       </NavLink>
                     ))}
-                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-divider" aria-hidden="true"></div>
                     <button
+                      type="button"
                       onClick={handleLogout}
                       className="dropdown-item logout"
+                      role="menuitem"
+                      aria-label={translate("nav.signOut", "Sign out")}
                     >
-                      <span className="material-symbols-outlined">logout</span>
-                      Sign out
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
+                        logout
+                      </span>
+                      {translate("nav.signOut", "Sign out")}
                     </button>
                   </div>
                 )}
               </div>
             ) : (
               <div className="auth-buttons">
-                <Link to="/login" className="btn-link">
-                  Login
+                <Link
+                  to="/login"
+                  className="btn-link"
+                  aria-label={translate("nav.login", "Login")}
+                >
+                  {translate("nav.login", "Login")}
                 </Link>
-                <Link to="/register" className="btn-primary">
-                  Register
+                <Link
+                  to="/register"
+                  className="btn-primary"
+                  aria-label={translate("nav.register", "Register")}
+                >
+                  {translate("nav.register", "Register")}
                 </Link>
               </div>
             )}
@@ -342,9 +421,12 @@ const Navbar = () => {
                 onClick={toggleTheme}
                 className="theme-toggle-btn"
                 type="button"
-                aria-label={`Switch theme. Current theme is ${activeTheme}`}
+                aria-label={translate(
+                  "nav.switchTheme",
+                  `Switch theme. Current theme is ${activeTheme}`,
+                )}
               >
-                <span className="material-symbols-outlined">
+                <span className="material-symbols-outlined" aria-hidden="true">
                   {activeTheme === "light" ? "light_mode" : "dark_mode"}
                 </span>
               </button>
@@ -354,54 +436,88 @@ const Navbar = () => {
               className="mobile-menu-btn"
               onClick={() => setIsMobileMenuOpen(true)}
               type="button"
-              aria-label="Open navigation menu"
+              aria-label={translate(
+                "nav.openNavigationMenu",
+                "Open navigation menu",
+              )}
               aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation-drawer"
             >
-              <span className="material-symbols-outlined">menu</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                menu
+              </span>
             </button>
           </div>
         </div>
       </nav>
 
       {/* Mobile Drawer */}
-      <div className={`mobile-drawer ${isMobileMenuOpen ? "open" : ""}`}>
-        <div
+      <div
+        id="mobile-navigation-drawer"
+        className={`mobile-drawer ${isMobileMenuOpen ? "open" : ""}`}
+        aria-hidden={!isMobileMenuOpen}
+      >
+        <button
+          type="button"
           className="drawer-backdrop"
           onClick={() => setIsMobileMenuOpen(false)}
-        ></div>
-        <div className="drawer-content">
+          aria-label={translate(
+            "nav.closeNavigationMenu",
+            "Close navigation menu",
+          )}
+        ></button>
+        <aside
+          className="drawer-content"
+          role="dialog"
+          aria-modal="true"
+          aria-label={translate("nav.mobileNavigation", "Mobile navigation")}
+        >
           <div className="drawer-header">
             <Link
               to="/"
               className="drawer-logo"
               onClick={() => setIsMobileMenuOpen(false)}
+              aria-label={translate("nav.smartHireHome", "SmartHire home")}
             >
-              <span className="material-symbols-outlined">work</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                work
+              </span>
               <span className="logo-text">
                 Smart<span className="logo-highlight">Hire</span>
               </span>
             </Link>
+
             <button
               className="close-btn"
               onClick={() => setIsMobileMenuOpen(false)}
               type="button"
-              aria-label="Close navigation menu"
+              aria-label={translate(
+                "nav.closeNavigationMenu",
+                "Close navigation menu",
+              )}
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                close
+              </span>
             </button>
           </div>
 
           {isAuthenticated && (
             <div className="drawer-user-info">
               <div className="drawer-user-details">
-                <p className="drawer-user-name">{user?.name || "User"}</p>
+                <p className="drawer-user-name">
+                  {user?.name || translate("nav.defaultUser", "User")}
+                </p>
                 <p className="drawer-user-email">{user?.email}</p>
                 <span className={getRoleBadgeClass()}>{getRoleLabel()}</span>
               </div>
             </div>
           )}
 
-          <div className="drawer-links">
+          <div
+            className="drawer-links"
+            aria-label={translate("nav.mobileNavigation", "Mobile navigation")}
+          >
             {navLinks.map((link) => (
               <NavLink
                 key={link.path}
@@ -410,8 +526,11 @@ const Navbar = () => {
                   isActive ? "drawer-link active" : "drawer-link"
                 }
                 onClick={() => setIsMobileMenuOpen(false)}
+                aria-label={link.label}
               >
-                <span className="material-symbols-outlined">{link.icon}</span>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  {link.icon}
+                </span>
                 {link.label}
               </NavLink>
             ))}
@@ -423,28 +542,38 @@ const Navbar = () => {
                 to="/login"
                 className="drawer-btn-link"
                 onClick={() => setIsMobileMenuOpen(false)}
+                aria-label={translate("nav.login", "Login")}
               >
-                Login
+                {translate("nav.login", "Login")}
               </Link>
+
               <Link
                 to="/register"
                 className="drawer-btn-primary"
                 onClick={() => setIsMobileMenuOpen(false)}
+                aria-label={translate("nav.register", "Register")}
               >
-                Register
+                {translate("nav.register", "Register")}
               </Link>
             </div>
           )}
 
           {isAuthenticated && (
             <div className="drawer-footer">
-              <button onClick={handleLogout} className="drawer-logout-btn">
-                <span className="material-symbols-outlined">logout</span>
-                Logout
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="drawer-logout-btn"
+                aria-label={translate("nav.logout", "Logout")}
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  logout
+                </span>
+                {translate("nav.logout", "Logout")}
               </button>
             </div>
           )}
-        </div>
+        </aside>
       </div>
     </>
   );

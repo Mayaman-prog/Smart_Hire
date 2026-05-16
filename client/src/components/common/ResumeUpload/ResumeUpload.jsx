@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { userAPI } from "../../../services/api";
 import { showSuccess, showError } from "../Toast/Toast";
 import "./ResumeUpload.css";
@@ -20,6 +21,7 @@ const ResumeUpload = ({
   onUploadSuccess,
   onDeleteSuccess,
 }) => {
+  const { t } = useTranslation();
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -28,11 +30,19 @@ const ResumeUpload = ({
 
   const validateFile = (file) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      showError("Only .pdf, .doc, .docx files are allowed.");
+      showError(
+        t("resume.invalidFileType", {
+          defaultValue: "Only .pdf, .doc, .docx files are allowed.",
+        }),
+      );
       return false;
     }
     if (file.size > MAX_SIZE) {
-      showError("File size must be under 5 MB.", "error");
+      showError(
+        t("resume.fileTooLarge", {
+          defaultValue: "File size must be under 5 MB.",
+        }),
+      );
       return false;
     }
     return true;
@@ -70,7 +80,11 @@ const ResumeUpload = ({
 
   const handleUpload = async () => {
     if (!file) {
-      showError("Please select a file first.", "error");
+      showError(
+        t("resume.selectFileFirst", {
+          defaultValue: "Please select a file first.",
+        }),
+      );
       return;
     }
 
@@ -88,7 +102,11 @@ const ResumeUpload = ({
           const mockResponse = {
             data: { resumeUrl: "/uploads/resumes/sample-resume.pdf" },
           };
-          showSuccess("Resume uploaded successfully!");
+          showSuccess(
+            t("resume.uploadSuccess", {
+              defaultValue: "Resume uploaded successfully.",
+            }),
+          );
           setFile(null);
           if (onUploadSuccess) onUploadSuccess(mockResponse.data.resumeUrl);
           setUploading(false);
@@ -114,12 +132,18 @@ const ResumeUpload = ({
         },
       });
 
-      showSuccess("Resume uploaded successfully!");
+      showSuccess(
+        t("resume.uploadSuccess", {
+          defaultValue: "Resume uploaded successfully.",
+        }),
+      );
       setFile(null);
       if (onUploadSuccess) onUploadSuccess(response.data.resumeUrl);
     } catch (error) {
-      const msg = error.response?.data?.message || "Upload failed.";
-      showToast(msg, "error");
+      const msg =
+        error.response?.data?.message ||
+        t("resume.uploadFailed", { defaultValue: "Resume upload failed." });
+      showError(msg);
       setProgress(0);
     } finally {
       setUploading(false);
@@ -127,15 +151,28 @@ const ResumeUpload = ({
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete your resume?")) return;
+    if (
+      !window.confirm(
+        t("resume.confirmDelete", {
+          defaultValue: "Are you sure you want to delete your resume?",
+        }),
+      )
+    )
+      return;
 
     try {
       await userAPI.delete("/users/resume");
-      showSuccess("Resume deleted successfully.");
+      showSuccess(
+        t("resume.deleteSuccess", {
+          defaultValue: "Resume deleted successfully.",
+        }),
+      );
       if (onDeleteSuccess) onDeleteSuccess();
     } catch (error) {
-      const msg = error.response?.data?.message || "Delete failed.";
-      showError(msg, "error");
+      const msg =
+        error.response?.data?.message ||
+        t("resume.deleteFailed", { defaultValue: "Resume delete failed." });
+      showError(msg);
     }
   };
 
@@ -146,13 +183,13 @@ const ResumeUpload = ({
 
   return (
     <div className="resume-upload-container">
-      <h3>Your Resume</h3>
+      <h3>{t("auto.your_resume", { defaultValue: "Your Resume" })}</h3>
 
       {/* Current resume display */}
       {currentResumeUrl ? (
         <div className="current-resume">
           <p>
-            Current file:{" "}
+            {t("resume.currentFile", { defaultValue: "Current file:" })}{" "}
             <a
               href={currentResumeUrl}
               target="_blank"
@@ -161,12 +198,23 @@ const ResumeUpload = ({
               {decodeURIComponent(currentResumeUrl.split("/").pop())}
             </a>
           </p>
-          <button className="btn-delete" onClick={handleDelete} type="button" aria-label="Delete uploaded resume">
-            Delete Resume
+          <button
+            className="btn-delete"
+            onClick={handleDelete}
+            type="button"
+            aria-label={t("auto.delete_uploaded_resume", {
+              defaultValue: "Delete uploaded resume",
+            })}
+          >
+            {t("auto.delete_resume", { defaultValue: "Delete Resume" })}
           </button>
         </div>
       ) : (
-        <p className="no-resume">No resume uploaded yet.</p>
+        <p className="no-resume">
+          {t("auto.no_resume_uploaded_yet", {
+            defaultValue: "No resume uploaded yet.",
+          })}
+        </p>
       )}
 
       {/* Dropzone */}
@@ -189,7 +237,10 @@ const ResumeUpload = ({
         <p className="dropzone-text">
           {file
             ? file.name
-            : "Drag & drop your resume here, or click to browse"}
+            : t("resume.dropzoneText", {
+                defaultValue:
+                  "Drag & drop your resume here, or click to browse",
+              })}
         </p>
         <input
           type="file"
@@ -197,7 +248,9 @@ const ResumeUpload = ({
           onChange={handleFileSelect}
           accept=".pdf,.doc,.docx"
           style={{ display: "none" }}
-          aria-label="Upload resume file"
+          aria-label={t("auto.upload_resume_file", {
+            defaultValue: "Upload resume file",
+          })}
         />
       </div>
 
@@ -209,16 +262,23 @@ const ResumeUpload = ({
             onClick={handleUpload}
             disabled={uploading}
           >
-            {uploading ? `Uploading ${progress}%` : "Upload Resume"}
+            {uploading
+              ? t("resume.uploadingProgress", {
+                  defaultValue: "Uploading {{progress}}%",
+                  progress,
+                })
+              : t("resume.uploadTitle", { defaultValue: "Upload Resume" })}
           </button>
           <button
             className="btn-reset"
             onClick={resetFile}
             disabled={uploading}
             type="button"
-            aria-label="Cancel resume upload"
+            aria-label={t("auto.cancel_resume_upload", {
+              defaultValue: "Cancel resume upload",
+            })}
           >
-            Cancel
+            {t("auto.cancel", { defaultValue: "Cancel" })}
           </button>
         </div>
       )}
@@ -233,6 +293,6 @@ const ResumeUpload = ({
       )}
     </div>
   );
-}
+};
 
 export default ResumeUpload;

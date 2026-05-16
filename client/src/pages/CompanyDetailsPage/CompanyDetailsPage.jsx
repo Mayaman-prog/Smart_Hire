@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import JobCard from "../../components/jobs/JobCard/JobCard";
 import companiesData from "../../data/companies.json";
@@ -6,6 +7,7 @@ import jobsData from "../../data/jobs.json";
 import "./CompanyDetailsPage.css";
 
 const CompanyDetailsPage = () => {
+  const { t } = useTranslation();
   // Get company ID from URL parameter
   const { id } = useParams();
   const navigate = useNavigate();
@@ -89,16 +91,30 @@ const CompanyDetailsPage = () => {
         <div className="container">
           <div className="error-state">
             <div className="error-icon">🏢</div>
-            <h2>Company Not Found</h2>
+            <h2>
+              {t("auto.company_not_found", {
+                defaultValue: "Company Not Found",
+              })}
+            </h2>
             <p>
-              The company you're looking for doesn't exist or has been removed.
+              {t(
+                "auto.the_company_you_re_looking_for_doesn_t_exist_or_has_bee",
+                {
+                  defaultValue:
+                    "The company you're looking for doesn't exist or has been removed.",
+                },
+              )}
             </p>
             <button
               onClick={() => navigate("/companies")}
               className="back-btn"
-              aria-label="Browse companies"
+              aria-label={t("auto.browse_companies", {
+                defaultValue: "Browse companies",
+              })}
             >
-              Browse Companies
+              {t("auto.browse_companies_1e5fa8", {
+                defaultValue: "Browse Companies",
+              })}
             </button>
           </div>
         </div>
@@ -113,7 +129,11 @@ const CompanyDetailsPage = () => {
         <div className="match-insights">
           <div className="match-icon">⭐</div>
           <div className="match-content">
-            <h2>SmartHire Match Insights</h2>
+            <h2>
+              {t("auto.smarthire_match_insights", {
+                defaultValue: "SmartHire Match Insights",
+              })}
+            </h2>
             <p>
               Based on your profile as a Full Stack Engineer, you have a 94%
               skill alignment with {company.name}'s Engineering culture.
@@ -155,7 +175,9 @@ const CompanyDetailsPage = () => {
             className={`tab-btn ${activeTab === "positions" ? "active" : ""}`}
             onClick={() => setActiveTab("positions")}
             type="button"
-            aria-label="View open positions"
+            aria-label={t("auto.view_open_positions", {
+              defaultValue: "View open positions",
+            })}
           >
             <span className="material-symbols-outlined">work</span>
             Open Positions
@@ -167,10 +189,12 @@ const CompanyDetailsPage = () => {
             className={`tab-btn ${activeTab === "about" ? "active" : ""}`}
             onClick={() => setActiveTab("about")}
             type="button"
-            aria-label="View company information"
+            aria-label={t("auto.view_company_information", {
+              defaultValue: "View company information",
+            })}
           >
             <span className="material-symbols-outlined">info</span>
-            About
+            {t("auto.about", { defaultValue: "About" })}
           </button>
         </div>
 
@@ -188,12 +212,31 @@ const CompanyDetailsPage = () => {
                 <div className="empty-icon">
                   <span className="material-symbols-outlined">work_off</span>
                 </div>
-                <h3>No open positions</h3>
+                <h3>
+                  {t("auto.no_open_positions", {
+                    defaultValue: "No open positions",
+                  })}
+                </h3>
                 <p>
-                  This company doesn't have any open positions at the moment.
+                  {t(
+                    "auto.this_company_doesn_t_have_any_open_positions_at_the_mom",
+                    {
+                      defaultValue:
+                        "This company doesn't have any open positions at the moment.",
+                    },
+                  )}
                 </p>
-                <button onClick={() => navigate("/jobs")} className="empty-btn" type="button" aria-label="Browse other jobs">
-                  Browse Other Jobs
+                <button
+                  onClick={() => navigate("/jobs")}
+                  className="empty-btn"
+                  type="button"
+                  aria-label={t("auto.browse_other_jobs", {
+                    defaultValue: "Browse other jobs",
+                  })}
+                >
+                  {t("auto.browse_other_jobs_729fee", {
+                    defaultValue: "Browse Other Jobs",
+                  })}
                 </button>
               </div>
             )}
@@ -204,7 +247,7 @@ const CompanyDetailsPage = () => {
         {activeTab === "about" && (
           <div className="tab-content">
             <div className="about-section">
-              <h2>About Us</h2>
+              <h2>{t("auto.about_us", { defaultValue: "About Us" })}</h2>
               <p>
                 {company.description ||
                   `${company.name} is a leading technology company focused on innovation and excellence. We are dedicated to providing cutting-edge solutions and creating value for our customers.`}
@@ -212,13 +255,19 @@ const CompanyDetailsPage = () => {
             </div>
 
             <div className="company-contact">
-              <h3>Contact Information</h3>
+              <h3>
+                {t("auto.contact_information", {
+                  defaultValue: "Contact Information",
+                })}
+              </h3>
               <div className="contact-grid">
                 {company.website && (
                   <div className="contact-item">
                     <span className="material-symbols-outlined">language</span>
                     <div>
-                      <label>Website</label>
+                      <label>
+                        {t("auto.website", { defaultValue: "Website" })}
+                      </label>
                       <a
                         href={company.website}
                         target="_blank"
@@ -233,7 +282,9 @@ const CompanyDetailsPage = () => {
                   <div className="contact-item">
                     <span className="material-symbols-outlined">mail</span>
                     <div>
-                      <label>Email</label>
+                      <label>
+                        {t("auto.email", { defaultValue: "Email" })}
+                      </label>
                       <a href={`mailto:${company.email}`}>{company.email}</a>
                     </div>
                   </div>
@@ -242,7 +293,9 @@ const CompanyDetailsPage = () => {
                   <div className="contact-item">
                     <span className="material-symbols-outlined">call</span>
                     <div>
-                      <label>Phone</label>
+                      <label>
+                        {t("auto.phone", { defaultValue: "Phone" })}
+                      </label>
                       <a href={`tel:${company.phone}`}>{company.phone}</a>
                     </div>
                   </div>
@@ -253,7 +306,9 @@ const CompanyDetailsPage = () => {
                       location_on
                     </span>
                     <div>
-                      <label>Address</label>
+                      <label>
+                        {t("auto.address", { defaultValue: "Address" })}
+                      </label>
                       <p>{company.location}</p>
                     </div>
                   </div>

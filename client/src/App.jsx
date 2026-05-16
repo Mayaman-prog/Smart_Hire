@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import "./App.css";
 import Navbar from "./components/common/Navbar/Navbar.jsx";
 import Footer from "./components/common/Footer/Footer";
@@ -25,12 +26,14 @@ import AdminDashboard from "./pages/Dashboard/admin/AdminDashboard";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 
 function App() {
+  const { t } = useTranslation();
+
   return (
     <ThemeProvider>
       <div className="app">
         {/* Allows keyboard users to skip repeated navigation links */}
         <a href="#main-content" className="skip-link">
-          Skip to content
+          {t("app.skipToContent")}
         </a>
         {/* Toast Notifications - Using CSS classes from globals.css */}
         <Toaster

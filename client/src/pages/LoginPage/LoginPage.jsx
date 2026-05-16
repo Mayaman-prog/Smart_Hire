@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -8,6 +9,7 @@ import Input from "../../components/common/Input/Input";
 import "./LoginPage.css";
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,7 +45,12 @@ const LoginPage = () => {
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
         const role = decoded.role || "job_seeker";
-        toast.success(`Logged in with ${social || "social"} account`);
+        toast.success(
+          t("auth.socialLoginSuccess", {
+            defaultValue: "Logged in with {{provider}} account",
+            provider: social || "social",
+          }),
+        );
 
         // Redirect based on role
         const dashboardPath =
@@ -54,7 +61,11 @@ const LoginPage = () => {
               : "/dashboard/seeker";
         navigate(dashboardPath);
       } catch (err) {
-        toast.error("Failed to decode token. Please try again.");
+        toast.error(
+          t("auto.failed_to_decode_token_please_try_again", {
+            defaultValue: "Failed to decode token. Please try again.",
+          }),
+        );
         setSocialLoading(null);
       }
     } else if (error) {
@@ -63,13 +74,26 @@ const LoginPage = () => {
         setSocialError(
           `This ${social} account is already linked to another user. Please log in with your email/password first, then link your account in your profile settings.`,
         );
-        toast.error("Email conflict: account already linked");
+        toast.error(
+          t("auto.email_conflict_account_already_linked", {
+            defaultValue: "Email conflict: account already linked",
+          }),
+        );
       } else if (error === "auth_failed") {
         setSocialError("Authentication failed. Please try again.");
-        toast.error("Authentication failed");
+        toast.error(
+          t("auto.authentication_failed", {
+            defaultValue: "Authentication failed",
+          }),
+        );
       } else {
         setSocialError(`Error: ${error}`);
-        toast.error(`Authentication error: ${error}`);
+        toast.error(
+          t("auth.authenticationError", {
+            defaultValue: "Authentication error: {{error}}",
+            error,
+          }),
+        );
       }
     }
   }, [location.search, navigate]);
@@ -78,8 +102,7 @@ const LoginPage = () => {
   const handleSocialLogin = (provider) => {
     setSocialLoading(provider);
     setSocialError(null);
-    const backendUrl =
-      import.meta.env.VITE_API_URL;
+    const backendUrl = import.meta.env.VITE_API_URL;
     window.location.href = `${backendUrl}/auth/${provider}`;
   };
 
@@ -88,10 +111,16 @@ const LoginPage = () => {
   };
 
   const handleLinkedInLogin = () => {
-     // LinkedIn OAuth is temporarily disabled on backend
-    toast.error("LinkedIn login is not available at this time. Please check back later.", {
-      duration: 4000,
-    });
+    // LinkedIn OAuth is temporarily disabled on backend
+    toast.error(
+      t("auto.linkedin_login_is_not_available_at_this_time_please_che", {
+        defaultValue:
+          "LinkedIn login is not available at this time. Please check back later.",
+      }),
+      {
+        duration: 4000,
+      },
+    );
     // We can still redirect but backend will return 503
     // handleSocialLogin("linkedin");
   };
@@ -152,11 +181,19 @@ const LoginPage = () => {
             <div className="hero-icon">
               <span className="material-symbols-outlined">work</span>
             </div>
-            <h1>Find Your Next Career Move Faster.</h1>
+            <h1>
+              {t("auto.find_your_next_career_move_faster", {
+                defaultValue: "Find Your Next Career Move Faster.",
+              })}
+            </h1>
             <p>
-              Join thousands of professionals who trust SmartHire to match them
-              with their ideal roles. Whether you're seeking new challenges or
-              looking for top talent, your journey starts here.
+              {t(
+                "auto.join_thousands_of_professionals_who_trust_smarthire_to",
+                {
+                  defaultValue:
+                    "Join thousands of professionals who trust SmartHire to match them with their ideal roles. Whether you're seeking new challenges or looking for top talent, your journey starts here.",
+                },
+              )}
             </p>
           </div>
         </div>
@@ -165,8 +202,15 @@ const LoginPage = () => {
         <div className="login-form-panel">
           <div className="form-wrapper">
             <div className="form-header">
-              <h2>Welcome Back</h2>
-              <p>Enter your credentials to access your dashboard.</p>
+              <h2>
+                {t("auto.welcome_back", { defaultValue: "Welcome Back" })}
+              </h2>
+              <p>
+                {t("auto.enter_your_credentials_to_access_your_dashboard", {
+                  defaultValue:
+                    "Enter your credentials to access your dashboard.",
+                })}
+              </p>
             </div>
 
             {/* Social Login Buttons */}
@@ -213,7 +257,9 @@ const LoginPage = () => {
                 className="social-btn linkedin-btn"
                 onClick={handleLinkedInLogin}
                 disabled={true}
-                title="LinkedIn OAuth coming soon"
+                title={t("auto.linkedin_oauth_coming_soon", {
+                  defaultValue: "LinkedIn OAuth coming soon",
+                })}
               >
                 <svg
                   className="social-icon"
@@ -239,14 +285,20 @@ const LoginPage = () => {
                     className="link-account-btn"
                     onClick={() => navigate("/login")}
                   >
-                    Log in with email
+                    {t("auto.log_in_with_email", {
+                      defaultValue: "Log in with email",
+                    })}
                   </button>
                 )}
               </div>
             )}
 
             <div className="divider">
-              <span>OR LOGIN WITH EMAIL</span>
+              <span>
+                {t("auto.or_login_with_email", {
+                  defaultValue: "OR LOGIN WITH EMAIL",
+                })}
+              </span>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="login-form">
@@ -254,7 +306,9 @@ const LoginPage = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Email ID*"
+                  placeholder={t("auto.email_id", {
+                    defaultValue: "Email ID*",
+                  })}
                   icon="mail"
                   error={errors.email?.message}
                   {...register("email", {
@@ -271,7 +325,9 @@ const LoginPage = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Password*"
+                  placeholder={t("auto.password", {
+                    defaultValue: "Password*",
+                  })}
                   icon="lock"
                   error={errors.password?.message}
                   {...register("password", {
@@ -287,10 +343,14 @@ const LoginPage = () => {
               <div className="form-options">
                 <label className="checkbox-label">
                   <input type="checkbox" {...register("rememberMe")} />
-                  <span>Remember me</span>
+                  <span>
+                    {t("auto.remember_me", { defaultValue: "Remember me" })}
+                  </span>
                 </label>
                 <Link to="/forgot-password" className="forgot-link">
-                  Forgot password?
+                  {t("auto.forgot_password", {
+                    defaultValue: "Forgot password?",
+                  })}
                 </Link>
               </div>
 
@@ -309,12 +369,17 @@ const LoginPage = () => {
                 loading={isLoading}
                 disabled={isLoading}
               >
-                Sign In
+                {t("auto.sign_in", { defaultValue: "Sign In" })}
               </Button>
 
               <div className="register-link">
                 <p>
-                  Don't have an account? <Link to="/register">Sign Up</Link>
+                  {t("auto.don_t_have_an_account", {
+                    defaultValue: "Don't have an account?",
+                  })}
+                  <Link to="/register">
+                    {t("auto.sign_up", { defaultValue: "Sign Up" })}
+                  </Link>
                 </p>
               </div>
             </form>

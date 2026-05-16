@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
@@ -16,6 +17,7 @@ import { useSavedSearch } from "../../../contexts/SavedSearchContext";
 import "./JobSeekerDashboard.css";
 
 const JobSeekerDashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activeStatusTab, setActiveStatusTab] = useState("Active");
@@ -79,7 +81,11 @@ const JobSeekerDashboard = () => {
         });
       } catch (err) {
         console.error("Dashboard error:", err);
-        toast.error("Could not load dashboard data");
+        toast.error(
+          t("auto.could_not_load_dashboard_data", {
+            defaultValue: "Could not load dashboard data",
+          }),
+        );
       } finally {
         setLoadingDashboard(false);
       }
@@ -95,7 +101,11 @@ const JobSeekerDashboard = () => {
       setSavedSearches(res.data?.data || []);
     } catch (err) {
       console.error("Saved searches error:", err);
-      toast.error("Could not load saved searches");
+      toast.error(
+        t("auto.could_not_load_saved_searches", {
+          defaultValue: "Could not load saved searches",
+        }),
+      );
     } finally {
       setLoadingSearches(false);
     }
@@ -131,7 +141,11 @@ const JobSeekerDashboard = () => {
         `Search ${!currentActive ? "activated" : "deactivated"} successfully`,
       );
     } catch (err) {
-      toast.error("Failed to update search");
+      toast.error(
+        t("auto.failed_to_update_search", {
+          defaultValue: "Failed to update search",
+        }),
+      );
     }
   };
 
@@ -140,9 +154,17 @@ const JobSeekerDashboard = () => {
     try {
       await savedSearchAPI.deleteSavedSearch(deletingSearchId);
       setSavedSearches((prev) => prev.filter((s) => s.id !== deletingSearchId));
-      toast.success("Search deleted successfully");
+      toast.success(
+        t("auto.search_deleted_successfully", {
+          defaultValue: "Search deleted successfully",
+        }),
+      );
     } catch (err) {
-      toast.error("Failed to delete search");
+      toast.error(
+        t("auto.failed_to_delete_search", {
+          defaultValue: "Failed to delete search",
+        }),
+      );
     } finally {
       setIsDeleteModalOpen(false);
       setDeletingSearchId(null);
@@ -167,11 +189,19 @@ const JobSeekerDashboard = () => {
             : s,
         ),
       );
-      toast.success("Search updated successfully");
+      toast.success(
+        t("auto.search_updated_successfully", {
+          defaultValue: "Search updated successfully",
+        }),
+      );
       setIsEditModalOpen(false);
       setEditingSearch(null);
     } catch (err) {
-      toast.error("Failed to update search");
+      toast.error(
+        t("auto.failed_to_update_search", {
+          defaultValue: "Failed to update search",
+        }),
+      );
     }
   };
 
@@ -186,7 +216,11 @@ const JobSeekerDashboard = () => {
 
   const handleLogout = () => {
     logout();
-    toast.success("Logged out successfully");
+    toast.success(
+      t("auto.logged_out_successfully", {
+        defaultValue: "Logged out successfully",
+      }),
+    );
     navigate("/");
   };
 
@@ -214,13 +248,20 @@ const JobSeekerDashboard = () => {
                 </span>
                 <>
                   <label htmlFor="dashboard-keyword-search" className="sr-only">
-                    Search jobs by keyword
+                    {t("auto.search_jobs_by_keyword", {
+                      defaultValue: "Search jobs by keyword",
+                    })}
                   </label>
 
                   <input
                     id="dashboard-keyword-search"
                     type="text"
-                    placeholder="Search jobs by title, skill or company"
+                    placeholder={t(
+                      "auto.search_jobs_by_title_skill_or_company",
+                      {
+                        defaultValue: "Search jobs by title, skill or company",
+                      },
+                    )}
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
                   />
@@ -236,13 +277,17 @@ const JobSeekerDashboard = () => {
                     htmlFor="dashboard-location-search"
                     className="sr-only"
                   >
-                    Search jobs by location
+                    {t("auto.search_jobs_by_location", {
+                      defaultValue: "Search jobs by location",
+                    })}
                   </label>
 
                   <input
                     id="dashboard-location-search"
                     type="text"
-                    placeholder="Kathmandu, Nepal"
+                    placeholder={t("auto.kathmandu_nepal", {
+                      defaultValue: "Kathmandu, Nepal",
+                    })}
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                   />
@@ -252,9 +297,11 @@ const JobSeekerDashboard = () => {
             <button
               type="submit"
               className="search-btn-black"
-              aria-label="Search jobs"
+              aria-label={t("auto.search_jobs", {
+                defaultValue: "Search jobs",
+              })}
             >
-              Search
+              {t("auto.search", { defaultValue: "Search" })}
             </button>
           </form>
 
@@ -263,7 +310,9 @@ const JobSeekerDashboard = () => {
             <button
               type="button"
               className={`quick-action-card ${expandedCard === "applications" ? "active" : ""}`}
-              aria-label="View applications summary"
+              aria-label={t("auto.view_applications_summary", {
+                defaultValue: "View applications summary",
+              })}
               onClick={() =>
                 setExpandedCard(
                   expandedCard === "applications" ? null : "applications",
@@ -275,13 +324,17 @@ const JobSeekerDashboard = () => {
                   description
                 </span>
               </div>
-              <div className="action-label">My Applications</div>
+              <div className="action-label">
+                {t("auto.my_applications", { defaultValue: "My Applications" })}
+              </div>
               <div className="action-count">{stats.applications}</div>
             </button>
             <button
               type="button"
               className={`quick-action-card ${expandedCard === "interviews" ? "active" : ""}`}
-              aria-label="View interviews summary"
+              aria-label={t("auto.view_interviews_summary", {
+                defaultValue: "View interviews summary",
+              })}
               onClick={() =>
                 setExpandedCard(
                   expandedCard === "savedJobs" ? null : "savedJobs",
@@ -293,7 +346,9 @@ const JobSeekerDashboard = () => {
                   favorite
                 </span>
               </div>
-              <div className="action-label">Saved Jobs</div>
+              <div className="action-label">
+                {t("auto.saved_jobs", { defaultValue: "Saved Jobs" })}
+              </div>
               <div className="action-count">{stats.savedJobs}</div>
             </button>
             <div
@@ -309,13 +364,17 @@ const JobSeekerDashboard = () => {
                   question_answer
                 </span>
               </div>
-              <div className="action-label">Interview</div>
+              <div className="action-label">
+                {t("auto.interview", { defaultValue: "Interview" })}
+              </div>
               <div className="action-count">{stats.interviews}</div>
             </div>
             <button
               type="button"
               className={`quick-action-card ${expandedCard === "connections" ? "active" : ""}`}
-              aria-label="View connections summary"
+              aria-label={t("auto.view_connections_summary", {
+                defaultValue: "View connections summary",
+              })}
               onClick={() =>
                 setExpandedCard(
                   expandedCard === "connections" ? null : "connections",
@@ -327,7 +386,9 @@ const JobSeekerDashboard = () => {
                   group
                 </span>
               </div>
-              <div className="action-label">My Connections</div>
+              <div className="action-label">
+                {t("auto.my_connections", { defaultValue: "My Connections" })}
+              </div>
               <div className="action-count">{stats.connections}</div>
             </button>
           </div>
@@ -337,30 +398,57 @@ const JobSeekerDashboard = () => {
             <div className="expanded-card-details">
               {expandedCard === "applications" && (
                 <div className="detail-content">
-                  <h3>Your Applications</h3>
+                  <h3>
+                    {t("auto.your_applications", {
+                      defaultValue: "Your Applications",
+                    })}
+                  </h3>
                   <p>
-                    You have applied to <strong>{stats.applications}</strong>{" "}
-                    jobs.
+                    {t("auto.you_have_applied_to", {
+                      defaultValue: "You have applied to",
+                    })}
+                    <strong>{stats.applications}</strong> jobs.
                   </p>
                   {stats.applications > 0 ? (
-                    <p>Scroll down to see your applications listed below.</p>
+                    <p>
+                      {t(
+                        "auto.scroll_down_to_see_your_applications_listed_below",
+                        {
+                          defaultValue:
+                            "Scroll down to see your applications listed below.",
+                        },
+                      )}
+                    </p>
                   ) : (
-                    <p>Start applying to jobs to see them here!</p>
+                    <p>
+                      {t("auto.start_applying_to_jobs_to_see_them_here", {
+                        defaultValue:
+                          "Start applying to jobs to see them here!",
+                      })}
+                    </p>
                   )}
                   <button
                     type="button"
                     className="btn-primary"
                     onClick={() => navigate("/jobs")}
                   >
-                    Browse Jobs
+                    {t("auto.browse_jobs", { defaultValue: "Browse Jobs" })}
                   </button>
                 </div>
               )}
               {expandedCard === "savedJobs" && (
                 <div className="detail-content">
-                  <h3>Your Saved Jobs</h3>
+                  <h3>
+                    {t("auto.your_saved_jobs", {
+                      defaultValue: "Your Saved Jobs",
+                    })}
+                  </h3>
                   <p>
-                    You have saved <strong>{stats.savedJobs}</strong> jobs.
+                    {t("auto.you_have_saved", {
+                      defaultValue: "You have saved",
+                    })}
+                    <strong>{stats.savedJobs}</strong>
+                    {t("auto.jobs_643303", { defaultValue: "jobs." })}
                   </p>
                   {stats.savedJobs > 0 ? (
                     <button
@@ -368,30 +456,62 @@ const JobSeekerDashboard = () => {
                       className="btn-primary"
                       onClick={() => navigate("/dashboard/saved-jobs")}
                     >
-                      View Saved Jobs
+                      {t("auto.view_saved_jobs", {
+                        defaultValue: "View Saved Jobs",
+                      })}
                     </button>
                   ) : (
-                    <p>Browse jobs and save your favorites!</p>
+                    <p>
+                      {t("auto.browse_jobs_and_save_your_favorites", {
+                        defaultValue: "Browse jobs and save your favorites!",
+                      })}
+                    </p>
                   )}
                 </div>
               )}
               {expandedCard === "interviews" && (
                 <div className="detail-content">
-                  <h3>Your Interviews</h3>
+                  <h3>
+                    {t("auto.your_interviews", {
+                      defaultValue: "Your Interviews",
+                    })}
+                  </h3>
                   <p>
-                    You have <strong>{stats.interviews}</strong> upcoming
-                    interviews.
+                    {t("auto.you_have", { defaultValue: "You have" })}
+                    <strong>{stats.interviews}</strong>
+                    {t("auto.upcoming_interviews", {
+                      defaultValue: "upcoming interviews.",
+                    })}
                   </p>
-                  <p>Check your interview schedule for details.</p>
+                  <p>
+                    {t("auto.check_your_interview_schedule_for_details", {
+                      defaultValue:
+                        "Check your interview schedule for details.",
+                    })}
+                  </p>
                 </div>
               )}
               {expandedCard === "connections" && (
                 <div className="detail-content">
-                  <h3>Your Connections</h3>
+                  <h3>
+                    {t("auto.your_connections", {
+                      defaultValue: "Your Connections",
+                    })}
+                  </h3>
                   <p>
-                    You have <strong>{stats.connections}</strong> connections.
+                    {t("auto.you_have", { defaultValue: "You have" })}
+                    <strong>{stats.connections}</strong>
+                    {t("auto.connections", { defaultValue: "connections." })}
                   </p>
-                  <p>Build your professional network to grow your career.</p>
+                  <p>
+                    {t(
+                      "auto.build_your_professional_network_to_grow_your_career",
+                      {
+                        defaultValue:
+                          "Build your professional network to grow your career.",
+                      },
+                    )}
+                  </p>
                 </div>
               )}
             </div>
@@ -400,16 +520,22 @@ const JobSeekerDashboard = () => {
           {/* Saved Searches Section */}
           <div className="saved-searches-section">
             <div className="section-header">
-              <h2 className="section-title">Saved Searches</h2>
+              <h2 className="section-title">
+                {t("auto.saved_searches", { defaultValue: "Saved Searches" })}
+              </h2>
               <span className="badge-count">{savedSearches.length}</span>
             </div>
             <p className="subtitle">
-              Manage your saved job searches and email alerts
+              {t("auto.manage_your_saved_job_searches_and_email_alerts", {
+                defaultValue: "Manage your saved job searches and email alerts",
+              })}
             </p>
 
             {loadingSearches ? (
               <div className="loading-grid" role="status" aria-live="polite">
-                Loading saved searches...
+                {t("auto.loading_saved_searches", {
+                  defaultValue: "Loading saved searches...",
+                })}
               </div>
             ) : savedSearches.length > 0 ? (
               <div className="saved-searches-grid">
@@ -463,7 +589,9 @@ const JobSeekerDashboard = () => {
                             setDeletingSearchId(search.id);
                             setIsDeleteModalOpen(true);
                           }}
-                          aria-label="Delete search"
+                          aria-label={t("auto.delete_search", {
+                            defaultValue: "Delete search",
+                          })}
                         >
                           <span
                             className="material-symbols-outlined"
@@ -523,10 +651,19 @@ const JobSeekerDashboard = () => {
                     search
                   </span>
                 </div>
-                <h3>No Saved Searches</h3>
+                <h3>
+                  {t("auto.no_saved_searches", {
+                    defaultValue: "No Saved Searches",
+                  })}
+                </h3>
                 <p>
-                  Save a search from the jobs page to get alerts when new jobs
-                  match your criteria.
+                  {t(
+                    "auto.save_a_search_from_the_jobs_page_to_get_alerts_when_new",
+                    {
+                      defaultValue:
+                        "Save a search from the jobs page to get alerts when new jobs match your criteria.",
+                    },
+                  )}
                 </p>
               </div>
             )}
@@ -538,11 +675,13 @@ const JobSeekerDashboard = () => {
               <span className="fire-icon" aria-hidden="true">
                 🔥
               </span>
-              <h2 className="section-title">Trending Jobs</h2>
+              <h2 className="section-title">
+                {t("auto.trending_jobs", { defaultValue: "Trending Jobs" })}
+              </h2>
             </div>
             {loadingDashboard ? (
               <div className="loading-grid" role="status" aria-live="polite">
-                Loading jobs...
+                {t("auto.loading_jobs", { defaultValue: "Loading jobs..." })}
               </div>
             ) : trendingJobs.length > 0 ? (
               <div className="jobs-grid">
@@ -551,7 +690,9 @@ const JobSeekerDashboard = () => {
                 ))}
               </div>
             ) : (
-              <p className="empty-message">No jobs found.</p>
+              <p className="empty-message">
+                {t("auto.no_jobs_found", { defaultValue: "No jobs found." })}
+              </p>
             )}
             <div className="load-more-container">
               <button
@@ -559,7 +700,7 @@ const JobSeekerDashboard = () => {
                 className="load-more-btn"
                 onClick={() => navigate("/jobs")}
               >
-                View All Jobs
+                {t("auto.view_all_jobs", { defaultValue: "View All Jobs" })}
               </button>
             </div>
           </div>
@@ -570,11 +711,13 @@ const JobSeekerDashboard = () => {
               <span className="star-icon" aria-hidden="true">
                 ⭐
               </span>
-              <h2 className="section-title">Premium Jobs</h2>
+              <h2 className="section-title">
+                {t("auto.premium_jobs", { defaultValue: "Premium Jobs" })}
+              </h2>
             </div>
             {loadingDashboard ? (
               <div className="loading-grid" role="status" aria-live="polite">
-                Loading jobs...
+                {t("auto.loading_jobs", { defaultValue: "Loading jobs..." })}
               </div>
             ) : premiumJobs.length > 0 ? (
               <div className="jobs-grid">
@@ -583,7 +726,9 @@ const JobSeekerDashboard = () => {
                 ))}
               </div>
             ) : (
-              <p className="empty-message">No jobs found.</p>
+              <p className="empty-message">
+                {t("auto.no_jobs_found", { defaultValue: "No jobs found." })}
+              </p>
             )}
           </div>
         </div>
@@ -617,10 +762,19 @@ const JobSeekerDashboard = () => {
             aria-labelledby="delete-search-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 id="delete-search-title">Delete Saved Search</h3>
+            <h3 id="delete-search-title">
+              {t("auto.delete_saved_search", {
+                defaultValue: "Delete Saved Search",
+              })}
+            </h3>
             <p>
-              Are you sure you want to delete this saved search? This action
-              cannot be undone.
+              {t(
+                "auto.are_you_sure_you_want_to_delete_this_saved_search_this",
+                {
+                  defaultValue:
+                    "Are you sure you want to delete this saved search? This action cannot be undone.",
+                },
+              )}
             </p>
             <div className="modal-actions">
               <button
@@ -628,14 +782,14 @@ const JobSeekerDashboard = () => {
                 className="btn-secondary"
                 onClick={() => setIsDeleteModalOpen(false)}
               >
-                Cancel
+                {t("auto.cancel", { defaultValue: "Cancel" })}
               </button>
               <button
                 type="button"
                 className="btn-danger"
                 onClick={handleDeleteSearch}
               >
-                Delete
+                {t("auto.delete", { defaultValue: "Delete" })}
               </button>
             </div>
           </div>

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import { userAPI } from "../../services/api";
 import toast from "react-hot-toast";
 import "./ProfilePage.css";
 
 const ConnectedAccounts = () => {
+  const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -13,7 +15,9 @@ const ConnectedAccounts = () => {
       localStorage.getItem("token") || sessionStorage.getItem("token");
 
     if (!token) {
-      return toast.error("Login required");
+      return toast.error(
+        t("auto.login_required", { defaultValue: "Login required" }),
+      );
     }
 
     const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -26,33 +30,36 @@ const ConnectedAccounts = () => {
   };
 
   const handleUnlink = async (provider) => {
-  try {
-    setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-    const res = await userAPI.unlinkSocial(provider);
+      const res = await userAPI.unlinkSocial(provider);
 
-    toast.success(res.data.message || "Unlinked successfully");
+      toast.success(res.data.message || "Unlinked successfully");
 
-    await refreshUser();
-  } catch (err) {
-    toast.error(
-      err?.response?.data?.message || "Failed to unlink account"
-    );
-  } finally {
-    setIsLoading(false);
-  }
-};
+      await refreshUser();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to unlink account");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="profile-card connected-accounts-card">
       <div className="card-header">
-        <h2>Connected Accounts</h2>
+        <h2>
+          {t("auto.connected_accounts", { defaultValue: "Connected Accounts" })}
+        </h2>
       </div>
       <p
         className="card-content"
         style={{ paddingTop: 0, paddingBottom: "15px" }}
       >
-        Link your social accounts to enable additional login methods.
+        {t("auto.link_your_social_accounts_to_enable_additional_login_me", {
+          defaultValue:
+            "Link your social accounts to enable additional login methods.",
+        })}
       </p>
 
       <div className="provider-list">
@@ -63,9 +70,13 @@ const ConnectedAccounts = () => {
             <div>
               <p className="provider-name">Google</p>
               {user?.google_id ? (
-                <span className="status-badge linked">Linked</span>
+                <span className="status-badge linked">
+                  {t("auto.linked", { defaultValue: "Linked" })}
+                </span>
               ) : (
-                <span className="status-badge unlinked">Not linked</span>
+                <span className="status-badge unlinked">
+                  {t("auto.not_linked", { defaultValue: "Not linked" })}
+                </span>
               )}
             </div>
           </div>
@@ -75,7 +86,7 @@ const ConnectedAccounts = () => {
               onClick={() => handleUnlink("google")}
               disabled={isLoading}
             >
-              Unlink
+              {t("auto.unlink", { defaultValue: "Unlink" })}
             </button>
           ) : (
             <button
@@ -83,7 +94,7 @@ const ConnectedAccounts = () => {
               onClick={() => handleLink("google")}
               disabled={isLoading}
             >
-              Link Account
+              {t("auto.link_account", { defaultValue: "Link Account" })}
             </button>
           )}
         </div>
@@ -95,9 +106,13 @@ const ConnectedAccounts = () => {
             <div>
               <p className="provider-name">LinkedIn</p>
               {user?.linkedin_id ? (
-                <span className="status-badge linked">Linked</span>
+                <span className="status-badge linked">
+                  {t("auto.linked", { defaultValue: "Linked" })}
+                </span>
               ) : (
-                <span className="status-badge unlinked">Not linked</span>
+                <span className="status-badge unlinked">
+                  {t("auto.not_linked", { defaultValue: "Not linked" })}
+                </span>
               )}
             </div>
           </div>
@@ -107,7 +122,7 @@ const ConnectedAccounts = () => {
               onClick={() => handleUnlink("linkedin")}
               disabled={isLoading}
             >
-              Unlink
+              {t("auto.unlink", { defaultValue: "Unlink" })}
             </button>
           ) : (
             <button
@@ -115,7 +130,7 @@ const ConnectedAccounts = () => {
               onClick={() => handleLink("linkedin")}
               disabled={isLoading}
             >
-              Link Account
+              {t("auto.link_account", { defaultValue: "Link Account" })}
             </button>
           )}
         </div>

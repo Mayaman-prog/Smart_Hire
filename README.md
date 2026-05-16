@@ -6,9 +6,6 @@
 ![GitHub issues](https://img.shields.io/github/issues/Mayaman-prog/Smart_Hire)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Accessibility](https://img.shields.io/badge/accessibility-WCAG%202.1-green)
-![Keyboard Navigation](https://img.shields.io/badge/keyboard-navigation%20supported-brightgreen)
-![Modal Focus Trap](https://img.shields.io/badge/modal-focus%20trap-brightgreen)
-![Theme](https://img.shields.io/badge/theme-light%20%7C%20dark%20%7C%20system-blue)
 
 SmartHire is a full-stack job portal web application connecting job seekers, employers, and administrators. It is designed to be scalable, SEO-friendly, and production-ready.
 
@@ -25,6 +22,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
     - [Resume Parsing & CRUD](#resume-parsing-crud)
     - [Admin Reports Queue UI](#admin-reports-queue-ui)
     - [Search Term Logging & Keyword Highlighting](#search-term-logging--keyword-highlighting)
+    - [Job Matching Algorithm](#job-matching-algorithm)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
   - [Email Rate Limiting & Retry Logic](#email-rate-limiting--retry-logic)
@@ -55,6 +53,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [Admin Routes](#admin-routes)
   - [Reports Routes](#reports-routes)
   - [Search Suggestions](#search-suggestions)
+  - [Job Matching Routes](#job-matching-routes)
 - [Components Implemented](#components-implemented)
   - [Navbar Component](#navbar-component)
   - [Footer Component](#footer-component)
@@ -158,6 +157,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Reusable modal focus trap hook using `keydown` listener
 - Modal focus returns to the triggering element after close
 - Mobile filter drawer, Save Search modal, Report Job modal, Apply modal, and Quick Apply modal updated for keyboard accessibility
+- **Job Matching Algorithm** – Backend recommendation system that calculates personalised job match scores using user skills, previous applications, saved jobs, location preference, job type, salary alignment, and TF-IDF keyword overlap.
 
 ### Backend Features
 
@@ -182,6 +182,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Report Resolution Email – notifies reporter when admin resolves a job report
 - Audit Logging – `audit_logs` table for security‑sensitive actions
 - Salary Aggregation API – GET /api/salary/estimate returns market salary data by title and location for the salary comparison badge.
+- Job Matching Algorithm – calculates personalised job recommendations using TF-IDF keyword similarity, location matching, job type matching, salary alignment, and user activity history.
 
 #### Cover Letters
 
@@ -786,6 +787,66 @@ LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret_here
 - Each email includes an unsubscribe link (unique token per saved search) that deactivates the search permanently.
 - Stores the \*ast‑run timestamp in the cron_state table to avoid duplicate alerts.
 
+### Job Matching Algorithm
+
+SmartHire includes a backend job matching algorithm that generates personalised job recommendations for job seekers. The algorithm compares each job seeker’s profile and activity history with active job postings, then calculates a match score between 0 and 100.
+
+**Features:**
+
+- Extracts user features from skills, profile data, saved jobs, previous applications, and resume/profile information.
+- Compares users with active job postings.
+- Uses TF-IDF style keyword overlap to compare user skills and job content.
+- Includes location, job type, salary, and application history in the scoring model.
+- Normalises the final match score between 0 and 100.
+- Stores calculated results in the `job_matches` table.
+- Supports manual recalculation through API endpoints.
+- Supports scheduled recalculation using a daily cron job.
+
+#### Scoring Model
+
+| Score Component | Description                                                                                           |
+| --------------- | ----------------------------------------------------------------------------------------------------- |
+| Keyword Score   | Compares user skills, saved jobs, applied jobs, and job content using TF-IDF based keyword similarity |
+| Location Score  | Checks whether the user’s preferred location matches the job location                                 |
+| Job Type Score  | Compares the user’s preferred job type with the job type                                              |
+| Salary Score    | Checks whether the job salary aligns with the user’s expected salary or activity history              |
+| History Score   | Uses previously applied and saved jobs to improve recommendation relevance                            |
+
+#### Match Score Storage
+
+The final calculated result is stored in the `job_matches` table. Each record stores the user, job, final match score, score breakdown, matching keywords, and recommendation reason.
+
+#### Main Files
+
+| File | Purpose |
+| ---- | ------- |
+| `server/src/services/jobMatchingService.js` | Extracts user/job features, calculates TF-IDF similarity, computes weighted scores, and stores matches |
+| `server/src/controllers/jobMatchController.js` | Handles API requests for fetching and recalculating job matches |
+| `server/src/routes/jobMatchRoutes.js` | Defines job matching API routes |
+| `server/src/cron/dailyJobMatching.js` | Runs the daily scheduled job matching update |
+| `server/scripts/test-job-matching.js` | Tests job matching manually from the terminal |
+| `server/database/schema.sql` | Stores the `job_matches` table definition |
+
+#### Testing Result
+
+The job matching test script was executed successfully:
+
+```bash
+node scripts/test-job-matching.js
+```
+
+**Successful Output:**
+```bash
+[Test] Calculating matches for all users...
+{
+  totalUsers: 4,
+  processedUsers: 4,
+  failedUsers: 0,
+  totalMatches: 100,
+  errors: []
+}
+```
+
 ### Notify Reporter on Resolution
 
 **Feature:**
@@ -1364,6 +1425,7 @@ SmartHire/
 │   │   │   ├── savedJobsController.js
 │   │   │   ├── searchSuggestionController.js
 │   │   │   ├── savedSearchController.js
+│   │   │   ├── jobMatchController.js
 │   │   │   └── userController.js
 │   │   ├── email-templates/
 │   │   │   ├── account-verification.html
@@ -1384,6 +1446,7 @@ SmartHire/
 │   │   │   ├── coverLetterRoutes.js
 │   │   │   ├── employerRoutes.js
 │   │   │   ├── jobRoutes.js
+│   │   │   ├── jobMatchRoutes.js
 │   │   │   ├── notificationRoutes.js
 │   │   │   ├── searchSuggestionRoutes.js
 │   │   │   ├── savedJobsRoutesjs
@@ -1394,6 +1457,7 @@ SmartHire/
 │   │   ├── services/
 │   │   │   ├── emailService.js
 │   │   │   ├── application.service.js
+│   │   │   ├── jobMatchingService.js
 │   │   │   └── resumeParser.js
 │   │   ├── cron/
 │   │   │   └── dailyJobAlert.js
@@ -1422,6 +1486,7 @@ SmartHire/
 │   │   ├── test-suggestions.js
 │   │   ├── test-update-resume.js
 │   │   ├── test-analytics.js
+│   │   ├── test-job-matching.js
 │   │   ├── test-report-resolution.js
 │   │   ├── test-cover-letters.js
 │   │   └── test-advanced-search.js
@@ -1556,7 +1621,6 @@ DB_PORT=3306
 
 JWT_SECRET=super_secret_jwt_key_change_this_in_production
 JWT_EXPIRE=24h
-
 FRONTEND_URL=`http://localhost:5173`
 
 # Email configuration – use your own SMTP credentials
@@ -1736,14 +1800,39 @@ Content-Type: application/json
 "alert_frequency": "daily"
 }
 
-**Cover Letters Routes (/api/cover-letters)**
+**Job Matching Routes (`/api/job-matches`)**
 | Method | Endpoint | Description | Access |
-| ------ | ----------------------------- | ------------------------------------------------------- | ---------- |
-| GET | /cover-letters | Get all cover letters for the authenticated user | Job Seeker |
-| POST | /cover-letters | Create a new cover letter (name and content required) | Job Seeker |
-| PUT | /cover-letters/:id | Update name and/or content (owner only) | Job Seeker |
-| DELETE | /cover-letters/:id | Delete a cover letter (owner only) | Job Seeker |
-| PUT | /cover-letters/:id/default | Set a cover letter as default (unsets others) | Job Seeker |
+| ------ | -------- | ----------- | ------ |
+| GET | `/me` | Get stored job recommendations for the logged-in job seeker | Private |
+| POST | `/recalculate/me` | Recalculate job matches for the logged-in job seeker | Private |
+| POST | `/recalculate/all` | Recalculate job matches for all job seekers | Private/Admin |
+
+#### Get My Job Matches
+
+**GET** `/api/job-matches/me`
+
+Returns stored job recommendations ordered by highest match score.
+
+#### Recalculate My Job Matches
+
+**POST** `/api/job-matches/recalculate/me`
+
+Recalculates and stores job match scores for the authenticated job seeker.
+
+#### Recalculate All Job Matches
+
+**POST** `/api/job-matches/recalculate/all`
+
+Recalculates job match scores for all job seeker users. This route should be restricted to admin users in production.
+
+**Cover Letters Routes (/api/cover-letters)**
+| Method | Endpoint                   | Description                                           | Access     |
+| ------ | -------------------------- | ----------------------------------------------------- | ---------- |
+| GET    | /cover-letters             | Get all cover letters for the authenticated user      | Job Seeker |
+| POST   | /cover-letters             | Create a new cover letter (name and content required) | Job Seeker |
+| PUT    | /cover-letters/:id         | Update name and/or content (owner only)               | Job Seeker |
+| DELETE | /cover-letters/:id         | Delete a cover letter (owner only)                    | Job Seeker |
+| PUT    | /cover-letters/:id/default | Set a cover letter as default (unsets others)         | Job Seeker |
 
 **Create cover letter**
 **POST** `/api/cover-letters`
@@ -2722,6 +2811,31 @@ client/src/components/common/KeyboardShortcuts/
 | **job_reports**            | User reports on jobs (spam, fraud, etc.)           | 0              |
 | **cover_letters**          | Cover letter templates                             | 0              |
 | **search_logs**            | Search term logs for autocomplete & typo tolerance | 0              |
+
+### job_matches Table
+
+The `job_matches` table stores personalised job recommendation scores generated by the backend job matching algorithm.
+
+| Column | Description |
+| ------ | ----------- |
+| `id` | Primary key |
+| `user_id` | Job seeker user ID |
+| `job_id` | Matched job ID |
+| `match_score` | Final normalised score from 0 to 100 |
+| `keyword_score` | TF-IDF keyword similarity score |
+| `location_score` | Location match score |
+| `job_type_score` | Job type match score |
+| `salary_score` | Salary alignment score |
+| `history_score` | Score based on saved/applied job history |
+| `matching_keywords` | Keywords shared between the user profile and job content |
+| `reason_summary` | Short explanation of why the job was recommended |
+| `last_calculated_at` | Timestamp of the latest score calculation |
+| `created_at` | Record creation timestamp |
+| `updated_at` | Record update timestamp |
+
+#### Table Purpose
+
+This table allows SmartHire to store precomputed job recommendations instead of recalculating them every time the dashboard loads. It improves performance and allows daily recommendation updates through the scheduled cron job.
 
 ## Troubleshooting
 

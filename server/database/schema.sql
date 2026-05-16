@@ -385,5 +385,32 @@ CREATE TABLE IF NOT EXISTS search_logs (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- 27. JOB MATCHES TABLE
+CREATE TABLE IF NOT EXISTS job_matches (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  user_id INT NOT NULL,
+  job_id INT NOT NULL,
+
+  match_score DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  keyword_score DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  location_score DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  job_type_score DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  salary_score DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  history_score DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+
+  matching_keywords JSON NULL,
+  reason_summary TEXT NULL,
+
+  last_calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  UNIQUE KEY unique_user_job_match (user_id, job_id),
+  INDEX idx_job_matches_user_id (user_id),
+  INDEX idx_job_matches_job_id (job_id),
+  INDEX idx_job_matches_score (match_score)
+);
+
 SELECT 'Database schema created successfully' AS Status;
 SELECT COUNT(*) AS total_tables FROM information_schema.tables WHERE table_schema = 'smart_hire';

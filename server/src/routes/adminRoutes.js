@@ -4,6 +4,7 @@ const {
   getAllUsers,
   banUser,
   unbanUser,
+  changeUserRole,
   deleteUser,
   getAllCompanies,
   verifyCompany,
@@ -44,6 +45,7 @@ router.get('/users', getAllUsers);
 router.put('/users/:id/ban', banUser);
 router.put('/users/:id/unban', unbanUser);
 router.delete('/users/:id', deleteUser);
+router.put('/users/:id/role', changeUserRole);
 
 // Companies
 router.get('/companies', getAllCompanies);

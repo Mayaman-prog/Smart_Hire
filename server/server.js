@@ -27,6 +27,7 @@ const searchSuggestionRoutes = require("./src/routes/searchSuggestionRoutes");
 const passport = require("./src/config/passport");
 const salaryRoutes = require("./src/routes/salaryRoutes");
 const jobMatchRoutes = require("./src/routes/jobMatchRoutes");
+const { auditLogger } = require("./src/middleware/auditLogger");
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(auditLogger);
 
 // Serve uploaded files (for resumes)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

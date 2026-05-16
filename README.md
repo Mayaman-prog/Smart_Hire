@@ -22,6 +22,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
     - [Resume Parsing & CRUD](#resume-parsing-crud)
     - [Admin Reports Queue UI](#admin-reports-queue-ui)
     - [Search Term Logging & Keyword Highlighting](#search-term-logging--keyword-highlighting)
+    - [Audit Logging](#audit-logging)
     - [Job Matching Algorithm](#job-matching-algorithm)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
@@ -158,6 +159,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Modal focus returns to the triggering element after close
 - Mobile filter drawer, Save Search modal, Report Job modal, Apply modal, and Quick Apply modal updated for keyboard accessibility
 - **Job Matching Algorithm** – Backend recommendation system that calculates personalised job match scores using user skills, previous applications, saved jobs, location preference, job type, salary alignment, and TF-IDF keyword overlap.
+- **Audit Logging** – Security-sensitive backend actions are recorded in the `audit_logs` table for accountability, monitoring, and forensic investigation.
 
 ### Backend Features
 
@@ -165,7 +167,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Password hashing with bcrypt (10 rounds)
 - Input validation with express-validator
 - Rate limiting (5 login attempts per 15 minutes)
-- MySQL database with 27 tables
+- MySQL database with 29 tables
 - Transaction support for registration
 - CORS configured for frontend
 - Helmet.js for security headers
@@ -180,7 +182,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Email Rate Limiting – 10 emails per minute per user, 429 rejection, exponential backoff retry (1m, 5m, 15m)
 - Daily Job Alert Cron – runs at 8 AM, scans active saved searches, sends digest emails with unsubscribe links
 - Report Resolution Email – notifies reporter when admin resolves a job report
-- Audit Logging – `audit_logs` table for security‑sensitive actions
+- Audit Logging – Non-blocking audit middleware records login success/failure, password changes, role changes, user bans, job deletion, company verification, and report resolution in the `audit_logs` table.
 - Salary Aggregation API – GET /api/salary/estimate returns market salary data by title and location for the salary comparison badge.
 - Job Matching Algorithm – calculates personalised job recommendations using TF-IDF keyword similarity, location matching, job type matching, salary alignment, and user activity history.
 
@@ -249,6 +251,72 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
   - Middleware: `searchLogger.js` automatically logs each search before passing to the controller.
   - Controller: `jobController.js` updates the `result_count` in the log after the query runs.
   - Frontend: `highlightText.js` utility function is used in `JobCard.jsx` to wrap matches.
+
+#### Audit Logging
+
+SmartHire includes a backend audit logging system for recording security-sensitive actions. The audit system helps administrators trace important user and system activity for accountability, monitoring, and forensic investigation.
+
+**Table:** `audit_logs`
+
+| Column       | Description                                 |
+| ------------ | ------------------------------------------- |
+| `id`         | Unique audit log ID                         |
+| `user_id`    | User who performed the action, if available |
+| `action`     | Name of the security-sensitive action       |
+| `ip_address` | IP address of the request                   |
+| `user_agent` | Browser or client user agent                |
+| `details`    | JSON field containing extra action details  |
+| `created_at` | Timestamp when the action was logged        |
+
+#### Logged Actions
+
+| Action              | Description                                          |
+| ------------------- | ---------------------------------------------------- |
+| `LOGIN_SUCCESS`     | Logged when a user signs in successfully             |
+| `LOGIN_FAILURE`     | Logged when a login attempt fails                    |
+| `PASSWORD_CHANGE`   | Logged when a user changes their password            |
+| `ROLE_CHANGE`       | Logged when an admin changes a user's role           |
+| `USER_BAN`          | Logged when an admin bans a user                     |
+| `USER_UNBAN`        | Logged when an admin unbans a user                   |
+| `JOB_DELETE`        | Logged when a job is deleted by an employer or admin |
+| `COMPANY_VERIFY`    | Logged when an admin verifies a company              |
+| `REPORT_RESOLUTION` | Logged when an admin resolves a job report           |
+
+#### Implementation Details
+
+| File                                        | Purpose                                                                            |
+| ------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `server/src/middleware/auditLogger.js`      | Provides `auditLogger` middleware and `logAction(userId, action, details)` helper  |
+| `server/server.js`                          | Registers the audit middleware globally                                            |
+| `server/src/controllers/authController.js`  | Logs login success and login failure                                               |
+| `server/src/controllers/userController.js`  | Logs password changes                                                              |
+| `server/src/controllers/adminController.js` | Logs role changes, bans, company verification, job deletion, and report resolution |
+| `server/src/controllers/jobController.js`   | Logs employer/admin job deletion                                                   |
+| `server/database/schema.sql`                | Defines the `audit_logs` table                                                     |
+| `server/scripts/setup-db.js`                | Includes `audit_logs` in database setup verification                               |
+
+#### Non-Blocking Logging
+
+Audit logging is implemented asynchronously using `setImmediate()`. This means the main API response is not delayed while the audit record is inserted into the database.
+
+#### Database Verification
+
+The database setup script confirmed that the `audit_logs` table was created successfully:
+
+```bash
+Audit Logs: 0
+```
+
+This means the table exists, but no audit activity has been recorded yet. Logs are added when security-sensitive actions occur.
+
+**Manual Audit Log Check**
+After performing a login, password change, ban, role change, job delete, company verification, or report resolution, audit records can be checked using:
+
+```SQL
+SELECT id, user_id, action, ip_address, user_agent, details, created_at
+FROM audit_logs
+ORDER BY created_at DESC;
+```
 
 ### Theme System (Light/Dark Mode)
 
@@ -366,6 +434,7 @@ select:focus-visible,
   outline-offset: var(--focus-ring-offset);
 }
 ```
+
 The focus ring variables are stored in variables.css so the accessibility focus style remains consistent across light mode, dark mode, and modal components.
 
 #### Navbar Theme Toggle
@@ -443,14 +512,14 @@ The frontend was updated to follow semantic HTML and accessibility best practice
 
 ##### Keyboard Navigation Shortcuts
 
-| Shortcut | Action |
-| -------- | ------ |
-| `Alt + H` | Go to Home page |
-| `Alt + J` | Go to Jobs page |
-| `Alt + S` | Go to Jobs page and focus the job search input |
+| Shortcut  | Action                                                       |
+| --------- | ------------------------------------------------------------ |
+| `Alt + H` | Go to Home page                                              |
+| `Alt + J` | Go to Jobs page                                              |
+| `Alt + S` | Go to Jobs page and focus the job search input               |
 | `Alt + D` | Go to the correct dashboard based on the logged-in user role |
-| `Esc` | Close open modal/help panel or remove focus |
-| `?` | Show or hide the keyboard shortcuts help panel |
+| `Esc`     | Close open modal/help panel or remove focus                  |
+| `?`       | Show or hide the keyboard shortcuts help panel               |
 
 The keyboard shortcut help is implemented as a floating help panel, not as a separate Help page route.
 
@@ -618,6 +687,7 @@ It is used by modal components to:
 - Return focus to the trigger element after close
 
 #### Modals Updated
+
 | Modal / Dialog               | File                                                                   |
 | ---------------------------- | ---------------------------------------------------------------------- |
 | Save Search modal            | `client/src/components/SaveSearchModal/SaveSearchModal.jsx`            |
@@ -626,7 +696,6 @@ It is used by modal components to:
 | Apply modal                  | `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`                   |
 | Quick Apply modal            | `client/src/pages/JobDetailsPage/JobDetailsPage.jsx`                   |
 | Keyboard shortcut help panel | `client/src/components/common/KeyboardShortcuts/KeyboardShortcuts.jsx` |
-
 
 ### Saved Searches Feature
 
@@ -818,14 +887,14 @@ The final calculated result is stored in the `job_matches` table. Each record st
 
 #### Main Files
 
-| File | Purpose |
-| ---- | ------- |
-| `server/src/services/jobMatchingService.js` | Extracts user/job features, calculates TF-IDF similarity, computes weighted scores, and stores matches |
-| `server/src/controllers/jobMatchController.js` | Handles API requests for fetching and recalculating job matches |
-| `server/src/routes/jobMatchRoutes.js` | Defines job matching API routes |
-| `server/src/cron/dailyJobMatching.js` | Runs the daily scheduled job matching update |
-| `server/scripts/test-job-matching.js` | Tests job matching manually from the terminal |
-| `server/database/schema.sql` | Stores the `job_matches` table definition |
+| File                                           | Purpose                                                                                                |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `server/src/services/jobMatchingService.js`    | Extracts user/job features, calculates TF-IDF similarity, computes weighted scores, and stores matches |
+| `server/src/controllers/jobMatchController.js` | Handles API requests for fetching and recalculating job matches                                        |
+| `server/src/routes/jobMatchRoutes.js`          | Defines job matching API routes                                                                        |
+| `server/src/cron/dailyJobMatching.js`          | Runs the daily scheduled job matching update                                                           |
+| `server/scripts/test-job-matching.js`          | Tests job matching manually from the terminal                                                          |
+| `server/database/schema.sql`                   | Stores the `job_matches` table definition                                                              |
 
 #### Testing Result
 
@@ -836,6 +905,7 @@ node scripts/test-job-matching.js
 ```
 
 **Successful Output:**
+
 ```bash
 [Test] Calculating matches for all users...
 {
@@ -1436,8 +1506,9 @@ SmartHire/
 │   │   │   └── report-resolution.js
 │   │   ├── middleware/
 │   │   │   ├── authMiddleware.js
-│   │   │   └── rateLimiter.js
-│   │   │   └── searchLogger.js
+│   │   │   ├── rateLimiter.js
+│   │   │   ├── searchLogger.js
+│   │   │   └── auditLogger.js
 │   │   ├── routes/
 │   │   │   ├── adminRoutes.js
 │   │   │   ├── applicationRoutes.js
@@ -1460,8 +1531,9 @@ SmartHire/
 │   │   │   ├── jobMatchingService.js
 │   │   │   └── resumeParser.js
 │   │   ├── cron/
-│   │   │   └── dailyJobAlert.js
-│   │   ├──├── utils/
+│   │   │   ├── dailyJobAlert.js
+│   │   │   └── dailyJobMatching.js
+│   │   ├── utils/
 │   │   │    ├── generateToken.js
 │   │   │    └── searchParser.js
 │   │   ├── validator/
@@ -1549,6 +1621,48 @@ Follow these steps to run the project locally in under 15 minutes:
   `cd server`
   `npm run setup-db`
 - This creates all tables and inserts seed data.
+
+### Audit Log Testing
+
+If the `audit_logs` table shows `0` records after database setup, this is expected. The table is created during setup, but records are only inserted after security-sensitive actions occur.
+
+To test audit logging:
+
+1. Start the backend server:
+
+```bash
+cd server
+node server.js
+```
+Perform one of the following actions:
+Successful login
+Failed login
+Password change
+User ban or unban
+User role change
+Job deletion
+Company verification
+Report resolution
+Check the audit logs in MySQL:
+
+```SQL
+SELECT id, user_id, action, ip_address, user_agent, details, created_at
+FROM audit_logs
+ORDER BY created_at DESC;
+```
+
+Expected actions include:
+```bash
+LOGIN_SUCCESS
+LOGIN_FAILURE
+PASSWORD_CHANGE
+ROLE_CHANGE
+USER_BAN
+USER_UNBAN
+JOB_DELETE
+COMPANY_VERIFY
+REPORT_RESOLUTION
+```
 
 ## Email Service Setup
 
@@ -1826,13 +1940,13 @@ Recalculates and stores job match scores for the authenticated job seeker.
 Recalculates job match scores for all job seeker users. This route should be restricted to admin users in production.
 
 **Cover Letters Routes (/api/cover-letters)**
-| Method | Endpoint                   | Description                                           | Access     |
+| Method | Endpoint | Description | Access |
 | ------ | -------------------------- | ----------------------------------------------------- | ---------- |
-| GET    | /cover-letters             | Get all cover letters for the authenticated user      | Job Seeker |
-| POST   | /cover-letters             | Create a new cover letter (name and content required) | Job Seeker |
-| PUT    | /cover-letters/:id         | Update name and/or content (owner only)               | Job Seeker |
-| DELETE | /cover-letters/:id         | Delete a cover letter (owner only)                    | Job Seeker |
-| PUT    | /cover-letters/:id/default | Set a cover letter as default (unsets others)         | Job Seeker |
+| GET | /cover-letters | Get all cover letters for the authenticated user | Job Seeker |
+| POST | /cover-letters | Create a new cover letter (name and content required) | Job Seeker |
+| PUT | /cover-letters/:id | Update name and/or content (owner only) | Job Seeker |
+| DELETE | /cover-letters/:id | Delete a cover letter (owner only) | Job Seeker |
+| PUT | /cover-letters/:id/default | Set a cover letter as default (unsets others) | Job Seeker |
 
 **Create cover letter**
 **POST** `/api/cover-letters`
@@ -1868,6 +1982,14 @@ Recalculates job match scores for all job seeker users. This route should be res
 | GET | `/admin/reports/stats` | Get report statistics (pending, approved, removed, dismissed) | Admin |
 | GET | `/admin/reports/:id` | Get single report details | Admin |
 | PUT | `/admin/reports/:id/status` | Update report status (approved / removed / dismissed) + notify reporter | Admin |
+
+| Method | Endpoint                     | Description      |
+| ------ | ---------------------------- | ---------------- |
+| GET    | `/api/admin/users`           | Get all users    |
+| PUT    | `/api/admin/users/:id/ban`   | Ban user         |
+| PUT    | `/api/admin/users/:id/unban` | Unban user       |
+| PUT    | `/api/admin/users/:id/role`  | Change user role |
+| DELETE | `/api/admin/users/:id`       | Delete user      |
 
 **Reports Routes (/api/reports)**
 | Method | Endpoint | Description | Access |
@@ -2707,23 +2829,22 @@ client/src/components/common/KeyboardShortcuts/
 - Uses simple helper functions for readable student-friendly code
 
 **Supported Shortcuts:**
-| Shortcut  | Action                                          |
+| Shortcut | Action |
 | --------- | ----------------------------------------------- |
-| `Alt + S` | Opens Jobs page and focuses job search input    |
-| `Alt + J` | Opens Jobs page                                 |
-| `Alt + H` | Opens Home page                                 |
+| `Alt + S` | Opens Jobs page and focuses job search input |
+| `Alt + J` | Opens Jobs page |
+| `Alt + H` | Opens Home page |
 | `Alt + D` | Opens correct dashboard based on logged-in role |
-| `Esc`     | Closes modal/help panel or removes focus        |
-| `?`       | Opens or closes keyboard shortcut help panel    |
+| `Esc` | Closes modal/help panel or removes focus |
+| `?` | Opens or closes keyboard shortcut help panel |
 
 **Dashboard Route Mapping:**
-| Role                    | Route                 |
+| Role | Route |
 | ----------------------- | --------------------- |
-| `job_seeker`            | `/dashboard/seeker`   |
-| `employer`              | `/dashboard/employer` |
-| `admin`                 | `/dashboard/admin`    |
-| Guest / unauthenticated | `/login`              |
-
+| `job_seeker` | `/dashboard/seeker` |
+| `employer` | `/dashboard/employer` |
+| `admin` | `/dashboard/admin` |
+| Guest / unauthenticated | `/login` |
 
 ## ResumeUpload Component
 
@@ -2782,56 +2903,58 @@ client/src/components/common/KeyboardShortcuts/
 
 #### Tables Created
 
-| Table                      | Description                                        | Records (seed) |
-| -------------------------- | -------------------------------------------------- | -------------- |
-| **roles**                  | User roles (job_seeker, employer, admin)           | 3              |
-| **companies**              | Company profiles                                   | 3              |
-| **users**                  | User accounts (all roles)                          | 5              |
-| **job_seekers**            | Extended job seeker information                    | 0              |
-| **employers**              | Extended employer information (links to companies) | 0              |
-| **job_categories**         | Job categories                                     | 8              |
-| **job_types**              | Job types (full-time, part-time, etc.)             | 6              |
-| **locations**              | Location master data                               | 7              |
-| **skills**                 | Skills master list                                 | 8              |
-| **jobs**                   | Job postings (FK to companies, categories, etc.)   | 15             |
-| **applications**           | Job applications                                   | 5              |
-| **resumes**                | Stored resume files (audit log)                    | 2              |
-| **saved_jobs**             | Jobs saved/bookmarked by job seekers               | 3              |
-| **shortlisted_candidates** | Employer-shortlisted candidates                    | 2              |
-| **notifications**          | User notifications                                 | 3              |
-| **job_seeker_skills**      | Skills associated with job seekers                 | 6              |
-| **job_required_skills**    | Skills required for each job                       | 7              |
-| **activity_logs**          | System activity audit trail                        | 4              |
-| **contact_messages**       | Contact form submissions                           | 2              |
-| **saved_searches**         | Saved job search criteria with alerts              | 3              |
-| **messages**               | Internal messaging between users                   | 0              |
-| **statistics**             | Aggregated platform statistics                     | 0              |
-| **email_logs**             | Email queue delivery logs                          | 0              |
-| **cron_state**             | Tracks last-run timestamps for scheduled jobs      | 1              |
-| **job_reports**            | User reports on jobs (spam, fraud, etc.)           | 0              |
-| **cover_letters**          | Cover letter templates                             | 0              |
-| **search_logs**            | Search term logs for autocomplete & typo tolerance | 0              |
+| Table                      | Description                                                | Records (seed) |
+| -------------------------- | ---------------------------------------------------------- | -------------- |
+| **roles**                  | User roles (job_seeker, employer, admin)                   | 3              |
+| **companies**              | Company profiles                                           | 3              |
+| **users**                  | User accounts (all roles)                                  | 5              |
+| **job_seekers**            | Extended job seeker information                            | 0              |
+| **employers**              | Extended employer information (links to companies)         | 0              |
+| **job_categories**         | Job categories                                             | 8              |
+| **job_types**              | Job types (full-time, part-time, etc.)                     | 6              |
+| **locations**              | Location master data                                       | 7              |
+| **skills**                 | Skills master list                                         | 8              |
+| **jobs**                   | Job postings (FK to companies, categories, etc.)           | 15             |
+| **applications**           | Job applications                                           | 5              |
+| **resumes**                | Stored resume files (audit log)                            | 2              |
+| **saved_jobs**             | Jobs saved/bookmarked by job seekers                       | 3              |
+| **shortlisted_candidates** | Employer-shortlisted candidates                            | 2              |
+| **notifications**          | User notifications                                         | 3              |
+| **job_seeker_skills**      | Skills associated with job seekers                         | 6              |
+| **job_required_skills**    | Skills required for each job                               | 7              |
+| **activity_logs**          | System activity audit trail                                | 4              |
+| **audit_logs**             | Security-sensitive action logs for forensic analysis       | 0              |
+| **job_matches**            | Stores calculated job matching scores and score breakdowns | 0              |
+| **contact_messages**       | Contact form submissions                                   | 2              |
+| **saved_searches**         | Saved job search criteria with alerts                      | 3              |
+| **messages**               | Internal messaging between users                           | 0              |
+| **statistics**             | Aggregated platform statistics                             | 0              |
+| **email_logs**             | Email queue delivery logs                                  | 0              |
+| **cron_state**             | Tracks last-run timestamps for scheduled jobs              | 1              |
+| **job_reports**            | User reports on jobs (spam, fraud, etc.)                   | 0              |
+| **cover_letters**          | Cover letter templates                                     | 0              |
+| **search_logs**            | Search term logs for autocomplete & typo tolerance         | 0              |
 
 ### job_matches Table
 
 The `job_matches` table stores personalised job recommendation scores generated by the backend job matching algorithm.
 
-| Column | Description |
-| ------ | ----------- |
-| `id` | Primary key |
-| `user_id` | Job seeker user ID |
-| `job_id` | Matched job ID |
-| `match_score` | Final normalised score from 0 to 100 |
-| `keyword_score` | TF-IDF keyword similarity score |
-| `location_score` | Location match score |
-| `job_type_score` | Job type match score |
-| `salary_score` | Salary alignment score |
-| `history_score` | Score based on saved/applied job history |
-| `matching_keywords` | Keywords shared between the user profile and job content |
-| `reason_summary` | Short explanation of why the job was recommended |
-| `last_calculated_at` | Timestamp of the latest score calculation |
-| `created_at` | Record creation timestamp |
-| `updated_at` | Record update timestamp |
+| Column               | Description                                              |
+| -------------------- | -------------------------------------------------------- |
+| `id`                 | Primary key                                              |
+| `user_id`            | Job seeker user ID                                       |
+| `job_id`             | Matched job ID                                           |
+| `match_score`        | Final normalised score from 0 to 100                     |
+| `keyword_score`      | TF-IDF keyword similarity score                          |
+| `location_score`     | Location match score                                     |
+| `job_type_score`     | Job type match score                                     |
+| `salary_score`       | Salary alignment score                                   |
+| `history_score`      | Score based on saved/applied job history                 |
+| `matching_keywords`  | Keywords shared between the user profile and job content |
+| `reason_summary`     | Short explanation of why the job was recommended         |
+| `last_calculated_at` | Timestamp of the latest score calculation                |
+| `created_at`         | Record creation timestamp                                |
+| `updated_at`         | Record update timestamp                                  |
 
 #### Table Purpose
 
@@ -2994,16 +3117,17 @@ SmartHire Sprint 1-2 progress - Currently In Progress:
 
 - FULLTEXT search (`MATCH AGAINST`) with relevance scoring
 - Typo tolerance and autocomplete suggestions (SOUNDEX, prefix searches, search logging)
-- Advanced search operators – support for "exact phrase", -exclude, OR, AND (MySQL boolean mode)
-- Resume parsing (PDF/DOCX) with full CRUD – extracted data stored in `parsed_data` column
-- Auto‑fill profile with parsed resume data – preview panel, editable fields, Save/Discard actions
-- Cover Letters – Full CRUD API + frontend UI (rich text editor, modal, set default)
+- Advanced search operators – support for `"exact phrase"`, `-exclude`, `OR`, and `AND` using MySQL boolean mode
+- Resume parsing (PDF/DOCX) with full CRUD – extracted data is stored in the `parsed_data` column
+- Auto-fill profile with parsed resume data – preview panel, editable fields, Save/Discard actions
+- Cover Letters – Full CRUD API and frontend UI with rich text editor, modal, and set default option
 - Admin Reports Queue UI – Dedicated moderation panel with filters, action buttons, confirmation modal with resolution notes, and email notifications
-- Search Term Logging & Keyword Highlighting – All search terms are logged with user/IP for analytics. Matching keywords are highlighted in job titles and descriptions.
-- Social Login – Google OAuth fully integrated for login, registration, and profile account linking/unlinking.
-- Social Login – LinkedIn button disabled (backend pending, frontend UI present with tooltip)
-- Salary Comparison Badge – On the job details page, a colored pill with tooltip shows how the job's salary compares to market data.
-- SalaryInsights Component – `client/src/components/salary/SalaryInsights.jsx` – a collapsible section that fetches and displays salary trend data (line chart) and percentiles (horizontal bars) for a given job title and location.
+- Search Term Logging & Keyword Highlighting – All search terms are logged with user/IP for analytics, and matching keywords are highlighted in job titles and descriptions
+- Audit Logging – Security-sensitive backend actions are logged asynchronously in the `audit_logs` table for monitoring, accountability, and forensic investigation
+- Social Login – Google OAuth fully integrated for login, registration, and profile account linking/unlinking
+- Social Login – LinkedIn button disabled because backend activation is pending; frontend UI is present with tooltip
+- Salary Comparison Badge – On the job details page, a colored pill with tooltip shows how the job salary compares to market data
+- SalaryInsights Component – `client/src/components/salary/SalaryInsights.jsx` provides a collapsible section that fetches and displays salary trend data
 - Added Skip to Content link
 - Added global keyboard shortcuts
 - Added visible keyboard focus indicators

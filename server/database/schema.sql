@@ -412,5 +412,20 @@ CREATE TABLE IF NOT EXISTS job_matches (
   INDEX idx_job_matches_score (match_score)
 );
 
+-- 28. AUDIT LOGS TABLE
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  action VARCHAR(100) NOT NULL,
+  ip_address VARCHAR(45) NULL,
+  user_agent TEXT NULL,
+  details JSON NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX idx_audit_logs_user_id (user_id),
+  INDEX idx_audit_logs_action (action),
+  INDEX idx_audit_logs_created_at (created_at)
+);
+
 SELECT 'Database schema created successfully' AS Status;
 SELECT COUNT(*) AS total_tables FROM information_schema.tables WHERE table_schema = 'smart_hire';

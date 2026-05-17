@@ -862,5 +862,26 @@
     "saveError": "Could not save search.",
     "editTitle": "Edit Saved Search",
     "createTitle": "Save This Search"
+  },
+  "activityTimeline": {
+    "title": "Recent Activity",
+    "subtitle": "Your latest applications, saved jobs, and alerts in one place.",
+    "loading": "Loading recent activity...",
+    "error": "Could not load recent activity right now.",
+    "empty": "No recent activity yet. Apply, save jobs, or create alerts to see updates here.",
+    "listLabel": "Recent activity sorted from newest to oldest",
+    "openActivity": "Open activity: {{title}}",
+    "newBadge": "New",
+    "applicationLabel": "Application",
+    "applicationTitle": "Applied for {{jobTitle}}",
+    "applicationDescriptionWithCompany": "Application submitted to {{companyName}}",
+    "applicationDescription": "Application submitted",
+    "savedJobLabel": "Saved job",
+    "savedJobTitle": "Saved {{jobTitle}}",
+    "savedJobDescriptionWithCompany": "Saved from {{companyName}}",
+    "savedJobDescription": "Job saved for later review",
+    "alertLabel": "Alert",
+    "alertTitle": "New job alert",
+    "alertDescription": "You received a new alert"
   }
 }

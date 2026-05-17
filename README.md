@@ -72,6 +72,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [LoginPage Component](#loginpage-component)
   - [RegisterPage Component](#registerpage-component)
   - [JobSeekerDashboard Component](#jobseekerdashboard-component)
+  - [RecentActivityTimeline Component](#recentactivitytimeline-component)
   - [EmployerDashboard Component](#employerdashboard-component)
   - [AdminDashboard Component](#admindashboard-component)
   - [ReportsTable Component](#reportstable-component)
@@ -159,6 +160,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Modal focus returns to the triggering element after close
 - Mobile filter drawer, Save Search modal, Report Job modal, Apply modal, and Quick Apply modal updated for keyboard accessibility
 - **Job Matching Algorithm** – Backend recommendation system that calculates personalised job match scores using user skills, previous applications, saved jobs, location preference, job type, salary alignment, and TF-IDF keyword overlap.
+- **Recent Activity Timeline** – Job seekers can view a chronological dashboard activity panel showing recent applications, saved jobs, and alerts. The frontend combines existing activity-related API responses, sorts them from newest to oldest, and displays up to 10 items with Material Symbols icons, accessible links, translated labels, loading state, empty state, error handling, dark mode support, and advanced responsive layouts.
 - **Recommended for You Section** – Frontend recommendation UI integrated into both the HomePage and Job Seeker Dashboard. The section fetches the top recommended jobs from `GET /api/jobs/recommended`, sorts them by highest match score, and displays them using the reusable `JobCard` component. Includes loading state, empty state, error handling, accessibility support, localisation support (English, Spanish, French), responsive layouts, and dark mode compatibility.
 - **Audit Logging** – Security-sensitive backend actions are recorded in the `audit_logs` table for accountability, monitoring, and forensic investigation.
 - Multi-language localisation support (English, Spanish, French)
@@ -822,6 +824,7 @@ Example:
 - NotFoundPage
 - Toast messages
 - Shared form components
+- RecentActivityTimeline
 
 ### Translation Rules
 
@@ -837,6 +840,38 @@ The following dynamic backend values are intentionally NOT translated:
 - Database-driven descriptions
 - API statuses
 
+### Recent Activity Timeline Translations
+
+The Recent Activity Timeline includes translation keys for English, Spanish, and French.
+
+**Translation namespace:**
+
+```json
+"activityTimeline": {
+  "title": "Recent Activity",
+  "subtitle": "Your latest applications, saved jobs, and alerts in one place.",
+  "loading": "Loading recent activity...",
+  "error": "Could not load recent activity right now.",
+  "empty": "No recent activity yet. Apply, save jobs, or create alerts to see updates here.",
+  "listLabel": "Recent activity sorted from newest to oldest",
+  "openActivity": "Open activity: {{title}}",
+  "newBadge": "New",
+  "applicationLabel": "Application",
+  "applicationTitle": "Applied for {{jobTitle}}",
+  "applicationDescriptionWithCompany": "Application submitted to {{companyName}}",
+  "applicationDescription": "Application submitted",
+  "savedJobLabel": "Saved job",
+  "savedJobTitle": "Saved {{jobTitle}}",
+  "savedJobDescriptionWithCompany": "Saved from {{companyName}}",
+  "savedJobDescription": "Job saved for later review",
+  "alertLabel": "Alert",
+  "alertTitle": "New job alert",
+  "alertDescription": "You received a new alert"
+}
+```
+
+Dynamic values such as job titles, company names, timestamps, and backend notification messages remain database-driven and are not manually translated.
+
 ### Saved Searches Feature
 
 - Job seekers can create, read, update, and delete saved search criteria.
@@ -846,7 +881,7 @@ The following dynamic backend values are intentionally NOT translated:
 
 ### Background Email Queue
 
-All transactional emails are now queued and processed asynchronously using Bull and Redis.  
+All transactional emails are now queued and processed asynchronously using Bull and Redis.
 Email sending no longer blocks API responses – the server just enqueues a job and returns immediately.
 
 | Component    | Technology / File        | Purpose                                                        |
@@ -866,19 +901,19 @@ Email sending no longer blocks API responses – the server just enqueues a job 
 
 To avoid spam and improve reliability, the email queue has built‑in rate limiting and automatic retries.
 
-- **Rate limiting (per user):**  
-  Tracks the number of emails triggered by a user within a 60‑second window using Redis.  
-  If a user exceeds 10 emails in that window, the request is rejected with a **429 Too Many Requests** response and the message _“Too many emails. Limit is 10 per minute.”_  
+- **Rate limiting (per user):**
+  Tracks the number of emails triggered by a user within a 60‑second window using Redis.
+  If a user exceeds 10 emails in that window, the request is rejected with a **429 Too Many Requests** response and the message _“Too many emails. Limit is 10 per minute.”_
   The limit resets automatically after 60 seconds.
 
-- **Retry & dead‑letter handling:**  
+- **Retry & dead‑letter handling:**
   When an email delivery fails, Bull automatically retries the job up to **3 times** with a custom backoff:
   - 1st retry after **1 minute**
   - 2nd retry after **5 minutes**
-  - 3rd retry after **15 minutes**  
+  - 3rd retry after **15 minutes**
     If all attempts fail, the job is marked as permanently **failed**, and an alert email is sent to the administrator.
 
-- **Logging:**  
+- **Logging:**
   Every attempt is recorded in the `email_logs` table (`user_id`, `status`, `attempts`, `error_message`), so the full lifecycle of each email can be audited.
 
 ### Email Service Features
@@ -1258,7 +1293,7 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - Match score badge displayed on each recommendation card
 - Responsive CSS grid layout using advanced media queries
 - Empty state shown when recommendations are unavailable:
-`Could not load recommended jobs right now.`
+  `Could not load recommended jobs right now.`
 - Loading state with accessible role="status"
 - Error handling with accessible role="alert"
 - Fully compatible with:
@@ -1398,7 +1433,7 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
   - Welcome message and profile strength statistic
   - Stats cards: Profile Strength, Applied, Interviewing, Offers
   - Recommended jobs section with AI‑matched job cards
-  - Recent activity feed (interview invitations, status updates, profile views)
+  - Recent Activity Timeline showing the user’s latest applications, saved jobs, and alerts in chronological order
 - Applied Jobs tab:
   - List of user’s job applications with status badges (pending, reviewed, interviewing, offered, rejected, hired)
   - Withdraw button for pending applications (with confirmation modal)
@@ -1414,6 +1449,12 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
   - **Auto‑fill profile fields from parsed resume data** – after upload, the system extracts full name, email, phone, skills, work experience, and education. A **preview panel** shows extracted data next to editable form fields. The user can edit any field before saving. **Save Profile** persists final values; **Discard** reverts to original profile data.
 - Fully integrated with backend APIs for applications, saved jobs, profile updates, recommended jobs, and notifications
 - Personalised “Recommended for You” section using AI-generated job match scores
+- Recent Activity panel added to the Overview tab
+- Fetches application, saved job, and alert data using existing frontend API services
+- Displays up to 10 newest activities
+- Each activity item includes an icon, type label, title, short description, timestamp, and related link
+- Uses accessible status handling for loading and error states
+- Fully supports localisation, dark mode, keyboard accessibility, and responsive dashboard layouts
 - Loading skeletons and error toasts
 - Responsive design (mobile, tablet, desktop)
 
@@ -1600,6 +1641,10 @@ SmartHire/
 │   │   │   │   │   ├── ResumeUpload.jsx
 │   │   │   │   │   └── ResumeUpload.css
 │   │   │   │   └── ScrollToTop.jsx
+│   │   │   ├── dashboard/
+│   │   │   │   └── RecentActivityTimeline/
+│   │   │   │       ├── RecentActivityTimeline.jsx
+│   │   │   │       └── RecentActivityTimeline.css
 │   │   │   ├── jobs/
 │   │   │   │   └── JobCard/
 │   │   │   │       ├── JobCard.jsx
@@ -2099,6 +2144,18 @@ Content-Type: application/json
 | GET | `/saved-jobs` | Fetch saved jobs | Job Seeker |
 | POST | `/saved-jobs` | Save a job | Job Seeker |
 | DELETE | `/saved-jobs/:jobId` | Remove saved job | Job Seeker |
+
+**Recent Activity Data Sources**
+
+The Recent Activity Timeline is implemented on the frontend by combining existing API responses into one unified timeline. No separate backend route is required for the current implementation.
+
+| Method | Endpoint / Service                   | Used For                 |
+| ------ | ------------------------------------ | ------------------------ |
+| GET    | `applicationAPI.getMyApplications()` | Recent job applications  |
+| GET    | `savedJobsAPI.getSavedJobs()`        | Recently saved jobs      |
+| GET    | `notificationAPI.getNotifications()` | Alerts and notifications |
+
+The frontend normalises these responses, sorts them by timestamp, and displays the latest 10 items on the Job Seeker Dashboard overview.
 
 **Saved Searches Routes (`/api/saved-searches`)**
 | Method | Endpoint | Description | Access |
@@ -2853,6 +2910,90 @@ client/src/pages/dashboard/jobseeker/
 | **Tablet (768px–1024px)**| Sidebar collapses, full width |
 | **Mobile (<768px)** | Stacked layout |
 
+### RecentActivityTimeline Component
+
+**Location:**
+
+`client/src/components/dashboard/RecentActivityTimeline/RecentActivityTimeline.jsx`
+
+`client/src/components/dashboard/RecentActivityTimeline/RecentActivityTimeline.css`
+
+**Purpose:**
+
+The `RecentActivityTimeline` component displays a chronological list of the job seeker's most recent activity on the dashboard overview. It helps users quickly review their latest applications, saved jobs, and alerts without opening each individual dashboard tab.
+
+**Features:**
+
+- Displays up to 10 recent activity items
+- Combines application, saved job, and notification data into one timeline
+- Sorts activity from newest to oldest
+- Uses Google Material Symbols icons for each activity type
+- Provides clickable links to related jobs or dashboard sections
+- Shows unread alert badges using a translated `New` label
+- Includes loading, empty, and error states
+- Uses `role="status"` for loading messages
+- Uses `role="alert"` for error messages
+- Uses semantic `<section>`, `<h2>`, `<ol>`, `<li>`, and `<time>` elements
+- Supports English, Spanish, and French translations
+- Compatible with dark mode through CSS variables
+- Includes responsive layouts for desktop, tablet, mobile, very small screens, and landscape devices
+- Includes touch-device optimisation
+- Supports reduced motion preferences
+- Supports high contrast mode and Windows forced-colors accessibility mode
+- Includes print-friendly styling
+
+**Data Sources:**
+
+The component uses existing frontend API service functions instead of requiring a new backend endpoint.
+
+| Activity Type          | API Service Function                 | Purpose                                      |
+| ---------------------- | ------------------------------------ | -------------------------------------------- |
+| Applications           | `applicationAPI.getMyApplications()` | Fetches jobs the user has applied for        |
+| Saved Jobs             | `savedJobsAPI.getSavedJobs()`        | Fetches jobs saved by the user               |
+| Alerts / Notifications | `notificationAPI.getNotifications()` | Fetches recent user alerts and notifications |
+
+**Implementation Logic:**
+
+The component uses `Promise.allSettled()` to fetch all activity-related data in parallel. This prevents one failed request from breaking the entire activity panel. If one API fails but others succeed, the timeline still displays the available activity data. If all requests fail, an accessible error message is displayed.
+
+The fetched data is normalised into a shared activity format:
+
+```js
+{
+  id: "activity-id",
+  type: "application | savedJob | alert",
+  icon: "material_symbol_name",
+  timestamp: "created_at_or_related_date",
+  link: "/related-page",
+  title: "Activity title",
+  description: "Activity description"
+}
+```
+
+After normalisation, all items are sorted by timestamp and limited to the 10 most recent activities.
+
+**Accessibility Features:**
+
+- The section uses aria-labelledby connected to the section heading
+- Loading state uses role="status" and aria-live="polite"
+- Error state uses role="alert"
+- Decorative icons use aria-hidden="true"
+- Activity links include translated aria-label values
+- Activity dates use semantic <time> elements with dateTime
+- The timeline uses an ordered list because the activities are chronological
+
+**Responsive Behaviour:**
+
+- Large dashboard screens use wider spacing and larger icons
+- Laptop and tablet layouts reduce spacing while keeping the card layout readable
+- Mobile layouts reduce padding and font sizes
+- Very small screens stack the icon and content vertically
+- Landscape phone screens reduce spacing for short viewport heights
+- Touch devices disable hover-only movement and improve tap target size
+- Reduced motion disables transform animations
+- High contrast and forced-colors modes add stronger borders
+- Print mode removes shadows and uses black-and-white readable styling
+
 ### EmployerDashboard Component
 
 **Location:** `client/src/pages/dashboard/employer/EmployerDashboard.jsx`
@@ -3171,70 +3312,78 @@ This table allows SmartHire to store precomputed job recommendations instead of 
 
 ## Troubleshooting
 
-| Issue                                             | Resolution                                                                      |
-| ------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Navbar items squished                             | Restart Vite environment using `rm -rf node_modules/.vite && npm run dev`       |
-| CSS not applying                                  | Verify correctness of import paths in component files                           |
-| JobCard not showing                               | Validate API response structure and component props                             |
-| Footer not sticky                                 | Apply `min-height: 100vh` and `flex-direction: column` to layout                |
-| Form validation not working                       | Verify `validators.js` import path                                              |
-| HomePage featured jobs not showing                | Ensure featured jobs exist within the database                                  |
-| Search redirect not working                       | Validate `AuthContext` configuration and route guards                           |
-| Icons not showing                                 | Include Google Fonts link in `index.html`                                       |
-| Filters not working                               | Validate URL query parameters, backend filters, and state management            |
-| Mobile filter drawer not showing                  | Review CSS media query configurations                                           |
-| Apply button not working                          | Verify authentication state and user role permissions                           |
-| Similar jobs not showing                          | Validate backend query logic for similar jobs                                   |
-| Company search not working                        | Ensure companies endpoint returns valid dataset                                 |
-| Company cards not showing                         | Verify `CompanyCard` component import                                           |
-| Company details not showing                       | Validate company ID in URL and API response                                     |
-| Database connection error                         | Ensure MySQL service is running and `.env` configuration is correct             |
-| Protected route redirecting                       | Validate `AuthContext` and token persistence logic                              |
-| 404 page not showing                              | Ensure wildcard (`*`) route is defined last in routing configuration            |
-| Login not working                                 | Validate test credentials and authentication logic                              |
-| Toast notifications not showing                   | Ensure `react-hot-toast` is installed and `<Toaster />` is rendered             |
-| 500 Internal Server Error                         | Inspect server logs and verify database schema                                  |
-| JWT_SECRET missing                                | Define `JWT_SECRET` in `.env` (minimum 32 characters)                           |
-| Rate limit exceeded                               | Wait cooldown period or restart server instance                                 |
-| Apply button stays enabled after applying         | Validate application status handling from backend                               |
-| Saved jobs not appearing in dashboard             | Verify `saved_jobs` API response integrity                                      |
-| Charts not loading                                | Validate Recharts integration and `/api/admin/stats/overview` endpoint          |
-| Email not sending                                 | Verify SMTP configuration and run test script                                   |
-| Save search modal not opening                     | Validate `SaveSearchModal` import and state logic                               |
-| Saved search limit not enforced                   | Implement backend constraint (maximum 10 per user)                              |
-| 429 Too Many Requests (email)                     | Wait 60 seconds before retrying request                                         |
-| Resume upload not appearing                       | Verify `ResumeUpload` component integration and `resumeUrl` binding             |
-| Drag-and-drop not working                         | Validate file constraints and event handlers                                    |
-| Progress bar not showing                          | Verify `USE_MOCK=true` flag or API integration                                  |
-| Delete resume fails                               | Validate backend endpoint or test with mock mode                                |
-| Cron job not running                              | Ensure `startDailyJobAlert()` is invoked and Redis is operational               |
-| Unsubscribe link invalid                          | Regenerate tokens using UUID update query                                       |
-| Daily alert email not received                    | Validate `cron_state.last_run` and job availability                             |
-| Report not submitting                             | Verify `jobId`, authentication state, and Redis availability                    |
-| Rate limit hit on reports                         | Wait 24 hours or reset Redis key                                                |
-| Resume upload fails with "Unexpected end of form" | Ensure file integrity; use valid text-based PDF                                 |
-| Resume upload parsed_data is NULL                 | Parser failure (likely scanned PDF); use text-based PDF                         |
-| Resume record not stored in database              | Verify DB insert logic, `req.user.id`, and schema                               |
-| Cover letter creation fails                       | Ensure `cover_letters` table exists and DB connection is active                 |
-| FULLTEXT search error                             | Add FULLTEXT index on relevant columns                                          |
-| SQL syntax error on search                        | Apply fallback logic (`sort='recent'`) when query is empty                      |
-| Suggestions endpoint returns empty                | Populate `search_logs` via prior search queries                                 |
-| Cover letter not saving                           | Validate input fields, inspect browser console, ensure backend routing          |
-| Rich text editor not showing                      | Install `react-quill-new` and import stylesheet                                 |
-| Reports not loading in Admin Dashboard            | Validate `/api/admin/reports` endpoint and filtering logic                      |
-| Confirmation modal not opening                    | Verify `isModalOpen` state and CSS imports                                      |
-| Report email not sent                             | Ensure Bull/Redis queue and template configuration                              |
-| Resolved report still visible                     | Refresh data via `fetchReportsData()` or validate pagination                    |
-| Report resolution failure toast                   | Ensure report is not already resolved                                           |
-| Charts not updating on date change                | Validate `dateRange` state propagation                                          |
-| CSV export not downloading                        | Verify `downloadCSV` implementation and data availability                       |
-| Auto-refresh not triggering                       | Ensure toggle state and `setInterval` execution                                 |
-| Last refresh timestamp not updating               | Ensure timestamp update within `fetchData()`                                    |
-| Profile incomplete on Apply with Resume           | Complete required profile fields in dashboard                                   |
-| Salary Insights chart not showing                 | Verify `chart.js` and `react-chartjs-2` installation and backend data integrity |
-| Theme not persisting after page reload            | Check `localStorage` integration in `ThemeContext.jsx`                          |
-| Theme toggle button not visible                   | Verify `ThemeContext` is imported and used in `Navbar.jsx`                      |
-| Dark mode colors not applying                     | Ensure `data-theme` attribute is set on `<html>` and CSS variables are correct  |
+| Issue                                             | Resolution                                                                                                                               |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Navbar items squished                             | Restart Vite environment using `rm -rf node_modules/.vite && npm run dev`                                                                |
+| CSS not applying                                  | Verify correctness of import paths in component files                                                                                    |
+| JobCard not showing                               | Validate API response structure and component props                                                                                      |
+| Footer not sticky                                 | Apply `min-height: 100vh` and `flex-direction: column` to layout                                                                         |
+| Form validation not working                       | Verify `validators.js` import path                                                                                                       |
+| HomePage featured jobs not showing                | Ensure featured jobs exist within the database                                                                                           |
+| Search redirect not working                       | Validate `AuthContext` configuration and route guards                                                                                    |
+| Icons not showing                                 | Include Google Fonts link in `index.html`                                                                                                |
+| Filters not working                               | Validate URL query parameters, backend filters, and state management                                                                     |
+| Mobile filter drawer not showing                  | Review CSS media query configurations                                                                                                    |
+| Apply button not working                          | Verify authentication state and user role permissions                                                                                    |
+| Similar jobs not showing                          | Validate backend query logic for similar jobs                                                                                            |
+| Company search not working                        | Ensure companies endpoint returns valid dataset                                                                                          |
+| Company cards not showing                         | Verify `CompanyCard` component import                                                                                                    |
+| Company details not showing                       | Validate company ID in URL and API response                                                                                              |
+| Database connection error                         | Ensure MySQL service is running and `.env` configuration is correct                                                                      |
+| Protected route redirecting                       | Validate `AuthContext` and token persistence logic                                                                                       |
+| 404 page not showing                              | Ensure wildcard (`*`) route is defined last in routing configuration                                                                     |
+| Login not working                                 | Validate test credentials and authentication logic                                                                                       |
+| Toast notifications not showing                   | Ensure `react-hot-toast` is installed and `<Toaster />` is rendered                                                                      |
+| 500 Internal Server Error                         | Inspect server logs and verify database schema                                                                                           |
+| JWT_SECRET missing                                | Define `JWT_SECRET` in `.env` (minimum 32 characters)                                                                                    |
+| Rate limit exceeded                               | Wait cooldown period or restart server instance                                                                                          |
+| Apply button stays enabled after applying         | Validate application status handling from backend                                                                                        |
+| Saved jobs not appearing in dashboard             | Verify `saved_jobs` API response integrity                                                                                               |
+| Charts not loading                                | Validate Recharts integration and `/api/admin/stats/overview` endpoint                                                                   |
+| Email not sending                                 | Verify SMTP configuration and run test script                                                                                            |
+| Save search modal not opening                     | Validate `SaveSearchModal` import and state logic                                                                                        |
+| Saved search limit not enforced                   | Implement backend constraint (maximum 10 per user)                                                                                       |
+| 429 Too Many Requests (email)                     | Wait 60 seconds before retrying request                                                                                                  |
+| Resume upload not appearing                       | Verify `ResumeUpload` component integration and `resumeUrl` binding                                                                      |
+| Drag-and-drop not working                         | Validate file constraints and event handlers                                                                                             |
+| Progress bar not showing                          | Verify `USE_MOCK=true` flag or API integration                                                                                           |
+| Delete resume fails                               | Validate backend endpoint or test with mock mode                                                                                         |
+| Cron job not running                              | Ensure `startDailyJobAlert()` is invoked and Redis is operational                                                                        |
+| Unsubscribe link invalid                          | Regenerate tokens using UUID update query                                                                                                |
+| Daily alert email not received                    | Validate `cron_state.last_run` and job availability                                                                                      |
+| Report not submitting                             | Verify `jobId`, authentication state, and Redis availability                                                                             |
+| Rate limit hit on reports                         | Wait 24 hours or reset Redis key                                                                                                         |
+| Resume upload fails with "Unexpected end of form" | Ensure file integrity; use valid text-based PDF                                                                                          |
+| Resume upload parsed_data is NULL                 | Parser failure (likely scanned PDF); use text-based PDF                                                                                  |
+| Resume record not stored in database              | Verify DB insert logic, `req.user.id`, and schema                                                                                        |
+| Cover letter creation fails                       | Ensure `cover_letters` table exists and DB connection is active                                                                          |
+| FULLTEXT search error                             | Add FULLTEXT index on relevant columns                                                                                                   |
+| SQL syntax error on search                        | Apply fallback logic (`sort='recent'`) when query is empty                                                                               |
+| Suggestions endpoint returns empty                | Populate `search_logs` via prior search queries                                                                                          |
+| Cover letter not saving                           | Validate input fields, inspect browser console, ensure backend routing                                                                   |
+| Rich text editor not showing                      | Install `react-quill-new` and import stylesheet                                                                                          |
+| Reports not loading in Admin Dashboard            | Validate `/api/admin/reports` endpoint and filtering logic                                                                               |
+| Confirmation modal not opening                    | Verify `isModalOpen` state and CSS imports                                                                                               |
+| Report email not sent                             | Ensure Bull/Redis queue and template configuration                                                                                       |
+| Resolved report still visible                     | Refresh data via `fetchReportsData()` or validate pagination                                                                             |
+| Report resolution failure toast                   | Ensure report is not already resolved                                                                                                    |
+| Charts not updating on date change                | Validate `dateRange` state propagation                                                                                                   |
+| CSV export not downloading                        | Verify `downloadCSV` implementation and data availability                                                                                |
+| Auto-refresh not triggering                       | Ensure toggle state and `setInterval` execution                                                                                          |
+| Last refresh timestamp not updating               | Ensure timestamp update within `fetchData()`                                                                                             |
+| Profile incomplete on Apply with Resume           | Complete required profile fields in dashboard                                                                                            |
+| Salary Insights chart not showing                 | Verify `chart.js` and `react-chartjs-2` installation and backend data integrity                                                          |
+| Theme not persisting after page reload            | Check `localStorage` integration in `ThemeContext.jsx`                                                                                   |
+| Theme toggle button not visible                   | Verify `ThemeContext` is imported and used in `Navbar.jsx`                                                                               |
+| Dark mode colors not applying                     | Ensure `data-theme` attribute is set on `<html>` and CSS variables are correct                                                           |
+| Recent Activity panel not showing                 | Ensure the logged-in user role is `job_seeker` and the component is rendered inside `JobSeekerDashboard.jsx`                             |
+| Recent Activity panel shows empty state           | Confirm the user has applications, saved jobs, or notifications in the database                                                          |
+| Recent Activity API data not loading              | Check `applicationAPI.getMyApplications()`, `savedJobsAPI.getSavedJobs()`, and `notificationAPI.getNotifications()` in `services/api.js` |
+| Activity links go to wrong page                   | Verify that each response includes a valid `job_id`, `job.id`, or notification link                                                      |
+| Activity dates not sorting correctly              | Check that API responses include valid `created_at`, `applied_at`, or `saved_at` timestamps                                              |
+| Activity translations not showing                 | Confirm `activityTimeline` keys exist in English, Spanish, and French translation files                                                  |
+| Timeline styling not applying                     | Verify `RecentActivityTimeline.css` is imported inside `RecentActivityTimeline.jsx`                                                      |
+| Timeline layout breaks on mobile                  | Confirm the advanced media queries are included at the bottom of `RecentActivityTimeline.css`                                            |
 
 ## Contributing
 
@@ -3275,6 +3424,11 @@ This table allows SmartHire to store precomputed job recommendations instead of 
 - Add RTL language support
 - Add backend-driven translation management
 - Add lazy-loaded translation namespaces
+- Add a dedicated backend endpoint such as `GET /api/activity/me?limit=10` to return a pre-unified activity timeline from the server.
+- Add more activity types such as interview invitations, profile updates, employer profile views, recommendation recalculations, and cover letter changes.
+- Add relative time formatting such as “2 hours ago” or “Yesterday”.
+- Add filter tabs for All, Applications, Saved Jobs, and Alerts.
+- Add real-time activity updates using WebSocket or Server-Sent Events.
 
 ## License
 

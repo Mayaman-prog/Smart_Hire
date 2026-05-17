@@ -1,0 +1,497 @@
+/* Main recent activity card container */
+.recent-activity-timeline {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  margin: var(--spacing-2xl) 0;
+  padding: clamp(var(--spacing-lg), 3vw, var(--spacing-xl));
+  width: 100%;
+}
+
+/* Header area for title and subtitle */
+.recent-activity-header {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Short explanation under the section title */
+.recent-activity-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  line-height: 1.6;
+  margin: var(--spacing-xs) 0 0;
+}
+
+/* Ordered list is used because activity has chronological meaning */
+.recent-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Individual activity item card */
+.recent-activity-item {
+  align-items: flex-start;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Small hover effect for better visual feedback */
+.recent-activity-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Icon circle for each activity type */
+.recent-activity-icon {
+  align-items: center;
+  background: var(--secondary-color);
+  border-radius: var(--radius-full);
+  color: var(--primary-color);
+  display: inline-flex;
+  flex: 0 0 44px;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+/* Material Symbols icon sizing */
+.recent-activity-icon .material-symbols-outlined {
+  font-size: 24px;
+}
+
+/* Main text content beside the icon */
+.recent-activity-content {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Row for activity type and unread badge */
+.recent-activity-meta-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Shared pill style for labels */
+.recent-activity-label,
+.recent-activity-unread {
+  border-radius: var(--radius-full);
+  font-size: var(--font-xs);
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 2px 10px;
+}
+
+/* Activity type label */
+.recent-activity-label {
+  background: var(--light-gray);
+  color: var(--text-secondary);
+}
+
+/* New badge for unread alerts */
+.recent-activity-unread {
+  background: var(--primary-color);
+  color: #ffffff;
+}
+
+/* Clickable activity title */
+.recent-activity-link {
+  color: var(--text-primary);
+  display: inline-block;
+  font-size: var(--font-md);
+  font-weight: 700;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+/* Link hover state */
+.recent-activity-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Activity supporting description */
+.recent-activity-description {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  line-height: 1.5;
+  margin: var(--spacing-xs) 0;
+}
+
+/* Date and time text */
+.recent-activity-time {
+  color: var(--text-muted);
+  display: inline-block;
+  font-size: var(--font-xs);
+  font-weight: 500;
+}
+
+/* Loading, error, and empty state box */
+.recent-activity-status {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  padding: var(--spacing-xl);
+  text-align: center;
+}
+
+/* Empty state text */
+.recent-activity-empty {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Dark mode compatibility */
+[data-theme="dark"] .recent-activity-timeline,
+.dark .recent-activity-timeline {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+/* Dark mode item and status styling */
+[data-theme="dark"] .recent-activity-item,
+.dark .recent-activity-item,
+[data-theme="dark"] .recent-activity-status,
+.dark .recent-activity-status {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+/* Responsive */
+/* Large dashboard screens */
+@media (min-width: 1200px) {
+  .recent-activity-timeline {
+    padding: var(--spacing-xl);
+  }
+
+  .recent-activity-list {
+    gap: var(--spacing-lg);
+  }
+
+  .recent-activity-item {
+    padding: var(--spacing-lg);
+  }
+
+  .recent-activity-icon {
+    flex-basis: 48px;
+    height: 48px;
+    width: 48px;
+  }
+
+  .recent-activity-icon .material-symbols-outlined {
+    font-size: 26px;
+  }
+}
+
+/* Medium desktop and small laptop screens */
+@media (max-width: 1024px) {
+  .recent-activity-timeline {
+    margin: var(--spacing-xl) 0;
+    padding: clamp(var(--spacing-md), 2.5vw, var(--spacing-xl));
+  }
+
+  .recent-activity-header {
+    gap: var(--spacing-sm);
+  }
+
+  .recent-activity-item {
+    gap: var(--spacing-sm);
+  }
+}
+
+/* Tablet layout */
+@media (max-width: 768px) {
+  .recent-activity-timeline {
+    border-radius: var(--radius-lg);
+    margin: var(--spacing-xl) 0;
+    padding: var(--spacing-lg);
+  }
+
+  .recent-activity-header {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .recent-activity-subtitle {
+    font-size: var(--font-xs);
+    max-width: 100%;
+  }
+
+  .recent-activity-list {
+    gap: var(--spacing-sm);
+  }
+
+  .recent-activity-item {
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+  }
+
+  .recent-activity-icon {
+    flex-basis: 40px;
+    height: 40px;
+    width: 40px;
+  }
+
+  .recent-activity-icon .material-symbols-outlined {
+    font-size: 22px;
+  }
+
+  .recent-activity-link {
+    font-size: var(--font-sm);
+  }
+
+  .recent-activity-description {
+    font-size: var(--font-xs);
+  }
+}
+
+/* Large mobile layout */
+@media (max-width: 640px) {
+  .recent-activity-timeline {
+    padding: var(--spacing-md);
+  }
+
+  .recent-activity-item {
+    align-items: flex-start;
+    border-radius: var(--radius-md);
+  }
+
+  .recent-activity-meta-row {
+    gap: 6px;
+  }
+
+  .recent-activity-label,
+  .recent-activity-unread {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+
+  .recent-activity-status {
+    padding: var(--spacing-lg);
+  }
+}
+
+/* Small mobile layout */
+@media (max-width: 480px) {
+  .recent-activity-timeline {
+    border-radius: var(--radius-md);
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-sm);
+  }
+
+  .recent-activity-header {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .recent-activity-item {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .recent-activity-icon {
+    flex-basis: 36px;
+    height: 36px;
+    width: 36px;
+  }
+
+  .recent-activity-icon .material-symbols-outlined {
+    font-size: 20px;
+  }
+
+  .recent-activity-link {
+    font-size: var(--font-sm);
+    line-height: 1.35;
+  }
+
+  .recent-activity-description {
+    font-size: var(--font-xs);
+    line-height: 1.45;
+  }
+
+  .recent-activity-time {
+    font-size: 11px;
+  }
+}
+
+/* Very small mobile screens */
+@media (max-width: 360px) {
+  .recent-activity-timeline {
+    padding: 10px;
+  }
+
+  .recent-activity-item {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .recent-activity-icon {
+    flex-basis: 34px;
+    height: 34px;
+    width: 34px;
+  }
+
+  .recent-activity-content {
+    width: 100%;
+  }
+
+  .recent-activity-meta-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .recent-activity-link {
+    word-break: break-word;
+  }
+}
+
+/* Landscape phones and short-height screens */
+@media (max-height: 520px) and (orientation: landscape) {
+  .recent-activity-timeline {
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+  }
+
+  .recent-activity-list {
+    gap: var(--spacing-xs);
+  }
+
+  .recent-activity-item {
+    padding: var(--spacing-sm);
+  }
+
+  .recent-activity-description {
+    margin: 4px 0;
+  }
+}
+
+/* Touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .recent-activity-item:hover {
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transform: none;
+  }
+
+  .recent-activity-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Devices that support hover */
+@media (hover: hover) and (pointer: fine) {
+  .recent-activity-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .recent-activity-item,
+  .recent-activity-link {
+    transition: none;
+  }
+
+  .recent-activity-item:hover {
+    transform: none;
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: more) {
+  .recent-activity-timeline,
+  .recent-activity-item,
+  .recent-activity-status {
+    border: 2px solid currentColor;
+  }
+
+  .recent-activity-link {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .recent-activity-icon {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Windows forced-colors accessibility mode */
+@media (forced-colors: active) {
+  .recent-activity-timeline,
+  .recent-activity-item,
+  .recent-activity-status,
+  .recent-activity-icon,
+  .recent-activity-label,
+  .recent-activity-unread {
+    border: 1px solid CanvasText;
+  }
+
+  .recent-activity-icon,
+  .recent-activity-label,
+  .recent-activity-unread {
+    forced-color-adjust: none;
+  }
+
+  .recent-activity-link {
+    color: LinkText;
+  }
+}
+
+/* Print layout */
+@media print {
+  .recent-activity-timeline {
+    background: #ffffff;
+    border: 1px solid #000000;
+    box-shadow: none;
+    margin: 0 0 16px;
+    padding: 16px;
+  }
+
+  .recent-activity-item {
+    background: #ffffff;
+    border: 1px solid #000000;
+    box-shadow: none;
+    page-break-inside: avoid;
+    transform: none;
+  }
+
+  .recent-activity-icon {
+    border: 1px solid #000000;
+  }
+
+  .recent-activity-link {
+    color: #000000;
+    text-decoration: underline;
+  }
+
+  .recent-activity-description,
+  .recent-activity-time,
+  .recent-activity-subtitle {
+    color: #000000;
+  }
+}

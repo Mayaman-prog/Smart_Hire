@@ -862,5 +862,26 @@
     "saveError": "No se pudo guardar la búsqueda.",
     "editTitle": "Editar búsqueda guardada",
     "createTitle": "Guardar esta búsqueda"
+  },
+  "activityTimeline": {
+    "title": "Actividad reciente",
+    "subtitle": "Tus solicitudes, empleos guardados y alertas más recientes en un solo lugar.",
+    "loading": "Cargando actividad reciente...",
+    "error": "No se pudo cargar la actividad reciente en este momento.",
+    "empty": "Aún no hay actividad reciente. Postúlate, guarda empleos o crea alertas para ver actualizaciones aquí.",
+    "listLabel": "Actividad reciente ordenada de la más nueva a la más antigua",
+    "openActivity": "Abrir actividad: {{title}}",
+    "newBadge": "Nuevo",
+    "applicationLabel": "Solicitud",
+    "applicationTitle": "Te postulaste a {{jobTitle}}",
+    "applicationDescriptionWithCompany": "Solicitud enviada a {{companyName}}",
+    "applicationDescription": "Solicitud enviada",
+    "savedJobLabel": "Empleo guardado",
+    "savedJobTitle": "Guardaste {{jobTitle}}",
+    "savedJobDescriptionWithCompany": "Guardado de {{companyName}}",
+    "savedJobDescription": "Empleo guardado para revisarlo después",
+    "alertLabel": "Alerta",
+    "alertTitle": "Nueva alerta de empleo",
+    "alertDescription": "Recibiste una nueva alerta"
   }
 }

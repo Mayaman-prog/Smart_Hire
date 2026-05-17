@@ -862,5 +862,26 @@
     "saveError": "Impossible d’enregistrer la recherche.",
     "editTitle": "Modifier la recherche enregistrée",
     "createTitle": "Enregistrer cette recherche"
+  },
+  "activityTimeline": {
+    "title": "Activité récente",
+    "subtitle": "Vos dernières candidatures, emplois enregistrés et alertes au même endroit.",
+    "loading": "Chargement de l’activité récente...",
+    "error": "Impossible de charger l’activité récente pour le moment.",
+    "empty": "Aucune activité récente pour le moment. Postulez, enregistrez des emplois ou créez des alertes pour voir les mises à jour ici.",
+    "listLabel": "Activité récente triée de la plus récente à la plus ancienne",
+    "openActivity": "Ouvrir l’activité : {{title}}",
+    "newBadge": "Nouveau",
+    "applicationLabel": "Candidature",
+    "applicationTitle": "Candidature envoyée pour {{jobTitle}}",
+    "applicationDescriptionWithCompany": "Candidature envoyée à {{companyName}}",
+    "applicationDescription": "Candidature envoyée",
+    "savedJobLabel": "Emploi enregistré",
+    "savedJobTitle": "{{jobTitle}} enregistré",
+    "savedJobDescriptionWithCompany": "Enregistré depuis {{companyName}}",
+    "savedJobDescription": "Emploi enregistré pour consultation ultérieure",
+    "alertLabel": "Alerte",
+    "alertTitle": "Nouvelle alerte emploi",
+    "alertDescription": "Vous avez reçu une nouvelle alerte"
   }
 }

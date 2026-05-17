@@ -4,6 +4,12 @@ const { pool } = require("../config/database");
 const generateToken = require("../utils/generateToken");
 const { addEmailJob } = require("../queues/emailQueue");
 const { logAction } = require("../middleware/auditLogger");
+const {
+  getLoginLockState,
+  recordFailedLoginAttempt,
+  clearLoginFailureState,
+  formatLockDuration,
+} = require("../services/loginSecurityService");
 
 // VALIDATION
 const registerValidation = [
@@ -18,7 +24,10 @@ const registerValidation = [
   body("companyName").optional(),
 ];
 
-const loginValidation = [body("email").isEmail(), body("password").notEmpty()];
+const loginValidation = [
+  body("email").isEmail().withMessage("Valid email required").normalizeEmail(),
+  body("password").notEmpty().withMessage("Password required"),
+];
 
 // Builds audit details for login events because login happens before req.user exists.
 const getAuditDetails = (req, details = {}) => ({
@@ -33,6 +42,16 @@ const getAuditDetails = (req, details = {}) => ({
   path: req.originalUrl,
 });
 
+const sendLockedResponse = (res, secondsRemaining) => {
+  return res.status(423).json({
+    success: false,
+    message: `Too many failed login attempts. This account is locked for ${formatLockDuration(
+      secondsRemaining,
+    )}.`,
+    retryAfterSeconds: secondsRemaining,
+  });
+};
+
 // REGISTER
 const register = async (req, res) => {
   let connection;
@@ -45,7 +64,7 @@ const register = async (req, res) => {
 
     const { email, password, name, role, companyName } = req.body;
 
-    // check existing user
+    // Check if the email is already registered.
     const [existing] = await pool.query(
       "SELECT id FROM users WHERE email = ?",
       [email],
@@ -63,7 +82,7 @@ const register = async (req, res) => {
     connection = await pool.getConnection();
     await connection.beginTransaction();
 
-    // insert user
+    // Create the base user record first.
     const [userResult] = await connection.query(
       `INSERT INTO users (email, password_hash, name, role, is_active, created_at)
        VALUES (?, ?, ?, ?, 1, NOW())`,
@@ -72,7 +91,6 @@ const register = async (req, res) => {
 
     const userId = userResult.insertId;
 
-    // employer
     if (role === "employer") {
       const [company] = await connection.query(
         "INSERT INTO companies (name, is_verified, created_at) VALUES (?, 0, NOW())",
@@ -102,7 +120,6 @@ const register = async (req, res) => {
     await connection.commit();
     connection.release();
 
-    // get user
     const [newUser] = await pool.query(
       `SELECT u.id, u.email, u.name, u.role, u.company_id, c.name AS company_name
        FROM users u
@@ -113,7 +130,6 @@ const register = async (req, res) => {
 
     const user = newUser[0];
 
-    // email job
     try {
       await addEmailJob({
         userId,
@@ -153,6 +169,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const errors = validationResult(req);
+    const submittedEmail = req.body?.email || null;
 
     if (!errors.isEmpty()) {
       logAction(
@@ -160,8 +177,8 @@ const login = async (req, res) => {
         "LOGIN_FAILURE",
         getAuditDetails(req, {
           reason: "validation_failed",
-          email: req.body?.email || null,
-        })
+          email: submittedEmail,
+        }),
       );
 
       return res.status(400).json({ success: false, errors: errors.array() });
@@ -169,19 +186,48 @@ const login = async (req, res) => {
 
     const { email, password } = req.body;
 
+    const lockState = await getLoginLockState(email);
+
+    if (lockState.locked) {
+      logAction(
+        null,
+        "LOGIN_BLOCKED_LOCKOUT",
+        getAuditDetails(req, {
+          reason: "account_locked",
+          email,
+          retry_after_seconds: lockState.secondsRemaining,
+        }),
+      );
+
+      return sendLockedResponse(res, lockState.secondsRemaining);
+    }
+
     const [users] = await pool.query(`SELECT * FROM users WHERE email = ?`, [
       email,
     ]);
 
     if (users.length === 0) {
+      const failureState = await recordFailedLoginAttempt({
+        email,
+        userId: null,
+        req,
+        reason: "user_not_found",
+      });
+
       logAction(
         null,
         "LOGIN_FAILURE",
         getAuditDetails(req, {
           reason: "user_not_found",
           email,
-        })
+          failed_attempts: failureState.attempts,
+          attempts_remaining: failureState.attemptsRemaining,
+        }),
       );
+
+      if (failureState.locked) {
+        return sendLockedResponse(res, failureState.secondsRemaining);
+      }
 
       return res.status(401).json({
         success: false,
@@ -198,7 +244,7 @@ const login = async (req, res) => {
         getAuditDetails(req, {
           reason: "account_disabled",
           email,
-        })
+        }),
       );
 
       return res.status(403).json({
@@ -210,20 +256,35 @@ const login = async (req, res) => {
     const match = await bcrypt.compare(password, user.password_hash);
 
     if (!match) {
+      const failureState = await recordFailedLoginAttempt({
+        email,
+        userId: user.id,
+        req,
+        reason: "invalid_password",
+      });
+
       logAction(
         user.id,
         "LOGIN_FAILURE",
         getAuditDetails(req, {
           reason: "invalid_password",
           email,
-        })
+          failed_attempts: failureState.attempts,
+          attempts_remaining: failureState.attemptsRemaining,
+        }),
       );
+
+      if (failureState.locked) {
+        return sendLockedResponse(res, failureState.secondsRemaining);
+      }
 
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
       });
     }
+
+    await clearLoginFailureState(email);
 
     await pool.query("UPDATE users SET last_login = NOW() WHERE id=?", [
       user.id,
@@ -235,7 +296,7 @@ const login = async (req, res) => {
       getAuditDetails(req, {
         email,
         role: user.role,
-      })
+      }),
     );
 
     const { password_hash, ...safeUser } = user;
@@ -269,7 +330,7 @@ const getProfile = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Prevent caching to ensure fresh data
+    // Prevent profile caching so account and social link data stay fresh.
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");

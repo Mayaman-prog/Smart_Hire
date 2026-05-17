@@ -163,13 +163,16 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - **Recent Activity Timeline** – Job seekers can view a chronological dashboard activity panel showing recent applications, saved jobs, and alerts. The frontend combines existing activity-related API responses, sorts them from newest to oldest, and displays up to 10 items with Material Symbols icons, accessible links, translated labels, loading state, empty state, error handling, dark mode support, and advanced responsive layouts.
 - **Recommended for You Section** – Frontend recommendation UI integrated into both the HomePage and Job Seeker Dashboard. The section fetches the top recommended jobs from `GET /api/jobs/recommended`, sorts them by highest match score, and displays them using the reusable `JobCard` component. Includes loading state, empty state, error handling, accessibility support, localisation support (English, Spanish, French), responsive layouts, and dark mode compatibility.
 - **Audit Logging** – Security-sensitive backend actions are recorded in the `audit_logs` table for accountability, monitoring, and forensic investigation.
-- Multi-language localisation support (English, Spanish, French)
-- Dynamic frontend translation using i18next
-- Language switcher integrated into Navbar
-- Automatic browser language detection
-- Translation support for buttons, labels, placeholders, headings, modals, empty states, and accessibility labels
-- Translation-ready architecture using JSON locale files
-- ARIA labels translated for screen readers
+- Multi-language localisation support for English, Spanish, and French
+- Dynamic frontend translation using `i18next` and `react-i18next`
+- Language switcher integrated into the Navbar
+- Persistent language preference using `localStorage`
+- Automatic saved language loading on app start
+- Browser language fallback when no saved language exists
+- Dynamic `<html lang="">` update for accessibility
+- Translation support for buttons, labels, placeholders, headings, modals, empty states, dashboard sections, and accessibility labels
+- Translation-ready JSON locale architecture for future language expansion
+- ARIA labels translated for screen reader users
 
 ### Backend Features
 
@@ -721,22 +724,24 @@ The translation system allows users to dynamically switch languages without relo
 
 ### Features
 
-- Dynamic language switching
-- Browser language auto-detection
-- Translation JSON architecture
-- Accessibility-aware translated ARIA labels
-- Translated placeholders, buttons, modals, forms, and navigation
-- Persistent selected language
-- Scalable localisation structure for future languages
+- Dynamic language switching from the Navbar
+- Persistent language selection using `localStorage`
+- Automatic saved language loading on app start
+- Browser language fallback when no saved language exists
+- Default fallback language set to English
+- Translation JSON file structure for English, Spanish, and French
+- Translated navigation labels, buttons, headings, forms, placeholders, modals, dashboard text, empty states, and accessibility labels
+- Dynamic `<html lang="">` update for better accessibility and screen reader support
+- Scalable translation structure for adding more languages in the future
+- No backend dependency required for language switching
 
 ### Libraries Used
 
-| Library                            | Purpose                             |
-| ---------------------------------- | ----------------------------------- |
-| `i18next`                          | Core internationalization framework |
-| `react-i18next`                    | React integration                   |
-| `i18next-browser-languagedetector` | Detects browser language            |
-| `i18next-http-backend`             | Loads translation files             |
+| Library                | Purpose                                       |
+| ---------------------- | --------------------------------------------- |
+| `i18next`              | Core internationalisation framework           |
+| `react-i18next`        | React integration for translation hooks       |
+| `i18next-http-backend` | Loads translation files from `public/locales` |
 
 ### Translation File Structure
 
@@ -765,6 +770,35 @@ Imported globally inside:
 import "./i18n";
 ```
 
+### Language Persistence Flow
+
+The language preference follows this order:
+
+- Check saved language from localStorage.
+- If no saved language exists, check the browser language.
+- If the browser language is not supported, fall back to English.
+- Save the selected language using the key smarthireLanguage.
+- Update the page language using document.documentElement.lang.
+
+**Local Storage Keys**
+| Key                 | Purpose                                     |
+| ------------------- | ------------------------------------------- |
+| `smarthireLanguage` | Main SmartHire language preference key      |
+| `i18nextLng`        | Compatibility key for older i18next storage |
+
+**Examples:**
+- smarthireLanguage = en
+- smarthireLanguage = es
+- smarthireLanguage = fr
+
+**Supported Language Codes**
+| Code | Language |
+| ---- | -------- |
+| `en` | English  |
+| `es` | Spanish  |
+| `fr` | French   |
+
+
 ### Translation Usage Pattern
 
 ```jsx
@@ -791,13 +825,15 @@ The selected language updates all translated UI text instantly.
 
 ### Accessibility Translation Support
 
-ARIA labels and accessibility text are also translated.
+The language switcher follows accessibility best practices:
 
-Example:
-
-```jsx
-<button aria-label={t("buttons.close")}>
-```
+- Uses a real `<label>` connected to the `<select>`
+- Includes translated `aria-label`
+- Uses screen-reader-only text for current language announcement
+- Updates the `<html lang="">` attribute when language changes
+- Supports keyboard navigation by default through native select behaviour
+- Maintains visible focus styling with `:focus-visible`
+- Supports dark mode, high contrast mode, reduced motion, touch devices, landscape layout, and print styling
 
 ### Components Updated for Translation
 
@@ -1143,14 +1179,18 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 
 **Features:**
 
-- Role-based navigation (Job Seeker, Employer, Admin, Guest)
+- Role-based navigation for Job Seeker, Employer, Admin, and Guest users
 - Active route highlighting with visual feedback
-- User avatar dropdown menu with logout
-- Mobile hamburger menu with slide-out drawer
-- CSS modules styling with responsive breakpoints
-- Integrated language switcher (EN / ES / FR)
+- User avatar dropdown menu with logout action
+- Mobile hamburger menu with responsive slide-out navigation
+- Integrated language switcher for English, Spanish, and French
+- Persistent language selection using `localStorage`
 - Fully translated navigation labels and ARIA attributes
-- Responsive language selector for desktop and mobile layouts
+- Theme toggle support for light, dark, and system modes
+- Accessible icon-only buttons with translated `aria-label` values
+- Responsive language selector for desktop, tablet, and mobile layouts
+- Supports keyboard navigation and visible focus indicators
+- Uses plain CSS and semantic CSS variables for dark mode compatibility
 
 ### Footer
 
@@ -1559,10 +1599,11 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - **Axios 1.6.2** - HTTP client for API requests
 - **React Hook Form 7.48.2** - Form handling and validation
 - **React Hot Toast 2.4.1** - Toast notifications
-- **i18next** - Internationalization framework
+- **i18next** - Internationalisation framework
 - **react-i18next** - React bindings for i18next
-- **i18next-browser-languagedetector** - Automatic browser language detection
 - **i18next-http-backend** - Translation file loader
+- **Browser Language API** - Detects the user’s preferred browser language through `navigator.languages`
+- **localStorage** - Persists selected language using the `smarthireLanguage` key
 - **CSS3** - Custom styling with CSS variables, semantic theme tokens, and centralized dark mode overrides
 - **Google Material Symbols** - Icon system
 - **Recharts** - Charting library for admin dashboard
@@ -3384,6 +3425,45 @@ This table allows SmartHire to store precomputed job recommendations instead of 
 | Activity translations not showing                 | Confirm `activityTimeline` keys exist in English, Spanish, and French translation files                                                  |
 | Timeline styling not applying                     | Verify `RecentActivityTimeline.css` is imported inside `RecentActivityTimeline.jsx`                                                      |
 | Timeline layout breaks on mobile                  | Confirm the advanced media queries are included at the bottom of `RecentActivityTimeline.css`                                            |
+
+### Language Switcher Not Persisting
+
+If the selected language does not remain active after refreshing the page:
+
+1. Open browser DevTools.
+2. Go to Application → Local Storage.
+3. Check whether `smarthireLanguage` exists.
+4. Confirm the value is one of:
+
+```plaintext
+en
+es
+fr
+```
+5. If the value is missing, check client/src/i18n.js.
+6. Make sure saveLanguagePreference() is called when the language changes.
+7. Confirm the language dropdown calls:
+```bash
+i18n.changeLanguage(selectedLanguage);
+```
+
+**Translation JSON Error**
+
+If the application shows a blank page or translation loading error, validate the JSON files:
+
+`client/public/locales/en/translation.json`
+`client/public/locales/es/translation.json`
+`client/public/locales/fr/translation.json`
+
+**Common causes:**
+
+- Missing comma between objects
+- Extra comma at the end of an object
+- Missing closing brace
+- Comments added inside JSON files
+- Incorrect nesting inside the nav object
+
+JSON files must not contain comments.
 
 ## Contributing
 

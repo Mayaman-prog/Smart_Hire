@@ -30,7 +30,14 @@
     "switchTheme": "Cambiar tema",
     "openNavigationMenu": "Abrir menú de navegación",
     "closeNavigationMenu": "Cerrar menú de navegación",
-    "mobileNavigation": "Navegación móvil"
+    "mobileNavigation": "Navegación móvil",
+    "selectLanguage": "Seleccionar idioma",
+    "currentLanguage": "Idioma actual: {{language}}",
+    "languageOptions": {
+      "english": "Inglés",
+      "spanish": "Español",
+      "french": "Francés"
+    }
   },
   "roles": {
     "jobSeeker": "Buscador de empleo",

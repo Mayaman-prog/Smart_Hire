@@ -30,7 +30,14 @@
     "switchTheme": "Switch theme",
     "openNavigationMenu": "Open navigation menu",
     "closeNavigationMenu": "Close navigation menu",
-    "mobileNavigation": "Mobile navigation"
+    "mobileNavigation": "Mobile navigation",
+    "selectLanguage": "Select language",
+    "currentLanguage": "Current language: {{language}}",
+    "languageOptions": {
+      "english": "English",
+      "spanish": "Spanish",
+      "french": "French"
+    }
   },
   "roles": {
     "jobSeeker": "Job Seeker",

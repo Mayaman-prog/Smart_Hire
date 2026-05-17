@@ -33,15 +33,37 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+// Allowed frontend origins include Vite development and production preview URLs.
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:4173",
+  "http://127.0.0.1:4173",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Requests without an origin are allowed for tools like Postman and server-side checks.
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Only known frontend URLs are allowed to access the backend API.
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+
+// Middleware
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());

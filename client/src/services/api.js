@@ -68,7 +68,7 @@ export const jobAPI = {
   createJob: (data) => api.post("/jobs", data),
   updateJob: (id, data) => api.put(`/jobs/${id}`, data),
   deleteJob: (id) => api.delete(`/jobs/${id}`),
-  getRecommendedJobs: () => api.get("/jobs/recommended"),
+  getRecommendedJobs: () => api.get("/job-matches/me?limit=10"),
 };
 
 // Application APIs (used by Job Seekers and Employers)

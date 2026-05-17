@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('job_seeker', 'employer', 'admin') DEFAULT 'job_seeker',
     company_id INT NULL,
+    google_id VARCHAR(255) NULL,
+    linkedin_id VARCHAR(255) NULL,
     resume_url VARCHAR(500) NULL,
     is_active BOOLEAN DEFAULT TRUE,
     last_login TIMESTAMP NULL,
@@ -38,7 +40,9 @@ CREATE TABLE IF NOT EXISTS users (
     FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL,
     INDEX idx_email (email),
     INDEX idx_role (role),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_google_id (google_id),
+    INDEX idx_linkedin_id (linkedin_id)
 );
 
 -- 3. JOB SEEKERS EXTENDED INFO

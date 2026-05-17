@@ -23,6 +23,7 @@ const normalizeRecommendedJob = (item) => {
 
   return {
     ...job,
+    id: job.id || job.job_id,
     match_score: getMatchScore(item),
   };
 };
@@ -42,7 +43,7 @@ const extractRecommendedJobs = (responseData) => {
 
   return rawJobs
     .map(normalizeRecommendedJob)
-    .filter((job) => job?.id)
+    .filter((job) => job?.id || job?.job_id)
     .sort((a, b) => getMatchScore(b) - getMatchScore(a))
     .slice(0, 10);
 };

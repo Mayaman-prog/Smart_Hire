@@ -503,7 +503,11 @@ async function getAllJobSeekers() {
     const role = normaliseText(getField(user, ["role", "user_role"]));
 
     return (
-      !role || ["jobseeker", "job seeker", "seeker", "candidate"].includes(role)
+      role === "job_seeker" ||
+      role === "jobseeker" ||
+      role === "job seeker" ||
+      role === "seeker" ||
+      role === "candidate"
     );
   });
 }

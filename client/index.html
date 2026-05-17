@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <!-- This script applies the saved theme before React loads to prevent a light or dark flash. -->
   <script>
     (function () {
       try {
@@ -25,8 +26,29 @@
       }
     })();
   </script>
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- The manifest file allows SmartHire to be installed as a standalone app. -->
+  <link rel="manifest" href="/manifest.json" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- The theme colour matches the SmartHire green brand identity. -->
+  <meta name="theme-color" content="#00c48c" />
+
+  <meta name="description"
+    content="SmartHire is a smart job portal system for job seekers, employers, and administrators." />
+
+  <!-- These tags improve install behaviour on supported mobile browsers. -->
+  <meta name="application-name" content="SmartHire" />
+  <meta name="apple-mobile-web-app-title" content="SmartHire" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link
@@ -38,6 +60,10 @@
 
 <body>
   <div id="root"></div>
+  <!-- This message is shown only when JavaScript is disabled. -->
+  <noscript>
+    SmartHire requires JavaScript to run. Please enable JavaScript in your browser.
+  </noscript>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

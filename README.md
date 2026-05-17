@@ -31,11 +31,13 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
   - [Daily Job Alert Cron Job](#daily-job-alert-cron-job)
   - [Notify Reporter on Resolution](#notify-reporter-on-resolution)
   - [ResumeUpload Component](#resumeupload-component)
+  - [Progressive Web App (PWA) Support](#progressive-web-app-pwa-support)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
 - [Project Structure](#project-structure)
 - [Setup Instructions](#setup-instructions)
   - [Client Setup](#client-setup)
+  - [PWA Production Preview Testing](#pwa-production-preview-testing)
   - [Server Setup](#server-setup)
   - [Database Setup](#database-setup)
   - [Email Service Setup](#email-service-setup)
@@ -173,6 +175,11 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Translation support for buttons, labels, placeholders, headings, modals, empty states, dashboard sections, and accessibility labels
 - Translation-ready JSON locale architecture for future language expansion
 - ARIA labels translated for screen reader users
+- Progressive Web App support with `manifest.json` and custom service worker
+- Installable app support using standalone display mode, theme colours, and PNG icons
+- Offline app shell support using Cache Storage
+- Stale-while-revalidate caching for static frontend assets such as JavaScript, CSS, fonts, icons, manifest files, and translation JSON files
+- API and uploaded file requests intentionally excluded from service worker caching for privacy and data freshness
 
 ### Backend Features
 
@@ -781,12 +788,13 @@ The language preference follows this order:
 - Update the page language using document.documentElement.lang.
 
 **Local Storage Keys**
-| Key                 | Purpose                                     |
+| Key | Purpose |
 | ------------------- | ------------------------------------------- |
-| `smarthireLanguage` | Main SmartHire language preference key      |
-| `i18nextLng`        | Compatibility key for older i18next storage |
+| `smarthireLanguage` | Main SmartHire language preference key |
+| `i18nextLng` | Compatibility key for older i18next storage |
 
 **Examples:**
+
 - smarthireLanguage = en
 - smarthireLanguage = es
 - smarthireLanguage = fr
@@ -794,10 +802,9 @@ The language preference follows this order:
 **Supported Language Codes**
 | Code | Language |
 | ---- | -------- |
-| `en` | English  |
-| `es` | Spanish  |
-| `fr` | French   |
-
+| `en` | English |
+| `es` | Spanish |
+| `fr` | French |
 
 ### Translation Usage Pattern
 
@@ -1174,6 +1181,74 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - Dynamic Profile Strength update when a resume is uploaded or deleted.
 - Keyboard accessible (Enter/Space on dropzone triggers file picker).
 - Responsive design with media queries.
+
+### Progressive Web App (PWA) Support
+
+SmartHire includes basic Progressive Web App support so the frontend can be installed and the main application shell can load when the browser is offline.
+
+#### Implemented PWA Features
+
+- Added `manifest.json` for browser install support
+- Added application name, short name, description, start URL, scope, standalone display mode, theme colour, and background colour
+- Added 192x192 and 512x512 PNG icons for stable browser compatibility
+- Linked the manifest file inside `client/index.html`
+- Added mobile web app metadata for supported browsers
+- Added a custom `sw.js` service worker inside `client/public`
+- Registered the service worker from `client/src/main.jsx`
+- Added reusable service worker registration logic in `client/src/utils/serviceWorkerRegistration.js`
+- Cached the app shell and generated Vite production assets
+- Cached public static files such as icons, manifest, favicon, and translation JSON files
+- Used a stale-while-revalidate strategy for static frontend assets
+- Used network-first navigation so users receive the latest frontend when online
+- Excluded backend API routes and uploaded files from caching
+
+#### Main PWA Files
+
+| File                                            | Purpose                                                                             |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `client/public/manifest.json`                   | Defines installable app metadata such as app name, display mode, colours, and icons |
+| `client/public/sw.js`                           | Custom service worker for app shell and static asset caching                        |
+| `client/public/icons/icon-192x192.png`          | Small PWA icon used by browsers and mobile install prompts                          |
+| `client/public/icons/icon-512x512.png`          | Large PWA icon used by browsers and mobile install prompts                          |
+| `client/src/utils/serviceWorkerRegistration.js` | Registers or unregisters the service worker safely                                  |
+| `client/index.html`                             | Links the manifest and mobile web app metadata                                      |
+| `client/src/main.jsx`                           | Calls `registerServiceWorker()` after the React app is rendered                     |
+
+#### Caching Strategy
+
+| Request Type                           | Strategy                                        | Reason                                                                          |
+| -------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------- |
+| Navigation requests                    | Network first with cached `index.html` fallback | Loads the latest app when online and falls back to the cached app shell offline |
+| Vite assets in `/assets/`              | Stale-while-revalidate                          | Loads cached JS/CSS quickly while updating cache in the background              |
+| Icons, manifest, favicon, translations | Stale-while-revalidate and pre-cache            | Keeps public UI resources available offline                                     |
+| API routes under `/api/`               | Not cached                                      | Avoids storing private or frequently changing backend data                      |
+| Uploaded files under `/uploads/`       | Not cached                                      | Avoids caching user-uploaded private files                                      |
+
+#### Offline Behaviour
+
+When offline, SmartHire is expected to load the main frontend shell, including the layout, styles, icons, and cached translation files. Live backend data such as featured jobs, companies, recommendations, dashboards, login actions, and profile data may fail offline because API responses are intentionally not cached.
+
+#### PWA Testing Result
+
+The production preview test confirmed that:
+
+- The production build completed successfully
+- The manifest loaded correctly in Chrome DevTools
+- PNG icons were accepted by the manifest checker
+- The service worker registered successfully
+- Cache Storage created SmartHire cache entries
+- Generated JavaScript and CSS assets were cached
+- The SmartHire app shell loaded while browser Offline mode was enabled
+- API requests failed offline as expected because backend data is not cached
+
+#### Bug Fixes During PWA Implementation
+
+| Issue                                            | Cause                                                                            | Resolution                                                                       |
+| ------------------------------------------------ | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Production build failed with invalid media query | CSS variables such as `var(--breakpoint-mobile)` were used inside `@media` rules | Replaced media-query variables with fixed breakpoint values such as `768px`      |
+| Service worker returned invalid offline response | The fetch handler returned `undefined` when no cached response existed           | Added safe fallback `Response` objects for offline failures                      |
+| Manifest icon error appeared in Chrome           | SVG icons loaded in browser but were rejected by Chrome's manifest validation    | Replaced SVG manifest icons with PNG icons                                       |
+| Locale JSON failed offline                       | Translation files were not included in the service worker cache list             | Added English, Spanish, and French translation files to the service worker cache |
 
 ### Navbar
 
@@ -1604,6 +1679,9 @@ The `ReportsTable` component (used in Admin Dashboard) displays pending reports 
 - **i18next-http-backend** - Translation file loader
 - **Browser Language API** - Detects the user’s preferred browser language through `navigator.languages`
 - **localStorage** - Persists selected language using the `smarthireLanguage` key
+- **Web App Manifest** - Enables installable app metadata and standalone display mode
+- **Service Worker API** - Registers a custom service worker for offline app shell support
+- **Cache Storage API** - Stores static frontend assets, icons, manifest files, and translations for offline loading
 - **CSS3** - Custom styling with CSS variables, semantic theme tokens, and centralized dark mode overrides
 - **Google Material Symbols** - Icon system
 - **Recharts** - Charting library for admin dashboard
@@ -1644,6 +1722,9 @@ Make sure you have the following installed:
 SmartHire/
 ├── client/                           # React (Vite) frontend
 ├── public/
+│   ├── icons/
+│   │   ├── icon-192x192.png
+│   │   └── icon-512x512.png
 │   ├── locales/
 │   │   ├── en/
 │   │   │   └── translation.json
@@ -1651,6 +1732,8 @@ SmartHire/
 │   │   │   └── translation.json
 │   │   └── fr/
 │   │       └── translation.json
+│   ├── manifest.json
+│   ├── sw.js
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── common/
@@ -1892,6 +1975,33 @@ Follow these steps to run the project locally in under 15 minutes:
 - npm run dev
 
 #### Client will run on: `http://localhost:5173`
+
+### PWA Production Preview Testing
+
+The service worker is registered only in production mode to avoid development cache confusion. Test the PWA feature using the production preview server instead of the normal Vite development server.
+
+```bash
+cd client
+npm run build
+npm run preview
+```
+
+Open the preview URL:
+
+```plaintext
+http://localhost:4173
+```
+
+Then verify the following in Chrome DevTools:
+
+1. Go to **Application → Manifest** and confirm the app name, standalone display mode, theme colour, and PNG icons are detected.
+2. Go to **Application → Service Workers** and confirm `sw.js` is activated and running.
+3. Go to **Application → Cache Storage** and confirm SmartHire cache entries are created.
+4. Refresh the app once while online so the app shell and Vite assets are cached.
+5. Turn on **Network → Offline** and refresh the page.
+6. Confirm the main SmartHire layout loads offline.
+
+API data may fail offline. This is expected because `/api/` and `/uploads/` requests are intentionally excluded from caching.
 
 ## Server Setup
 
@@ -3440,9 +3550,11 @@ en
 es
 fr
 ```
+
 5. If the value is missing, check client/src/i18n.js.
 6. Make sure saveLanguagePreference() is called when the language changes.
 7. Confirm the language dropdown calls:
+
 ```bash
 i18n.changeLanguage(selectedLanguage);
 ```
@@ -3509,6 +3621,8 @@ JSON files must not contain comments.
 - Add relative time formatting such as “2 hours ago” or “Yesterday”.
 - Add filter tabs for All, Applications, Saved Jobs, and Alerts.
 - Add real-time activity updates using WebSocket or Server-Sent Events.
+- Add a dedicated offline fallback page with clearer messaging for API-dependent sections.
+- Add optional cached read-only fallback data for public jobs and companies if privacy requirements allow it.
 
 ## License
 
@@ -3534,6 +3648,8 @@ The goal of SmartHire is to provide an accessible, scalable, responsive, multili
 - JobSeekerDashboard (overview, applied jobs, saved jobs, profile edit, resume upload with auto‑fill preview panel, drag‑and‑drop progress bar)
 - EmployerDashboard (overview, job creation/editing/deletion, applicant management)
 - AdminDashboard (KPI cards, charts, tables, reports, date range picker, export CSV, auto-refresh)
+- Progressive Web App support with `manifest.json`, PNG icons, and custom service worker
+- Offline app shell caching for generated Vite JS/CSS assets, icons, manifest, favicon, and translation JSON files
 - JobDetailsPage (dynamic fetch, apply flow, duplicate prevention, save flow, similar jobs, report job modal, Apply with Resume, Salary Comparison Badge, Salary Insights (trend chart & percentiles))
 
 **Backend and API Integration**
@@ -3587,6 +3703,7 @@ The goal of SmartHire is to provide an accessible, scalable, responsive, multili
 - Added ARIA improvements for dialogs, filters, buttons, and dynamic status messages
 - Fixed `Alt + D` dashboard shortcut using `AuthContext`
 - Fixed `Alt + S` job search focus using `id="job-search-input"` and `data-hotkey="job-search"`
+- PWA Bug Fixes – Fixed invalid CSS media query build issue, service worker fallback response issue, SVG manifest icon rejection, and offline translation JSON caching
 
 **Miscellaneous:**
 
@@ -3595,5 +3712,6 @@ The goal of SmartHire is to provide an accessible, scalable, responsive, multili
 - MySQL database schema with 27+ tables and seed data
 - CSS variables for consistent theming and Google Material Icons
 - Admin analytics charts using Recharts (line, bar, pie)
+- PWA production preview testing completed using `npm run build` and `npm run preview`
 
 **Current Setup Time:** Any developer can clone and run the frontend with mock data in under 10 minutes.

@@ -24,14 +24,29 @@
 
 .recommended-job-item {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
   min-width: 0;
 }
 
+.recommended-job-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  min-height: 36px;
+  height: auto;
+}
+
+.recommended-job-item > .recommended-job-toolbar {
+  height: auto;
+}
+
 .match-score-badge {
-  position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
-  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--primary-color);
   color: #ffffff;
   border-radius: var(--radius-full);
@@ -40,6 +55,106 @@
   font-weight: 700;
   line-height: 1.4;
   box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.recommended-job-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+}
+
+.why-job-wrapper {
+  position: relative;
+}
+
+.why-job-button,
+.recommendation-feedback-btn {
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.why-job-button {
+  min-height: 32px;
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  font-size: var(--font-xs);
+  font-weight: 700;
+}
+
+.why-job-button:hover,
+.why-job-button[aria-expanded="true"],
+.recommendation-feedback-btn:hover,
+.recommendation-feedback-btn.is-active {
+  border-color: var(--primary-color);
+  background: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+.why-job-button:focus-visible,
+.recommendation-feedback-btn:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 3px;
+}
+
+.why-job-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: min(280px, calc(100vw - 32px));
+  background: var(--dropdown-bg, var(--bg-card));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.why-job-title {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+  font-weight: 700;
+}
+
+.why-job-tooltip ul {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+}
+
+.why-job-tooltip li {
+  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.recommendation-feedback {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.recommendation-feedback-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.recommendation-feedback-btn .material-symbols-outlined {
+  font-size: 18px;
 }
 
 .recommended-jobs-status {
@@ -58,12 +173,25 @@
   font-weight: 500;
 }
 
-/* Dark mode */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 [data-theme="dark"] .recommended-jobs-status,
-.dark .recommended-jobs-status {
+.dark .recommended-jobs-status,
+[data-theme="dark"] .why-job-button,
+.dark .why-job-button,
+[data-theme="dark"] .recommendation-feedback-btn,
+.dark .recommendation-feedback-btn,
+[data-theme="dark"] .why-job-tooltip,
+.dark .why-job-tooltip {
   background: var(--bg-card);
   border-color: var(--border-color);
-  color: var(--text-secondary);
 }
 
 [data-theme="dark"] .recommended-jobs-empty,
@@ -71,14 +199,23 @@
   color: var(--text-primary);
 }
 
-/* Large tablets and small laptops */
+[data-theme="dark"] .why-job-button:hover,
+.dark .why-job-button:hover,
+[data-theme="dark"] .why-job-button[aria-expanded="true"],
+.dark .why-job-button[aria-expanded="true"],
+[data-theme="dark"] .recommendation-feedback-btn:hover,
+.dark .recommendation-feedback-btn:hover,
+[data-theme="dark"] .recommendation-feedback-btn.is-active,
+.dark .recommendation-feedback-btn.is-active {
+  background: rgba(0, 196, 140, 0.12);
+}
+
 @media (max-width: 1200px) {
   .recommended-jobs-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Tablets */
 @media (max-width: 900px) {
   .recommended-jobs-section {
     margin: var(--spacing-xl) 0;
@@ -94,7 +231,6 @@
   }
 }
 
-/* Mobile */
 @media (max-width: 640px) {
   .recommended-jobs-grid {
     grid-template-columns: 1fr;
@@ -104,19 +240,33 @@
     font-size: var(--font-xs);
   }
 
+  .recommended-job-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recommended-job-actions {
+    justify-content: space-between;
+    width: 100%;
+    margin-left: 0;
+  }
+
   .recommended-jobs-status {
     padding: var(--spacing-lg);
   }
 
   .match-score-badge {
-    top: var(--spacing-xs);
-    right: var(--spacing-xs);
+    align-self: flex-start;
     font-size: 11px;
     padding: 3px 8px;
   }
+
+  .why-job-tooltip {
+    left: 0;
+    right: auto;
+  }
 }
 
-/* Very small mobile screens */
 @media (max-width: 380px) {
   .recommended-jobs-section {
     margin: var(--spacing-lg) 0;
@@ -128,43 +278,45 @@
   }
 
   .match-score-badge {
-    max-width: 90px;
-    white-space: nowrap;
+    max-width: 120px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 }
 
-/* Landscape phones */
 @media (max-width: 900px) and (orientation: landscape) {
   .recommended-jobs-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Touch devices */
 @media (hover: none) and (pointer: coarse) {
   .recommended-job-item {
     -webkit-tap-highlight-color: transparent;
   }
 
-  .match-score-badge {
-    padding: 5px 10px;
+  .match-score-badge,
+  .why-job-button,
+  .recommendation-feedback-btn {
+    min-height: 44px;
   }
 }
 
-/* Reduced motion users */
 @media (prefers-reduced-motion: reduce) {
   .recommended-job-item,
-  .match-score-badge {
+  .match-score-badge,
+  .why-job-button,
+  .recommendation-feedback-btn {
     transition: none;
   }
 }
 
-/* High contrast mode */
 @media (prefers-contrast: more) {
   .recommended-jobs-status,
-  .match-score-badge {
+  .match-score-badge,
+  .why-job-button,
+  .recommendation-feedback-btn,
+  .why-job-tooltip {
     border: 2px solid currentColor;
   }
 }

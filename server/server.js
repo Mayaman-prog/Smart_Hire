@@ -6,10 +6,10 @@ const morgan = require("morgan");
 const path = require("path");
 const session = require("express-session");
 
-// Import pool from database config
+// Import pool from database config.
 const { pool } = require("./src/config/database");
 
-// Import routes
+// Import routes.
 const authRoutes = require("./src/routes/authRoutes");
 const jobRoutes = require("./src/routes/jobRoutes");
 const companyRoutes = require("./src/routes/companyRoutes");
@@ -28,10 +28,14 @@ const passport = require("./src/config/passport");
 const salaryRoutes = require("./src/routes/salaryRoutes");
 const jobMatchRoutes = require("./src/routes/jobMatchRoutes");
 const { auditLogger } = require("./src/middleware/auditLogger");
+const { globalApiLimiter } = require("./src/middleware/rateLimiter");
 
 dotenv.config();
 
 const app = express();
+
+// Trust one proxy so req.ip works correctly when deployed behind a reverse proxy.
+app.set("trust proxy", 1);
 
 // Allowed frontend origins include Vite development and production preview URLs.
 const allowedOrigins = [
@@ -63,21 +67,25 @@ app.use(
   }),
 );
 
-// Middleware
+// Middleware.
 app.use(helmet());
 app.use(morgan("dev"));
+
+// The global limiter protects every API endpoint with 100 requests per minute per IP.
+app.use("/api", globalApiLimiter);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(auditLogger);
 
-// Serve uploaded files (for resumes)
+// Serve uploaded files for resumes.
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Start scheduled background jobs
+// Start scheduled background jobs.
 startDailyJobAlert();
 startDailyJobMatchingCron();
 
-// API ROUTES
+// API routes.
 app.get("/api", (req, res) => {
   res.status(200).json({
     success: true,
@@ -114,55 +122,55 @@ app.get("/api/test", (req, res) => {
   });
 });
 
-// Initialize Passport middleware
+// Initialize Passport middleware.
 app.use(passport.initialize());
 
-// Auth routes
+// Auth routes.
 app.use("/api/auth", authRoutes);
 
-// Job routes
+// Job routes.
 app.use("/api/jobs", jobRoutes);
 
-// Salary routes
+// Salary routes.
 app.use("/api/salary", salaryRoutes);
 
-// Company routes
+// Company routes.
 app.use("/api/companies", companyRoutes);
 
-// Application routes
+// Application routes.
 app.use("/api/applications", applicationRoutes);
 
-// Employer routes
+// Employer routes.
 app.use("/api/employer", require("./src/routes/employerRoutes"));
 
-// Saved Jobs routes
+// Saved Jobs routes.
 app.use("/api/saved-jobs", savedJobsRoutes);
 
-// Admin routes
+// Admin routes.
 app.use("/api/admin", adminRoutes);
 
-// User routes
+// User routes.
 app.use("/api/users", userRoutes);
 
-// Notification routes
+// Notification routes.
 app.use("/api/notifications", notificationRoutes);
 
-// Saved Search routes
+// Saved Search routes.
 app.use("/api/saved-searches", savedSearchRoutes);
 
-// Report routes
+// Report routes.
 app.use("/api/reports", reportRoutes);
 
-// Cover Letter routes
+// Cover Letter routes.
 app.use("/api/cover-letters", coverLetterRoutes);
 
-// Search Suggestion routes
+// Search Suggestion routes.
 app.use("/api/search/suggest", searchSuggestionRoutes);
 
-// Job Matching Routes
+// Job Matching routes.
 app.use("/api/job-matches", jobMatchRoutes);
 
-// 404 handler - MUST be last
+// 404 handler must be placed after all routes.
 app.use("*", (req, res) => {
   res.status(404).json({
     success: false,
@@ -170,9 +178,10 @@ app.use("*", (req, res) => {
   });
 });
 
-// Error handler
+// Error handler.
 app.use((err, req, res, next) => {
   console.error("Error:", err.message);
+
   res.status(500).json({
     success: false,
     message: "Internal server error",
@@ -182,7 +191,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-// Test database connection using pool
+// Test database connection using pool.
 const startServer = async () => {
   try {
     await pool.query("SELECT 1");

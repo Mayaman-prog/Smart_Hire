@@ -24,6 +24,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
     - [Search Term Logging & Keyword Highlighting](#search-term-logging--keyword-highlighting)
     - [Audit Logging](#audit-logging)
     - [Job Matching Algorithm](#job-matching-algorithm)
+    - [API Rate Limiting and Brute-Force Protection](#api-rate-limiting-and-brute-force-protection)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
   - [Email Rate Limiting & Retry Logic](#email-rate-limiting--retry-logic)
@@ -186,7 +187,8 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - JWT authentication (register, login, profile)
 - Password hashing with bcrypt (10 rounds)
 - Input validation with express-validator
-- Rate limiting (5 login attempts per 15 minutes)
+- Global API rate limiting using `express-rate-limit`: 100 requests per minute per IP with standard rate limit headers
+- Brute-force login protection using Redis: failed login attempts tracked per email, account lockout after 10 failures within 15 minutes, and 30 minute lock duration
 - MySQL database with 29 tables
 - Transaction support for registration
 - CORS configured for frontend
@@ -205,6 +207,67 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Audit Logging – Non-blocking audit middleware records login success/failure, password changes, role changes, user bans, job deletion, company verification, and report resolution in the `audit_logs` table.
 - Salary Aggregation API – GET /api/salary/estimate returns market salary data by title and location for the salary comparison badge.
 - Job Matching Algorithm – calculates personalised job recommendations using TF-IDF keyword similarity, location matching, job type matching, salary alignment, and user activity history.
+- API Rate Limiting and Brute-Force Protection – protects backend APIs against request abuse and login attacks using Redis-backed counters, global request throttling, account lockout rules, and audit logging.
+
+#### API Rate Limiting and Brute-Force Protection
+
+This backend security feature improves SmartHire's resistance against high-volume API abuse and brute-force login attempts. It is implemented only on the server side and does not require frontend changes.
+
+**Purpose:**
+
+- Limit excessive API traffic from the same IP address.
+- Track failed login attempts per email address.
+- Temporarily lock login access after repeated failed attempts.
+- Store counters in Redis so the protection remains consistent across backend restarts and scalable deployments.
+- Record lockout events in the audit log for security monitoring.
+
+**Files added or updated:**
+
+| File                                          | Purpose                                                                                                                            |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `server/server.js`                            | Applies the global API limiter to `/api` routes and enables trusted proxy IP handling.                                             |
+| `server/src/middleware/rateLimiter.js`        | Defines the Redis-backed global rate limiter using `express-rate-limit`.                                                           |
+| `server/src/services/loginSecurityService.js` | Tracks failed login attempts, manages lockout state, clears counters after successful login, and logs lockout events.              |
+| `server/src/controllers/authController.js`    | Checks lockout state before login, records failed attempts, clears failures after successful login, and returns lockout responses. |
+
+**Global API rate limiting:**
+
+| Setting | Value                               |
+| ------- | ----------------------------------- |
+| Scope   | All `/api` routes                   |
+| Limit   | 100 requests                        |
+| Window  | 1 minute                            |
+| Key     | Client IP address                   |
+| Headers | Standard rate limit headers enabled |
+| Store   | Redis                               |
+
+If a client exceeds the allowed request count, the backend returns a `429 Too Many Requests` response with a clear error message.
+
+**Login brute-force protection:**
+
+| Setting          | Value              |
+| ---------------- | ------------------ |
+| Counter key      | Email address      |
+| Failure limit    | 10 failed attempts |
+| Failure window   | 15 minutes         |
+| Lock duration    | 30 minutes         |
+| Store            | Redis              |
+| Lockout response | `423 Locked`       |
+
+When a user enters the wrong password repeatedly, Redis increments the failure counter for that email address. After 10 failed attempts within 15 minutes, the account login is locked for 30 minutes. Successful login clears the failure counter.
+
+**Audit logging:**
+
+The backend records the following security events in the audit logging system:
+
+| Audit action            | Meaning                                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `LOGIN_FAILURE`         | A login attempt failed because of invalid credentials, validation failure, disabled account, or unknown user. |
+| `LOGIN_LOCKOUT`         | An email reached the failed login threshold and was locked.                                                   |
+| `LOGIN_BLOCKED_LOCKOUT` | A login request was blocked because the email was already locked.                                             |
+| `LOGIN_SUCCESS`         | A user logged in successfully and failed login counters were cleared.                                         |
+
+This allows administrators to investigate repeated login failures, suspicious IP addresses, and account lockout patterns.
 
 #### Cover Letters
 
@@ -2013,6 +2076,42 @@ API data may fail offline. This is expected because `/api/` and `/uploads/` requ
 
 #### Server will run on: `http://localhost:5000`
 
+### Redis Setup for Local Development
+
+Redis is required for background email queues, report rate limiting, global API rate limiting, and login brute-force protection. On Windows, Redis can be run easily through Docker Desktop.
+
+Start Redis with Docker:
+
+```powershell
+docker run --name smarthire-redis -p 6379:6379 -d redis:latest
+```
+
+Check that the Redis container is running:
+
+```powershell
+docker ps
+```
+
+Test Redis connectivity:
+
+```powershell
+docker exec -it smarthire-redis redis-cli ping
+```
+
+Expected response:
+
+```text
+PONG
+```
+
+If the Redis container already exists but is stopped, start it again with:
+
+```powershell
+docker start smarthire-redis
+```
+
+The backend connects to Redis using the `REDIS_URL` value inside `server/.env`.
+
 ## Database Setup (MySQL)
 
 - Start MySQL (via XAMPP Control Panel)
@@ -2141,6 +2240,21 @@ DB_PORT=3306
 JWT_SECRET=super_secret_jwt_key_change_this_in_production
 JWT_EXPIRE=24h
 FRONTEND_URL=`http://localhost:5173`
+
+# Redis configuration for queues, counters, rate limiting, and brute-force protection
+
+REDIS_URL=redis://127.0.0.1:6379
+
+# API rate limiting configuration
+
+GLOBAL_RATE_LIMIT_WINDOW_MS=60000
+GLOBAL_RATE_LIMIT_MAX=100
+
+# Login brute-force protection configuration
+
+LOGIN_FAILURE_LIMIT=10
+LOGIN_FAILURE_WINDOW_SECONDS=900
+LOGIN_LOCK_SECONDS=1800
 
 # Email configuration – use your own SMTP credentials
 
@@ -3487,6 +3601,11 @@ This table allows SmartHire to store precomputed job recommendations instead of 
 | Toast notifications not showing                   | Ensure `react-hot-toast` is installed and `<Toaster />` is rendered                                                                      |
 | 500 Internal Server Error                         | Inspect server logs and verify database schema                                                                                           |
 | JWT_SECRET missing                                | Define `JWT_SECRET` in `.env` (minimum 32 characters)                                                                                    |
+| Redis command not recognized on Windows           | Run Redis through Docker Desktop using `docker run --name smarthire-redis -p 6379:6379 -d redis:latest`                                  |
+| Docker Redis command fails with daemon error      | Open Docker Desktop first, wait until the engine is running, then run the Redis container command again                                  |
+| Backend cannot connect to Redis                   | Confirm Docker Redis is running with `docker exec -it smarthire-redis redis-cli ping` and verify `REDIS_URL=redis://127.0.0.1:6379`      |
+| Global API rate limit exceeded                    | Wait one minute or reduce repeated API calls from the same IP address                                                                    |
+| Login account locked after failed attempts        | Wait 30 minutes or clear the Redis lock key during local testing                                                                         |
 | Rate limit exceeded                               | Wait cooldown period or restart server instance                                                                                          |
 | Apply button stays enabled after applying         | Validate application status handling from backend                                                                                        |
 | Saved jobs not appearing in dashboard             | Verify `saved_jobs` API response integrity                                                                                               |

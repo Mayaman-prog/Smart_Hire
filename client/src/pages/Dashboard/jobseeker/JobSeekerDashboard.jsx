@@ -10,6 +10,7 @@ import {
 } from "../../../services/api";
 import JobCard from "../../../components/jobs/JobCard/JobCard";
 import RecommendedJobsSection from "../../../components/jobs/RecommendedJobSection/RecommendedJobsSection";
+import RecentActivityTimeline from "../../../components/dashboard/RecentActivityTimeline/RecentActivityTimeline";
 import SaveSearchModal from "../../../components/SaveSearchModal/SaveSearchModal";
 import Navbar from "../../../components/common/Navbar/Navbar";
 import Footer from "../../../components/common/Footer/Footer";
@@ -518,6 +519,10 @@ const JobSeekerDashboard = () => {
             </div>
           )}
 
+          {/* Recent Activity panel shows applications, saved jobs, and alerts in chronological order */}
+          <RecentActivityTimeline className="dashboard-recent-activity" />
+
+          {/* Recommended jobs section stays below recent activity */}
           <RecommendedJobsSection className="dashboard-recommended-jobs" />
 
           {/* Saved Searches Section */}

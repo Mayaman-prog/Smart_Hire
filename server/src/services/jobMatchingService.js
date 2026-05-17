@@ -268,6 +268,127 @@ function getMatchingKeywords(userTokens, jobTokens) {
   return matches.slice(0, 12);
 }
 
+function calculateTokenOverlapScore(tokensA, tokensB) {
+  if (!tokensA.length || !tokensB.length) {
+    return 0;
+  }
+
+  const setA = new Set(tokensA);
+  const setB = new Set(tokensB);
+  let overlap = 0;
+
+  // Counts how many meaningful words are shared between two jobs.
+  setA.forEach((token) => {
+    if (setB.has(token)) {
+      overlap += 1;
+    }
+  });
+
+  return overlap / Math.max(setA.size, setB.size, 1);
+}
+
+function calculateFeedbackAdjustment(jobTokens, feedbackProfiles) {
+  if (!feedbackProfiles.length || !jobTokens.length) {
+    return 0;
+  }
+
+  let adjustment = 0;
+
+  feedbackProfiles.forEach((profile) => {
+    const similarity = calculateTokenOverlapScore(jobTokens, profile.tokens);
+
+    // Very weak similarities are ignored to avoid noisy score changes.
+    if (similarity < 0.08) {
+      return;
+    }
+
+    // Positive feedback gives a small boost to similar future jobs.
+    if (profile.feedback === "up") {
+      adjustment += similarity * 8;
+    }
+
+    // Negative feedback has a stronger effect to reduce poor matches.
+    if (profile.feedback === "down") {
+      adjustment -= similarity * 14;
+    }
+  });
+
+  return Math.max(-18, Math.min(10, Number(adjustment.toFixed(2))));
+}
+
+function appendFeedbackReason(reasonSummary, feedbackAdjustment) {
+  if (!feedbackAdjustment) {
+    return reasonSummary;
+  }
+
+  const feedbackReason =
+    feedbackAdjustment > 0
+      ? "positive recommendation feedback improved similar matches"
+      : "negative recommendation feedback reduced similar matches";
+
+  return `${reasonSummary}; ${feedbackReason}`;
+}
+
+async function getFeedbackProfilesForUser(userId) {
+  const feedbackRows = await optionalQuery(
+    `
+    SELECT
+      rf.feedback,
+      j.*
+    FROM recommendation_feedback rf
+    INNER JOIN jobs j ON j.id = rf.job_id
+    WHERE rf.user_id = ?
+    `,
+    [userId],
+  );
+
+  // Converts previous feedback jobs into token profiles for score adjustment.
+  return feedbackRows.map((row) => ({
+    feedback: row.feedback,
+    tokens: tokenize(buildJobText(row)),
+  }));
+}
+
+async function saveRecommendationFeedback(userId, jobId, feedback) {
+  const normalizedFeedback =
+    feedback === "up" || feedback === "down" ? feedback : null;
+
+  const jobs = await query(
+    "SELECT id FROM jobs WHERE id = ? AND is_active = 1",
+    [jobId],
+  );
+
+  if (!jobs.length) {
+    const error = new Error("Job not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Empty feedback removes the selected thumb state for that job.
+  if (!normalizedFeedback) {
+    await query(
+      "DELETE FROM recommendation_feedback WHERE user_id = ? AND job_id = ?",
+      [userId, jobId],
+    );
+
+    return null;
+  }
+
+  // One user can only have one feedback value per recommended job.
+  await query(
+    `
+    INSERT INTO recommendation_feedback (user_id, job_id, feedback)
+    VALUES (?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      feedback = VALUES(feedback),
+      updated_at = NOW()
+    `,
+    [userId, jobId, normalizedFeedback],
+  );
+
+  return normalizedFeedback;
+}
+
 function calculateLocationScore(user, job) {
   const userLocation = normaliseText(
     getField(user, ["preferred_location", "location", "city", "address"]),
@@ -588,6 +709,7 @@ async function calculateMatchesForUser(userId) {
   const idf = inverseDocumentFrequency(documentsForIdf);
 
   const userVector = buildTfidfVector(userTokens, idf);
+  const feedbackProfiles = await getFeedbackProfilesForUser(userId);
 
   const matches = [];
 
@@ -621,13 +743,21 @@ async function calculateMatchesForUser(userId) {
       ),
     );
 
-    const matchScore = clampScore(
+    const baseMatchScore = clampScore(
       keywordScore * WEIGHTS.keyword +
         locationScore * WEIGHTS.location +
         jobTypeScore * WEIGHTS.jobType +
         salaryScore * WEIGHTS.salary +
         historyScore * WEIGHTS.history,
     );
+
+    // Feedback adjustment is added after the normal recommendation score.
+    const feedbackAdjustment = calculateFeedbackAdjustment(
+      jobTokens,
+      feedbackProfiles,
+    );
+
+    const matchScore = clampScore(baseMatchScore + feedbackAdjustment);
 
     const matchingKeywords = getMatchingKeywords(userTokens, jobTokens);
 
@@ -645,7 +775,10 @@ async function calculateMatchesForUser(userId) {
       matchScore,
       ...scoreBreakdown,
       matchingKeywords,
-      reasonSummary: createReasonSummary(scoreBreakdown, matchingKeywords),
+      reasonSummary: appendFeedbackReason(
+        createReasonSummary(scoreBreakdown, matchingKeywords),
+        feedbackAdjustment,
+      ),
     });
   }
 
@@ -747,9 +880,12 @@ async function getMatchesForUser(userId, limit = 20) {
       jm.matching_keywords,
       jm.reason_summary,
       jm.last_calculated_at,
+      rf.feedback AS user_feedback,
       j.*
     FROM job_matches jm
     INNER JOIN jobs j ON j.id = jm.job_id
+    LEFT JOIN recommendation_feedback rf
+      ON rf.user_id = jm.user_id AND rf.job_id = jm.job_id
     WHERE jm.user_id = ?
     ORDER BY jm.match_score DESC, jm.last_calculated_at DESC
     LIMIT ?
@@ -762,4 +898,5 @@ module.exports = {
   calculateMatchesForUser,
   calculateMatchesForAllUsers,
   getMatchesForUser,
+  saveRecommendationFeedback,
 };

@@ -309,8 +309,12 @@
   height: 100%;
 }
 
-.recommended-job-item > * {
+.recommended-job-item .job-card-link {
   height: 100%;
+}
+
+.recommended-job-item > .recommended-job-toolbar {
+  height: auto;
 }
 
 .recommended-jobs-status {

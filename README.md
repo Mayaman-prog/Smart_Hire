@@ -24,6 +24,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
     - [Search Term Logging & Keyword Highlighting](#search-term-logging--keyword-highlighting)
     - [Audit Logging](#audit-logging)
     - [Job Matching Algorithm](#job-matching-algorithm)
+    - [Recommendation Explanation and Feedback UI](#recommendation-explanation-and-feedback-ui)
     - [API Rate Limiting and Brute-Force Protection](#api-rate-limiting-and-brute-force-protection)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
@@ -207,7 +208,155 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Audit Logging – Non-blocking audit middleware records login success/failure, password changes, role changes, user bans, job deletion, company verification, and report resolution in the `audit_logs` table.
 - Salary Aggregation API – GET /api/salary/estimate returns market salary data by title and location for the salary comparison badge.
 - Job Matching Algorithm – calculates personalised job recommendations using TF-IDF keyword similarity, location matching, job type matching, salary alignment, and user activity history.
+- Recommendation Explanation and Feedback UI – adds frontend transparency and rating controls to recommended job cards through a “Why?” tooltip and thumbs up/down buttons. Backend database storage and score adjustment are pending for the next phase.
 - API Rate Limiting and Brute-Force Protection – protects backend APIs against request abuse and login attacks using Redis-backed counters, global request throttling, account lockout rules, and audit logging.
+
+### Recommendation Explanation and Feedback UI
+
+The frontend of the **“Why this job?” tooltip and rating feedback** feature has been implemented for the SmartHire recommendation system. This update improves recommendation transparency by allowing job seekers to understand why a job was recommended to them. It also introduces thumbs up and thumbs down feedback buttons so users can rate whether a recommendation is useful.
+
+This implementation is currently frontend-only. Feedback is temporarily stored in browser `localStorage` until backend database storage and score-adjustment logic are implemented.
+
+#### User Story
+
+As a job seeker, I want to see why a job was recommended, such as “Matches your React skill”, and give feedback using thumbs up or thumbs down, so that I can understand the match and help improve future recommendations.
+
+#### Acceptance Criteria Status
+
+| Requirement                                       | Status    | Notes                                                                           |
+| ------------------------------------------------- | --------- | ------------------------------------------------------------------------------- |
+| Add “Why?” button on each recommended job card    | Completed | Added inside the recommended job card toolbar                                   |
+| Show tooltip with top matching factors            | Completed | Tooltip displays skills, location, job type, salary, history, or reason summary |
+| Add thumbs up/down icons                          | Completed | Added using Material Symbols                                                    |
+| Store feedback in `recommendation_feedback` table | Pending   | Backend implementation required                                                 |
+| Use feedback to adjust future match scores        | Pending   | Backend matching service update required                                        |
+| Preserve existing recommendation section          | Completed | Existing API pattern and `JobCard` component are reused                         |
+
+#### Files Updated
+
+| File                                                                          | Purpose                                                                                                                               |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `client/src/components/jobs/RecommendedJobSection/RecommendedJobsSection.jsx` | Added “Why?” tooltip, recommendation reason extraction, thumbs up/down feedback UI, and temporary local feedback storage              |
+| `client/src/components/jobs/RecommendedJobSection/RecommendedJobsSection.css` | Added styling for tooltip, feedback buttons, match score badge, responsive layout, dark mode, focus states, and accessibility support |
+| `client/src/pages/Dashboard/jobseeker/JobSeekerDashboard.css`                 | Adjusted recommended job card height handling so the new toolbar does not break the dashboard layout                                  |
+| `client/src/pages/HomePage/HomePage.css`                                      | Adjusted homepage recommended job card height handling so the new toolbar displays correctly                                          |
+
+#### Implementation Details
+
+The recommended job section now displays a small toolbar above each recommended job card. The toolbar includes the match score, a **Why?** button, and thumbs up/down feedback controls.
+
+When the user clicks the **Why?** button, a tooltip opens and displays the main reasons for the recommendation. The reasons are generated from existing recommendation fields such as:
+
+- `matching_keywords`
+- `keyword_score`
+- `location_score`
+- `job_type_score`
+- `salary_score`
+- `history_score`
+- `reason_summary`
+
+If matching keywords are available, the tooltip can display messages such as:
+
+```text
+Matches your React skill
+Matches your JavaScript skill
+Matches your preferred location
+Salary range matches your expectation
+Similar to jobs you saved or applied for
+```
+
+The thumbs up/down buttons use temporary frontend persistence through `localStorage`. This allows the selected feedback state to remain after page refresh during frontend testing. Permanent storage will be added later through the backend `recommendation_feedback` table.
+
+#### Accessibility Improvements
+
+This update includes accessibility support for keyboard and screen reader users.
+
+Implemented accessibility features include:
+
+- `aria-expanded` for the **Why?** button
+- `aria-describedby` linking the button to the tooltip
+- `role="tooltip"` for the explanation popup
+- `aria-pressed` for thumbs up/down feedback buttons
+- `aria-label` for feedback buttons
+- `role="status"` and `aria-live="polite"` for feedback confirmation
+- Visible focus indicators for keyboard users
+- Escape key support to close the active tooltip
+
+#### UI and Responsive Behaviour
+
+The tooltip and feedback controls were styled using the existing SmartHire CSS variable system. This keeps the design consistent with the current green brand theme, dark mode, and reusable component style.
+
+The layout supports:
+
+- Desktop grid layout
+- Tablet two-column layout
+- Mobile single-column layout
+- Touch-friendly button sizing
+- Dark mode styling
+- Reduced motion preference
+- High contrast preference
+
+#### Current Feature Status
+
+```text
+Frontend UI: Completed
+Tooltip explanation: Completed
+Thumbs up/down UI: Completed
+Temporary localStorage feedback: Completed
+Backend feedback API: Pending
+Database storage: Pending
+Recommendation score adjustment: Pending
+Overall task status: Partially Completed
+```
+
+#### Testing Checklist
+
+| Test Scenario                      | Expected Result                                     | Status            |
+| ---------------------------------- | --------------------------------------------------- | ----------------- |
+| Login as a job seeker              | Recommended section should be visible               | Ready for testing |
+| Open homepage                      | “Recommended for You” section should display        | Ready for testing |
+| Open job seeker dashboard          | Recommended jobs should display                     | Ready for testing |
+| Click “Why?” button                | Tooltip should open with recommendation reasons     | Ready for testing |
+| Press Escape while tooltip is open | Tooltip should close                                | Ready for testing |
+| Click thumbs up                    | Thumbs up button should become active               | Ready for testing |
+| Click thumbs down                  | Thumbs down button should become active             | Ready for testing |
+| Refresh the page                   | Selected feedback should remain from `localStorage` | Ready for testing |
+| Switch to dark mode                | Tooltip and buttons should remain readable          | Ready for testing |
+| Resize to mobile view              | Layout should remain clean and responsive           | Ready for testing |
+
+#### Known Limitation
+
+The thumbs up/down feedback currently works only on the frontend. It is saved temporarily in `localStorage`, not in the MySQL database. This is intentional for the current frontend-only phase.
+
+The following backend work is still required:
+
+- Create `recommendation_feedback` table
+- Add feedback API endpoint
+- Save feedback in MySQL
+- Load previous feedback from database
+- Adjust future match scores based on user feedback
+- Optionally log recommendation feedback through the audit logging system
+
+#### Future Backend Work
+
+The next backend phase should connect the frontend feedback buttons to a secure API endpoint such as:
+
+```http
+POST /api/job-matches/:jobId/feedback
+```
+
+The backend should store the feedback in the `recommendation_feedback` table and use it inside the job matching algorithm. Positive feedback should slightly increase similar future recommendations, while negative feedback should reduce similar future recommendations.
+
+#### Troubleshooting
+
+| Issue                                           | Possible Cause                                              | Solution                                                                              |
+| ----------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| “Why?” button does not show                     | Recommended job section file was not replaced correctly     | Check `RecommendedJobsSection.jsx`                                                    |
+| Tooltip opens but looks broken                  | CSS file was not updated or imported                        | Check `RecommendedJobsSection.css` import                                             |
+| Thumbs icons do not show                        | Material Symbols stylesheet is missing                      | Confirm Material Symbols are loaded globally                                          |
+| Card height looks stretched                     | Old `recommended-job-item > *` CSS rule is still active     | Replace the dashboard/homepage CSS rule with the new toolbar-safe rule                |
+| Feedback disappears after clearing browser data | Feedback is stored in `localStorage` only                   | Backend storage is pending                                                            |
+| Tooltip text is too generic                     | Backend did not return matching keywords or score breakdown | Check `matching_keywords`, `reason_summary`, and score fields from recommendation API |
 
 #### API Rate Limiting and Brute-Force Protection
 
@@ -1464,48 +1613,60 @@ The production preview test confirmed that:
 
 - Displays personalised recommended jobs for authenticated job seekers
 - Integrated into both the HomePage and JobSeekerDashboard
-- Fetches recommendations from:
-  `GET /api/jobs/recommended`
+- Fetches recommendations through the existing `jobAPI.getRecommendedJobs()` service
 - Uses the reusable `JobCard` component for consistent UI design
 - Jobs are automatically sorted by highest match score
 - Match score badge displayed on each recommendation card
-- Responsive CSS grid layout using advanced media queries
-- Empty state shown when recommendations are unavailable:
-  `Could not load recommended jobs right now.`
-- Loading state with accessible role="status"
-- Error handling with accessible role="alert"
-- Fully compatible with:
-  - Global dark mode system
-  - Existing localisation system
-  - Keyboard accessibility improvements
-  - Responsive dashboard layouts
-- Translation support added for:
-  - English
-  - Spanish
-  - French
+- Adds a **Why?** button above each recommended job card
+- Opens a tooltip showing the main recommendation reasons
+- Generates tooltip reasons from matching keywords, score breakdown fields, and `reason_summary`
+- Adds thumbs up and thumbs down feedback buttons using Material Symbols
+- Temporarily stores selected feedback in `localStorage` for frontend testing
+- Shows accessible loading, empty, and error states
 - Uses semantic CSS variables for theme consistency
-- Supports touch devices, reduced motion preferences, high contrast mode, landscape layouts, and print styles
+- Fully compatible with the global dark mode system
+- Supports responsive dashboard and homepage layouts
+- Supports touch devices, reduced motion preferences, high contrast mode, and mobile layouts
+
+**Recommendation Reason Sources:**
+
+- `matching_keywords`
+- `keyword_score`
+- `location_score`
+- `job_type_score`
+- `salary_score`
+- `history_score`
+- `reason_summary`
 
 **Accessibility Features:**
 
 - Section uses semantic heading hierarchy
-- Accessible loading and error states
-- ARIA labels for recommendation list
-- Screen-reader friendly match score labels
-- Keyboard accessible job cards
+- Loading state uses `role="status"` and `aria-live="polite"`
+- Error state uses `role="alert"`
+- Recommendation list has an accessible label
+- **Why?** button uses `aria-expanded`
+- Tooltip connection uses `aria-describedby`
+- Explanation popup uses `role="tooltip"`
+- Feedback buttons use `aria-pressed`
+- Feedback buttons include clear `aria-label` values
+- Screen-reader-only live region announces feedback changes
+- Escape key closes the active tooltip
+- Keyboard focus indicators remain visible
 - Fully compatible with existing Skip to Content navigation
 
 **Responsive Behaviour:**
 
-- 4-column layout on ultra-wide screens
 - 3-column desktop layout
-- 2-column tablet landscape layout
+- 2-column tablet layout
 - 1-column mobile layout
-- Mobile landscape optimization
-- Touch-device optimization
+- Mobile toolbar stacks cleanly above the job card
+- Touch-device button sizing improves tap targets
 - Reduced motion accessibility support
 - High contrast mode support
-- Print-friendly layout support
+
+**Current Limitation:**
+
+- Recommendation feedback is frontend-only for now. The thumbs up/down state is stored in `localStorage`, not in MySQL. Backend feedback storage and match score adjustment will be implemented in the next phase.
 
 ### CompanyCard
 
@@ -3696,6 +3857,17 @@ If the application shows a blank page or translation loading error, validate the
 
 JSON files must not contain comments.
 
+**Recommendation Tooltip and Feedback UI Issues**
+
+| Issue                                           | Possible Cause                                              | Solution                                                                              |
+| ----------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| “Why?” button does not show                     | Recommended job section file was not replaced correctly     | Check `RecommendedJobsSection.jsx`                                                    |
+| Tooltip opens but looks broken                  | CSS file was not updated or imported                        | Check `RecommendedJobsSection.css` import                                             |
+| Thumbs icons do not show                        | Material Symbols stylesheet is missing                      | Confirm Material Symbols are loaded globally                                          |
+| Card height looks stretched                     | Old `recommended-job-item > *` CSS rule is still active     | Replace the dashboard/homepage CSS rule with the new toolbar-safe rule                |
+| Feedback disappears after clearing browser data | Feedback is stored in `localStorage` only                   | Backend storage is pending                                                            |
+| Tooltip text is too generic                     | Backend did not return matching keywords or score breakdown | Check `matching_keywords`, `reason_summary`, and score fields from recommendation API |
+
 ## Contributing
 
 **Create a new branch:**
@@ -3713,6 +3885,10 @@ JSON files must not contain comments.
 
 ## Future Improvements
 
+- Store recommendation feedback in the `recommendation_feedback` database table.
+- Connect thumbs up/down buttons to a backend feedback API.
+- Use positive and negative recommendation feedback to adjust future job match scores.
+- Add audit logging for recommendation feedback actions if required by administrator monitoring.
 - Add Docker support
 - Cloud deployment using Vercel, Render, or Railway
 - Real-time notification system using Socket.io

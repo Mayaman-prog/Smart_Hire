@@ -416,7 +416,24 @@ CREATE TABLE IF NOT EXISTS job_matches (
   INDEX idx_job_matches_score (match_score)
 );
 
--- 28. AUDIT LOGS TABLE
+-- 28. RECOMMENDATION FEEDBACK TABLE
+CREATE TABLE IF NOT EXISTS recommendation_feedback (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  job_id INT NOT NULL,
+  feedback ENUM('up', 'down') NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_recommendation_feedback (user_id, job_id),
+  INDEX idx_recommendation_feedback_user_id (user_id),
+  INDEX idx_recommendation_feedback_job_id (job_id),
+  INDEX idx_recommendation_feedback_value (feedback)
+);
+
+-- 29. AUDIT LOGS TABLE
 CREATE TABLE IF NOT EXISTS audit_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NULL,

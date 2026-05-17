@@ -5,6 +5,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");
 const session = require("express-session");
+const cookieParser = require("cookie-parser");
 
 // Import pool from database config.
 const { pool } = require("./src/config/database");
@@ -29,10 +30,16 @@ const salaryRoutes = require("./src/routes/salaryRoutes");
 const jobMatchRoutes = require("./src/routes/jobMatchRoutes");
 const { auditLogger } = require("./src/middleware/auditLogger");
 const { globalApiLimiter } = require("./src/middleware/rateLimiter");
+const {
+  csrfProtection,
+  sendCsrfToken,
+  handleCsrfError,
+} = require("./src/middleware/csrfProtection");
 
 dotenv.config();
 
 const app = express();
+const isProduction = process.env.NODE_ENV === "production";
 
 // Trust one proxy so req.ip works correctly when deployed behind a reverse proxy.
 app.set("trust proxy", 1);
@@ -62,21 +69,66 @@ app.use(
       return callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-CSRF-Token",
+      "X-Requested-With",
+    ],
   }),
 );
 
-// Middleware.
-app.use(helmet());
+// Helmet adds security headers against common browser-based attacks.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        defaultSrc: ["'self'"],
+        baseUri: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        formAction: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+        imgSrc: ["'self'", "data:", "blob:"],
+        connectSrc: ["'self'", ...allowedOrigins],
+        upgradeInsecureRequests: isProduction ? [] : null,
+      },
+    },
+    frameguard: {
+      action: "deny",
+    },
+    referrerPolicy: {
+      policy: "no-referrer",
+    },
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
+  }),
+);
+
 app.use(morgan("dev"));
 
 // The global limiter protects every API endpoint with 100 requests per minute per IP.
 app.use("/api", globalApiLimiter);
 
+// Cookie parser is required before CSRF cookie validation.
+app.use(cookieParser());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Adds req.logAction so security events can be logged by middleware.
 app.use(auditLogger);
+
+// CSRF protection is applied to API routes before route handlers run.
+app.use("/api", csrfProtection);
+
+// The frontend can request this token before making POST, PUT, PATCH, or DELETE calls.
+app.get("/api/csrf-token", sendCsrfToken);
 
 // Serve uploaded files for resumes.
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -177,6 +229,9 @@ app.use("*", (req, res) => {
     message: `Route ${req.originalUrl} not found`,
   });
 });
+
+// CSRF errors must be handled before the general error handler.
+app.use(handleCsrfError);
 
 // Error handler.
 app.use((err, req, res, next) => {

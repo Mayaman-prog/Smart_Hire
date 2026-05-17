@@ -26,6 +26,7 @@ SmartHire is a full-stack job portal web application connecting job seekers, emp
     - [Job Matching Algorithm](#job-matching-algorithm)
     - [Recommendation Explanation and Feedback UI](#recommendation-explanation-and-feedback-ui)
     - [API Rate Limiting and Brute-Force Protection](#api-rate-limiting-and-brute-force-protection)
+    - [CSRF Protection and Security Headers](#csrf-protection-and-security-headers)
   - [Saved Searches Feature](#saved-searches-feature)
   - [Background Email Queue](#background-email-queue)
   - [Email Rate Limiting & Retry Logic](#email-rate-limiting--retry-logic)
@@ -194,6 +195,9 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Transaction support for registration
 - CORS configured for frontend
 - Helmet.js for security headers
+- Content Security Policy, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, and cross-origin resource policy configured through Helmet.
+- CSRF protection for state-changing API requests using cookie-based `csurf` middleware and `X-CSRF-Token` validation.
+- JavaScript security test script for checking backend health, Helmet headers, rate limit headers, CSRF token generation, blocked unsafe requests, and valid CSRF-token requests.
 - Morgan for request logging
 - Job reporting with Redis rate limiting (5 reports per user per 24h)
 - Admin analytics API endpoints (overview, timeline, popular, retention, KPI)
@@ -210,6 +214,7 @@ SmartHire enables seamless interaction between job seekers, employers, and admin
 - Job Matching Algorithm – calculates personalised job recommendations using TF-IDF keyword similarity, location matching, job type matching, salary alignment, and user activity history.
 - Recommendation Explanation and Feedback UI – adds frontend transparency and rating controls to recommended job cards through a “Why?” tooltip and thumbs up/down buttons. Backend database storage and score adjustment are pending for the next phase.
 - API Rate Limiting and Brute-Force Protection – protects backend APIs against request abuse and login attacks using Redis-backed counters, global request throttling, account lockout rules, and audit logging.
+- CSRF Protection and Security Headers – protects state-changing API requests using `csurf`, cookie-based CSRF validation, `X-CSRF-Token` request headers, and Helmet security headers including CSP, frame protection, content type protection, referrer policy, and cross-origin resource policy.
 
 ### Recommendation Explanation and Feedback UI
 
@@ -349,6 +354,15 @@ The backend should store the feedback in the `recommendation_feedback` table and
 
 #### Troubleshooting
 
+### CSRF and Security Headers Troubleshooting
+
+| Issue                                                                      | Possible Cause                                                                     | Solution                                                                                                                   |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `403 Invalid or missing CSRF token` on `POST`, `PUT`, `PATCH`, or `DELETE` | Request did not include a valid `X-CSRF-Token` header and matching CSRF cookie     | First call `GET /api/csrf-token`, keep the same cookie session, then send the returned token in the `X-CSRF-Token` header. |
+| Login request returns `Invalid credentials` during CSRF testing            | CSRF passed and the login controller checked the provided dummy password           | This is expected when using the test script with a fake password.                                                          |
+| Security headers are not visible in browser Network tab                    | A frontend CSS or JavaScript file was selected instead of the backend API response | Open `http://localhost:5000/api/health`, refresh the Network tab, and select the `health` request.                         |
+| CSRF test script fails to connect                                          | Backend server is not running or the base URL is different                         | Start the backend with `npm run dev` and rerun `node scripts/test-security.js --baseUrl "http://localhost:5000/api"`.      |
+
 | Issue                                           | Possible Cause                                              | Solution                                                                              |
 | ----------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | “Why?” button does not show                     | Recommended job section file was not replaced correctly     | Check `RecommendedJobsSection.jsx`                                                    |
@@ -417,6 +431,103 @@ The backend records the following security events in the audit logging system:
 | `LOGIN_SUCCESS`         | A user logged in successfully and failed login counters were cleared.                                         |
 
 This allows administrators to investigate repeated login failures, suspicious IP addresses, and account lockout patterns.
+
+#### CSRF Protection and Security Headers
+
+This backend security phase protects SmartHire against common browser-based attacks and unsafe cross-site requests. The implementation is server-side focused and works together with the existing Express, CORS, rate limiting, audit logging, and authentication setup.
+
+**Purpose:**
+
+- Protect state-changing API routes from CSRF attacks.
+- Add strong browser security headers using Helmet.
+- Block pages from being embedded in external frames.
+- Restrict scripts, styles, fonts, images, API connections, and form submissions using Content Security Policy.
+- Prevent MIME-type sniffing and reduce referrer leakage.
+- Keep global API rate limit headers visible for monitoring request limits.
+- Provide a repeatable JavaScript test script for security verification.
+
+**Files added or updated:**
+
+| File                                      | Purpose                                                                                                                  |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `server/server.js`                        | Applies Helmet security headers, enables cookie parsing, registers CSRF middleware, and exposes the CSRF token route.    |
+| `server/src/middleware/csrfProtection.js` | Defines cookie-based CSRF protection, sends CSRF tokens, and handles invalid or missing CSRF token errors.               |
+| `server/scripts/test-security.js`         | Tests backend health, Helmet headers, rate limit headers, CSRF token generation, CSRF blocking, and CSRF pass behaviour. |
+
+**Packages used:**
+
+| Package         | Purpose                                          |
+| --------------- | ------------------------------------------------ |
+| `helmet`        | Adds security-focused HTTP response headers.     |
+| `csurf`         | Validates CSRF tokens for unsafe requests.       |
+| `cookie-parser` | Parses CSRF cookies before CSRF validation runs. |
+
+**Security headers verified:**
+
+| Header                         | Purpose                                                                             |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| `Content-Security-Policy`      | Restricts where scripts, styles, fonts, images, forms, and API calls can load from. |
+| `X-Frame-Options: DENY`        | Prevents the app from being embedded inside another website frame.                  |
+| `X-Content-Type-Options`       | Prevents browsers from MIME-sniffing responses.                                     |
+| `Referrer-Policy: no-referrer` | Prevents referrer information from being leaked to other sites.                     |
+| `Cross-Origin-Resource-Policy` | Controls how resources are shared across origins.                                   |
+| `Strict-Transport-Security`    | Enforces HTTPS in production-capable browser contexts.                              |
+
+**CSRF flow:**
+
+1. The frontend or test script sends a `GET /api/csrf-token` request.
+2. The backend returns a CSRF token and sets the matching CSRF cookie.
+3. State-changing requests such as `POST`, `PUT`, `PATCH`, and `DELETE` include the token in the `X-CSRF-Token` header.
+4. The backend validates that the header token matches the cookie secret.
+5. Requests without a valid token return `403 Invalid or missing CSRF token.`
+
+**CSRF endpoint:**
+
+```http
+GET /api/csrf-token
+```
+
+Expected response:
+
+```json
+{
+  "success": true,
+  "csrfToken": "generated-token-value"
+}
+```
+
+**Testing command:**
+
+Run the security test script from the `server` folder:
+
+```bash
+node scripts/test-security.js
+```
+
+Optional custom email test:
+
+```bash
+node scripts/test-security.js --email "ramamit0315@gmail.com"
+```
+
+Expected successful output:
+
+```text
+✅ [PASS] Backend health route
+✅ [PASS] Helmet security headers
+✅ [PASS] Rate limit headers
+✅ [PASS] CSRF token route
+✅ [PASS] Unsafe request without CSRF token
+✅ [PASS] Unsafe request with valid CSRF token
+```
+
+The final login test may return `Invalid credentials` when a dummy password is used. This is acceptable because it confirms that CSRF validation passed and the request reached the authentication controller instead of being blocked by CSRF middleware.
+
+**Manual verification result:**
+
+The `/api/health` response successfully displayed security headers including `content-security-policy`, `x-frame-options: DENY`, `x-content-type-options: nosniff`, `referrer-policy: no-referrer`, and `cross-origin-resource-policy: cross-origin`. The response also displayed rate limit headers such as `ratelimit-limit`, `ratelimit-policy`, `ratelimit-remaining`, and `ratelimit-reset`, confirming that Helmet and the global API limiter are active.
+
+**Status:** Completed
 
 #### Cover Letters
 
@@ -2161,6 +2272,7 @@ SmartHire/
 │   │   ├── test-job-matching.js
 │   │   ├── test-report-resolution.js
 │   │   ├── test-cover-letters.js
+│   │   ├── test-security.js
 │   │   └── test-advanced-search.js
 │   ├── .env
 │   ├── .gitignore
@@ -2233,6 +2345,7 @@ API data may fail offline. This is expected because `/api/` and `/uploads/` requ
 
 - cd server
 - npm install
+- npm install csurf cookie-parser helmet
 - npm run dev
 
 #### Server will run on: `http://localhost:5000`
@@ -2401,6 +2514,10 @@ DB_PORT=3306
 JWT_SECRET=super_secret_jwt_key_change_this_in_production
 JWT_EXPIRE=24h
 FRONTEND_URL=`http://localhost:5173`
+
+# Security configuration
+
+# FRONTEND_URL is used by CORS and Helmet connect-src so the React app can call the backend safely.
 
 # Redis configuration for queues, counters, rate limiting, and brute-force protection
 
